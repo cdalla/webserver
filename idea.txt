@@ -1,0 +1,55 @@
+class Server
+{
+	public:
+	
+			Server(config file); -->fill the interfs vector according to config file
+			~Server()->	deletes everything needed
+	
+			epollLoop() --> function to epoll for events on epoll instance created after constructor
+	
+	private:
+		
+			vector<Interface> interfs; --> vector with all the single server in config file
+			vector<Connection> conns; --> vector with all the single connections accepted 
+		
+}
+
+
+class Interface
+{
+	public:
+	
+			Inteface(all infos from config file);
+			~Interface() --> deletes everything needed
+		
+			
+	private:
+	
+			struct sockaddr_in address;
+			struct epoll_event event;
+			int socket;
+			...	
+}
+
+
+class Connection
+{
+	public:
+
+			Connection(infos for creating conn);
+			~Connection() --> deletes everything needed
+			
+	private:
+	
+			int socket;
+			sockaddr_in *addr;
+			socklen_t *addrLen;
+			...
+}
+
+
+Connection::Connection(Interface interf)
+{
+	addrLen = (socklen_t *)sizeof(interf.address);
+	this->socket = accept(interf.socket, (struct sockeaddr *)&addr, addrLen);
+}

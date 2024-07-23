@@ -5,7 +5,10 @@
 // #include <fcntl.h>
 
 #include "serverClass.hpp"
+#include "connectionClass.hpp"
 
+template <typename T>
+void epollLoop(int epollFd, struct epoll_event &events, std::vector<T> &servers);
 
 //change value according to program
 #define MAX_CONNECTIONS 10
@@ -26,7 +29,7 @@ void	serverInit(std::vector<T> &servers)
 	typename std::vector<T>::iterator it = servers.begin();
 	for (; it != servers.end(); ++it)
 	{
-		createSocket(*it);		
+		createSocket(*it);
 	}
 	createEpollInstance(servers);
 }
@@ -126,7 +129,8 @@ void	 createEpollInstance(std::vector<T> &servers)
 			//close socket and epollfd
 		}
 	}
-	close(epollFd);
+	//close(epollFd);
+	epollLoop(epollFd, events, servers);
 }
 
 
@@ -137,14 +141,55 @@ void	 createEpollInstance(std::vector<T> &servers)
 -epoll_wait
 -accept
 
+RETURN EPOLL_WAIT()
+       On success, epoll_wait() returns the number of file descriptors
+       ready for the requested I/O operation, or zero if no file
+       descriptor became ready during the requested timeout
+       milliseconds.  On failure, epoll_wait() returns -1 and errno is
+       set to indicate the error.
 
 */
+
+/*create a class for connections????? with request handlers????*/
+
 template <typename T>
-void epollLoop(int epollFd, struct epoll_event events, std::vector<T> servers)
+void epollLoop(int &epollFd, struct epoll_event *events, std::vector<T> &servers)
 {
+	std::vector<Connection> connections;
+	int nfds, connSock;
 	while (true)
 	{
-		
+		nfds = epoll_wait(epollFd, events, MAX_EVENTS, 0); //timeout at zero, no waiting for events on fds
+		if (nfds == -1)
+		{
+			std::cerr << "failed epoll wait" << std::endl;
+			//error or exception
+		}
+		for (int n = 0; n < nfds; n++)
+		{
+			typename std::vector<T>::iterator servIt = servers.begin();
+			for(; servIt < servers.end(); ++servIt)
+			{
+				//add new socket to epoll instance
+				if(events[n].data.fd == (*servIt).socket)
+				{
+					//accept connection and add it to connections vector
+					Connection new_conn;
+					new_conn.addrLen = (socklen_t *)sizeof(new_conn.addr); //client address
+					new_conn.socket =  accept(((*servIt).socket), (struct sockaddr*)&new_conn.addr, new_conn.addrLen);
+					if (new_conn.socket == -1)
+					{
+						std::cerr << "Error accepting connection" << std::endl;
+						//error or exception
+					}
+					//set non blocking
+				}
+				else
+				{
+					//process connections
+				}
+			}
+		}
 	}
 }
 
@@ -171,5 +216,5 @@ int main()
 		close((*it).socket);
 	}
 	
-	return 0;
+	exit(0);
 }

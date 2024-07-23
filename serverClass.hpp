@@ -1,3 +1,6 @@
+#ifndef	SERVERCLASS_HPP
+# define SERVERCLASS_HPP
+
 #include <vector>
 #include <sys/socket.h>
 #include <sys/epoll.h>
@@ -11,8 +14,8 @@ class Server
 	public:
 	
 	struct sockaddr_in address;
-	int socket;
 	struct epoll_event event;
+	int socket;
 	
 	unsigned int port;
 	
@@ -20,3 +23,5 @@ class Server
 		~Server(){};
 		
 };
+
+#endif
