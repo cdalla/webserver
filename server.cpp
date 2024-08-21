@@ -4,6 +4,24 @@
 // #include <arpa/inet.h>
 // #include <fcntl.h>
 
+
+/*
+MAIN DIFF: POLL()-SELECT() vs EPOLL()
+
+	Scalability is the main problem when dealing with a huge amount of connection TCP
+	to a server.
+	
+	Poll and Select generate an array of file descriptor of interest, this array is then
+	passed to and copied by the kernel. The kernel will then go through all the fds to
+	see whether there are any events available with file's poll() operation.
+	
+	Epoll() instead create an instance Epoll and register into it fds of interest.
+	The epoll instance monitors the registered fds and report events to the application
+	when asked by the epoll_wait() call.
+	This become more efficient when the (amount fds with events)/(amount fds monitored)
+	ratio is relatively small.
+ 
+*/
 #include "serverClass.hpp"
 #include "connectionClass.hpp"
 
@@ -69,7 +87,7 @@ void	createSocket(T &server)
 	//SET NON BLOCKING AND REUSABLE ADDR
 	//	SOL_SOCKET used for option protocol indipendent, reuse address as 1 = true
 	setsockopt(server.socket, SOL_SOCKET, SO_REUSEADDR, &sockoption, sizeof(sockoption)); //check error
-	fcntl(server.socket, F_SETFL, O_NONBLOCK); //flagged non blocking
+	fcntl(server.socket, F_SETFL, O_NONBLOCK); //flagged non blocking //check return of fcntl
 	/*
 		non-blocking I/O means when reading an fd, if nothing is available,
 		return an error immediately rather than waiting/blocking until data is available.
@@ -108,8 +126,8 @@ void	 createEpollInstance(std::vector<T> &servers)
 {
 	int 				epollFd;
 	struct epoll_event	events[MAX_EVENTS];
-	
-	epollFd = epoll_create(1); //from linux 2.6.8 parameter size is ignored
+	//epoll_create return a fd to a new epoll kernel data struct
+	epollFd = epoll_create(1); //from linux 2.6.8 parameter size is ignored because epoll data struct is dinamically resized
 	if (epollFd == -1)
 	{
 		std::cerr << "Failed to create epoll instance" << std::endl;
@@ -170,9 +188,10 @@ void epollLoop(int &epollFd, struct epoll_event *events, std::vector<T> &servers
 			typename std::vector<T>::iterator servIt = servers.begin();
 			for(; servIt < servers.end(); ++servIt)
 			{
-				//add new socket to epoll instance
+				//check if EPOLLIN or EPOLLOUT to know what action to perform
 				if(events[n].data.fd == (*servIt).socket)
 				{
+				//add new socket to epoll instance
 					//accept connection and add it to connections vector
 					Connection new_conn;
 					new_conn.addrLen = (socklen_t *)sizeof(new_conn.addr); //client address
@@ -181,8 +200,11 @@ void epollLoop(int &epollFd, struct epoll_event *events, std::vector<T> &servers
 					{
 						std::cerr << "Error accepting connection" << std::endl;
 						//error or exception
+						//check if errno is EAGAIN or EWOULDBLOCK for not complete data transfer
+						
 					}
 					//set non blocking
+					//add new_conn to epoll instance
 				}
 				else
 				{

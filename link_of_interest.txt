@@ -1,0 +1,7 @@
+https://copyconstruct.medium.com/the-method-to-epolls-madness-d9d2d6378642
+
+https://unscriptedcoding.medium.com/multithreaded-server-in-c-using-epoll-baadad32224c
+
+https://medium.com/@avocadi/what-is-epoll-9bbc74272f7c
+
+https://www.gilesthomas.com/2013/09/writing-a-reverse-proxyloadbalancer-from-the-ground-up-in-c-part-2-handling-multiple-connections-with-epoll
