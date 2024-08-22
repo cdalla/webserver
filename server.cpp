@@ -135,6 +135,7 @@ void	 createEpollInstance(std::vector<T> &servers)
 		//error or exception
 	}
 	
+	//THIS ONE INTO A FUNCTION
 	typename std::vector<T>::iterator it = servers.begin();
 	for (; it != servers.end(); ++it)
 	{
@@ -195,7 +196,7 @@ void epollLoop(int &epollFd, struct epoll_event *events, std::vector<T> &servers
 					//accept connection and add it to connections vector
 					Connection new_conn;
 					new_conn.addrLen = (socklen_t *)sizeof(new_conn.addr); //client address
-					new_conn.socket =  accept(((*servIt).socket), (struct sockaddr*)&new_conn.addr, new_conn.addrLen);
+					new_conn.socket = accept(((*servIt).socket), (struct sockaddr*)&new_conn.addr, new_conn.addrLen);
 					if (new_conn.socket == -1)
 					{
 						std::cerr << "Error accepting connection" << std::endl;
@@ -214,9 +215,6 @@ void epollLoop(int &epollFd, struct epoll_event *events, std::vector<T> &servers
 		}
 	}
 }
-
-
-
 
 
 /* MAIN */
@@ -240,3 +238,30 @@ int main()
 	
 	exit(0);
 }
+
+
+
+/*
+void make_socket_non_blocking(int socket_fd)
+{
+    int flags;
+
+
+
+
+    flags = fcntl(socket_fd, F_GETFL, 0);
+    if (flags == -1) {
+        perror("Couldn't get socket flags");
+        exit(1);
+    }
+
+
+
+    flags |= O_NONBLOCK;
+    if (fcntl(socket_fd, F_SETFL, flags) == -1) {
+        perror("Couldn't set socket flags");
+        exit(-1);
+    }
+}
+
+*/
