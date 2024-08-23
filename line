@@ -12,11 +12,10 @@
             -create conn instance
             -accept new conn
             -set non blocking
-            -set edge triggered event? for chunked data transfer by set ev.event = EPOLLIN | EPOLLET
+            -set level triggered event? for chunked data transfer by set ev.event = EPOLLIN - level triggered event will keep notifying epoll until all data are consumed
             -add to epoll monitored fds (epoll_ctl_add)
         - else
             -use connection
             -first time is read of the request
-                -if then the http request is a get swith to EPOLLOUT 
+                -if then the http request is a get switch to EPOLLOUT 
                 -if then the http request is post or delete switch to EPOLLIN
-

@@ -125,7 +125,7 @@ template <typename T>
 void	 createEpollInstance(std::vector<T> &servers)
 {
 	int 				epollFd;
-	struct epoll_event	events[MAX_EVENTS];
+	struct epoll_event	events_queue[MAX_EVENTS];
 	//epoll_create return a fd to a new epoll kernel data struct
 	epollFd = epoll_create(1); //from linux 2.6.8 parameter size is ignored because epoll data struct is dinamically resized
 	if (epollFd == -1)
@@ -149,7 +149,7 @@ void	 createEpollInstance(std::vector<T> &servers)
 		}
 	}
 	//close(epollFd);
-	epollLoop(epollFd, events, servers);
+	epollLoop(epollFd, events_queue, servers);
 }
 
 
@@ -172,25 +172,25 @@ RETURN EPOLL_WAIT()
 /*create a class for connections????? with request handlers????*/
 
 template <typename T>
-void epollLoop(int &epollFd, struct epoll_event *events, std::vector<T> &servers)
+void epollLoop(int &epollFd, struct epoll_event *events_queue, std::vector<T> &servers)
 {
 	std::vector<Connection> connections;
-	int nfds, connSock;
+	int readyFds, connSock;
 	while (true)
 	{
-		nfds = epoll_wait(epollFd, events, MAX_EVENTS, 0); //timeout at zero, no waiting for events on fds
-		if (nfds == -1)
+		readyFds = epoll_wait(epollFd, events_queue, MAX_EVENTS, 0); //timeout at zero, no waiting for events on fds
+		if (readyFds == -1)
 		{
 			std::cerr << "failed epoll wait" << std::endl;
 			//error or exception
 		}
-		for (int n = 0; n < nfds; n++)
+		for (int n = 0; n < readyFds; n++)
 		{
 			typename std::vector<T>::iterator servIt = servers.begin();
 			for(; servIt < servers.end(); ++servIt)
 			{
 				//check if EPOLLIN or EPOLLOUT to know what action to perform
-				if(events[n].data.fd == (*servIt).socket)
+				if(events_queue[n].data.fd == (*servIt).socket)
 				{
 				//add new socket to epoll instance
 					//accept connection and add it to connections vector
@@ -210,6 +210,10 @@ void epollLoop(int &epollFd, struct epoll_event *events, std::vector<T> &servers
 				else
 				{
 					//process connections
+					if (events_queue[n].events & EPOLLIN)
+						//read data
+					else if (events_queue[n].events & EPOLLOUT)
+						//send data
 				}
 			}
 		}
