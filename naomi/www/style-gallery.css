@@ -1,0 +1,172 @@
+
+/**
+ * The pretty dark green: #0E3433
+ * The lighter green: #3E8581
+ */
+.gallery {
+	margin: 5px;
+	border: 1px solid #ccc;
+	float: left;
+	width: 180px;
+}
+
+.gallery:hover {
+	border: 1px solid #777;
+}
+
+.gallery img {
+	width: 100%;
+	height: auto;
+}
+
+.desc {
+	padding: 15px;
+	text-align: center;
+}
+
+.container {
+	display: flex;
+}
+
+.image {
+	flex: 1;
+	padding: 0px;
+}
+
+.text {
+	flex: 2;
+	letter-spacing: 0.7px;
+	line-height: 1.5;
+	padding-left: 20px;
+	padding-top: 50px;
+	padding-bottom: 0px;
+	border-color: black;
+	border-left-style: solid;
+	border-width: 2px;
+}
+
+.header {
+	background-color: #3E8581;
+	color: rgb(222, 219, 219);
+	font-family: 'Comic Sans MS', Arial, sans-serif;
+	font-size: 16px;
+	text-align: center;
+	padding: 10px;
+	margin-top: 5px;
+	/* padding-bottom: 0px; */
+}
+
+#footer {
+	list-style-type: none;
+	background-color: #42cc18;
+	color: white;
+	font-family: 'Comic Sans MS';
+	font-size: 14px;
+	text-decoration: none;
+	text-align: center;
+	padding: 2px;
+	margin-top: 20px;
+	overflow: hidden;
+}
+
+.footer li {
+	/* display: block; */
+	float: left;
+	margin: 2px;
+	padding: 10px;
+}
+
+.footer li a {
+	display: block;
+	/* background-color: red; */
+	color: white;
+	font-family: 'Comic Sans MS', Helvetica, sans-serif; 
+	text-align: center;
+	/* padding: 10px; */
+	text-decoration: none;
+	/* margin: 2px; */
+}
+.menu li {
+	float: left;
+	margin: 0;
+	padding: 0;
+}
+
+.menu li a {
+	display: block;
+	color: white;
+	font-family: 'Comic Sans MS', Helvetica, sans-serif; 
+	text-align: center;
+	padding: 10px;
+	text-decoration: none;
+	margin: 2px;
+}
+
+#menu {
+	list-style-type: none;
+	margin: 0px;
+	padding: 0px;
+	overflow: hidden;
+	background-color: #0E3433;
+	color: black;
+	font-size: 14px;
+}
+
+#this-is {
+	display: block;
+	float: left;
+	padding: 10px;
+	padding-right: 10px;
+	margin: 2px;
+	text-align: center;
+	font-family: 'Comic Sans MS';
+	background-color: white;
+	color: #0E3433;
+}
+
+.menu li:hover a {
+	background-color: white;
+	color: #0E3433;
+	padding: 7px;
+	border: 3px solid #0E3433
+}
+/* 
+.menu li {
+	float: left;
+	margin: 0;
+	padding: 0;
+}
+
+.menu li a {
+	display: block;
+	color: white;
+	font-family: 'Comic Sans MS', Helvetica, sans-serif; 
+	text-align: center;
+	padding: 10px;
+	text-decoration: none;
+	margin: 2px;
+} */
+
+/* border: 1px solid #777; */
+
+/* .menu li a:hover {
+	background-color: #3E8581;
+	color: #0E3433;
+	padding: 7px;
+	border: 3px solid #0E3433
+} */
+
+body {
+	font-family: Arial;
+}
+
+.button {
+	background-color: #07535c;
+	font-size: 16px;
+	cursor:	pointer;
+	color: #ffffff;
+}
+
+.clear {
+	clear: both;
+}

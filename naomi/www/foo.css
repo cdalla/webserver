@@ -1,0 +1,206 @@
+
+.gallery {
+    margin: 5px;
+    border: 1px solid #ccc;
+    float: left;
+    width: 180px;
+    height: 240px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.gallery:hover {
+    border: 1px solid #777;
+}
+
+.gallery img {
+    width: 100%;
+    height: auto;
+}
+
+.gallery_desc {
+    padding: 15px;
+    text-align: center;
+}
+
+.container {
+	display: flex;
+}
+
+.image {
+	flex: 1;
+	padding: 0px;
+}
+
+.text {
+	flex: 2;
+	letter-spacing: 0.7px;
+	line-height: 1.5;
+	padding-left: 20px;
+	padding-top: 50px;
+	padding-bottom: 0px;
+	border-left: 2px solid black;
+}
+
+.header {
+	background-color: #3E8581;
+	color: white;
+	font-family: 'Comic Sans MS', Arial, sans-serif;
+	font-size: 16px;
+	text-align: center;
+	padding: 10px;
+	margin-top: 0px;
+	overflow: hidden;
+	/* margin-top: 5px; */
+	/* padding-bottom: 0px; */
+}
+
+#menu-container {
+	list-style-type: none;
+	display: block;
+	margin: 0px;
+	padding: 10px;
+	font-family: 'Comic Sans MS';
+	overflow: hidden;
+	background-color: #0E3433;
+	color: white;
+	text-align: center;
+	font-size: 14px;
+}
+#menu {
+	list-style-type: none;
+	display: block;
+	margin: 0px;
+	padding: 10px;
+	overflow: hidden;
+	background-color: #0E3433;
+	color: white;
+	font-size: 14px;
+	text-align: center;
+}
+
+#this-is {
+	display: block;
+	float: left;
+	/* padding: 10px; */
+	padding-right: 20px;
+	overflow: hidden;
+	margin: 0px;
+	text-align: center;
+	font-family: 'Comic Sans MS';
+	color: white;
+	background-color: #0E3433;
+}
+
+#this-is:hover {
+	color: #0E3433;
+	background-color: white;
+}
+
+.menu-container li:hover a {
+	background-color: white;
+	color: #0E3433;
+	padding: 7px;
+	border: 3px solid #0E3433
+}
+
+.menu-container li {
+	float: left;
+	margin: 0;
+	padding: 0;
+}
+
+.menu-container li a {
+	display: block;
+	color: white;
+	font-family: 'Comic Sans MS', Helvetica, sans-serif; 
+	text-align: center;
+	padding: 10px;
+	text-decoration: none;
+	margin: 2px;
+}
+
+.menu li:hover a {
+	background-color: white;
+	color: #0E3433;
+	padding: 7px;
+	border: 3px solid #0E3433
+}
+
+.menu li {
+	float: left;
+	margin: 0;
+	padding: 0;
+}
+
+.menu li a {
+	display: block;
+	color: white;
+	font-family: 'Comic Sans MS', Helvetica, sans-serif; 
+	text-align: center;
+	padding: 10px;
+	text-decoration: none;
+	margin: 2px;
+}
+
+#footer {
+	list-style-type: none;
+	background-color: #3E8581;
+	/* background-image: url("OldBoy2.jpg"); */
+	background-size: auto;
+	color: white;
+	font-family: 'Comic Sans MS';
+	font-size: 14px;
+	text-decoration: none;
+	text-align: center;
+	padding: 0px;
+	margin-top: 20px;
+	overflow: hidden;
+}
+
+.footer li {
+	float: left;
+	/* margin: 2px; */
+	padding: 10px;
+}
+
+.footer li:hover {
+	background-color: white;
+	padding: 8px;
+	border: 2px solid #3E8581;
+}
+
+.footer li a {
+	display: block;
+	color: white;
+	font-family: 'Comic Sans MS', Helvetica, sans-serif; 
+	text-align: center;
+	text-decoration: none;
+}
+
+.footer li:hover a {
+	color: #3E8581;
+}
+
+#shutup {
+	display: block;
+	float: right;
+}
+
+#shutup li:hover {
+	padding: 8px;
+	border: 2px solid red;
+}
+
+#shutup li:hover a {
+	color: red;
+}
+
+body {
+	font-family: Arial;
+}
+
+.clear {
+	clear: both;
+}
