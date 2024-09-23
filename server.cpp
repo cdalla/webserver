@@ -29,7 +29,7 @@ void Server::createSocket()
 	
 	int sockoption = 1;
 	//SET NON BLOCKING AND REUSABLE ADDR
-	//	SOL_SOCKET used for option protocol indipendent, reuse address as 1 = true
+	//SOL_SOCKET used for option protocol indipendent, reuse address as 1 = true
 	setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &sockoption, sizeof(sockoption)); //check error
 	make_socket_non_blocking(_socket);
 

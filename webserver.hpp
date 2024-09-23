@@ -34,12 +34,12 @@ class Webserver
         void	addFdToMap(int fd, Server *server);
         void    addFdToPoll(int fd, struct epoll_event *event);
         void    addClient(int fd, Server *server);
-
+        void    removeFd(int fd);
 
     public: 
         
         Webserver(std::string config_file);
-        ~Webserver();
+        ~Webserver() = default;
 
         
         void    run();
