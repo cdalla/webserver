@@ -1,4 +1,4 @@
-#include "Webserver.hpp"
+#include "webserver.hpp"
 
 Webserver::Webserver(std::string filename)
 {
@@ -12,8 +12,8 @@ Webserver::~Webserver(){;}
 //loop servers vector to set up sockets
 void    Webserver::servers_init()
 {
-    std::vector<Servers>::iterator it = servers.begin();
-	for (; it != servers.end(); ++it)
+    std::vector<Server>::iterator it = _servers.begin();
+	for (; it != _servers.end(); ++it)
 	{
 		(*it).createSocket();
 	}
@@ -21,40 +21,40 @@ void    Webserver::servers_init()
 
 void    Webserver::create_Epoll()
 {
-    epollFd = epoll_create(1); //from linux 2.6.8 parameter size is ignored because epoll data struct is dinamically resized
-	if (epollFd == -1)
+    _epollFd = epoll_create(1); //from linux 2.6.8 parameter size is ignored because epoll data struct is dinamically resized
+	if (_epollFd == -1)
 	{
 		std::cerr << "Failed to create epoll instance" << std::endl;
 		//close all server sockets
 		//error or exception
 	}
-    std::vector<Server>::iterator it = servers.begin();
-	for (; it != servers.end(); ++it)
+    std::vector<Server>::iterator it = _servers.begin();
+	for (; it != _servers.end(); ++it)
 	{
-        addFdToPoll((*it).socket, (*it).event);
-		addFdToMap((*it).socket, (*it));
+        addFdToPoll((*it).get_socket(), (*it).get_event());
+		addFdToMap((*it).get_socket(), &(*it));
     }
 }
 
-void	addFdToMap(int fd, Server *server)
+void	Webserver::addFdToMap(int fd, Server *server)
 {
 	//create handler and add to map
-	if (fds.find(fd) != fds.end())
+	if (_fds.find(fd) != _fds.end())
 	{
 		//fd already present
 		return;
 	}
 	Event_handler *handler = new Event_handler(server);
-	fds[fd] = handler;
+	_fds[fd] = handler;
 }
 
 //add fds to epoll pool
 void    Webserver::addFdToPoll(int fd, struct epoll_event *event) 
 {
 
-		event.events = EPOLLIN | EPOLLERR | EPOLLHUP;
-		event.data.fd = fd;
-		if (epoll_ctl(epollFd, EPOLL_CTL_ADD, fd, &event) == -1)
+		(*event).events = EPOLLIN | EPOLLERR | EPOLLHUP;
+		(*event).data.fd = fd;
+		if (epoll_ctl(_epollFd, EPOLL_CTL_ADD, fd, event) == -1)
 		{
 			std::cerr << "Failed to add server socket to epoll instance" << std::endl;
 			//error or exception
@@ -62,16 +62,15 @@ void    Webserver::addFdToPoll(int fd, struct epoll_event *event)
 		}
 }
 
-void    Webserver::addClient(int fd, Server &server)
+void    Webserver::addClient(int fd, Server *server)
 {
 
-	Client client = new Client();
+	Client client;
 
     //add new socket to epoll instance
 	//accept connection and add it to connections vector
-	client.addrLen = (socklen_t *)sizeof(new_conn.addr); //client address
-	client.socket = accept(((*servIt).socket), (struct sockaddr*)&new_conn.addr, new_conn.addrLen);
-	if (client.socket == -1)
+	client.set_socket(accept((server->get_socket()), (struct sockaddr*)client.get_address(), client.get_addLen()));
+	if (client.get_socket() == -1)
 	{
 		if (errno == EAGAIN || errno == EWOULDBLOCK)
 		{
@@ -80,20 +79,20 @@ void    Webserver::addClient(int fd, Server &server)
 		}
 		std::cerr << "Error accepting connection" << std::endl;				
 	}
-    make_socket_non_blocking(client.socket);
-	addFdToPoll(client.socket, client.event);
-	addFdToMap(client.socket, server);
-	clients.push_back(client);
+    make_socket_non_blocking(client.get_socket());
+	addFdToPoll(client.get_socket(), client.get_event());
+	addFdToMap(client.get_socket(), server);
+	_clients.push_back(client);
 }
 
 //epoll_wait loop
-void Webserver::run()
+void	Webserver::run()
 {
     struct epoll_event	events_queue[MAX_EVENTS];
 	int readyFds;
 	while (true)
 	{
-		readyFds = epoll_wait(epollFd, events_queue, MAX_EVENTS, 0); //timeout at zero, no waiting for events on fds
+		readyFds = epoll_wait(_epollFd, events_queue, MAX_EVENTS, 0); //timeout at zero, no waiting for events on fds
 		if (readyFds == -1)
 		{
 			std::cerr << "failed epoll wait" << std::endl;
@@ -102,20 +101,21 @@ void Webserver::run()
 		for (int n = 0; n < readyFds; n++)
 		{
             int eventFd = events_queue[n].data.fd;
-			std::vector<Server>::iterator servIt = servers.begin();
-			for(; servIt < servers.end(); ++servIt)
+			std::vector<Server>::iterator servIt = _servers.begin();
+			for(; servIt < _servers.end(); ++servIt)
 			{
-				if( eventFd == (*servIt).socket)
-                    addClient(eventFd, *servIt);
+				if( eventFd == (*servIt).get_socket())
+                    addClient(eventFd, &(*servIt));
+				// maybe first loop to check new connection and then event handler if
 				else
 				{
 					//process connections
-					if (events_queue[n].events & EPOLLIN)
-						//read data
+					if (events_queue[n].events & EPOLLIN && _fds.find(eventFd) != _fds.end())
+						_fds[eventFd]->consume(IN);
 					else if (events_queue[n].events & EPOLLOUT)
-						//send data
+						_fds[eventFd]->consume(OUT);
 					//else if (cgi)
-					else
+					//else
 						//remove fd from epoll uknown event
 				}
 			}

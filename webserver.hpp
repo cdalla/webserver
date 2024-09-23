@@ -1,27 +1,39 @@
 #ifndef WEBSERVER_HPP
 # define WEBSERVER_HPP
 
-#include "server.hpp"
-#include <vector>
-#include <sys/socket.h>
-#include <sys/epoll.h>
-#include <arpa/inet.h>
-#include <fcntl.h>
-#include <iostream>
-#include <unistd.h>
+# include <vector>
+# include <map>
+# include <sys/socket.h>
+# include <sys/epoll.h>
+# include <arpa/inet.h>
+# include <fcntl.h>
+# include <iostream>
+# include <unistd.h>
 
-#include "server.hpp"
-#include "utils.hpp"
-#include "event_handler.hpp"
+# include "client.hpp"
+# include "server.hpp"
+//# include "utils.hpp"
+# include "event_handler.hpp"
 
-class WEBSERVER_HPP
+#define MAX_EVENTS 10
+#define IN 0
+#define OUT 1
+
+class Webserver
 {
     private:
 
-        std::vector<Server>             servers;
-        std::vector<Client>             clients;
-        std::map<int, Event_handler*>   fds;
-        int                             epollFd;
+        std::vector<Server>             _servers;
+        std::vector<Client>             _clients;
+        std::map<int, Event_handler*>   _fds;
+        int                             _epollFd;
+
+
+        void    servers_init();
+        void    create_Epoll();
+        void	addFdToMap(int fd, Server *server);
+        void    addFdToPoll(int fd, struct epoll_event *event);
+        void    addClient(int fd, Server *server);
 
 
     public: 
@@ -29,12 +41,12 @@ class WEBSERVER_HPP
         Webserver(std::string config_file);
         ~Webserver();
 
-        void    servers_init();
-        void    create_Epoll();
         
         void    run();
 
-}
+};
 
+
+void make_socket_non_blocking(int socket_fd);
 
 #endif

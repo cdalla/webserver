@@ -7,11 +7,21 @@ Server::Server()
     createSocket();
 }
 
+int Server::get_socket() const
+{
+	return this->_socket;
+}
+
+struct epoll_event * Server::get_event()
+{
+	return &(this->_event);
+}
+
 void Server::createSocket()
 {
     	//CREATE SOCKET
-	socket = socket(AF_INET, SOCK_STREAM, 0);
-	if (!server.socket)
+	_socket = socket(AF_INET, SOCK_STREAM, 0);
+	if (!_socket)
 	{
 		std::cerr << "Failed to create socket!" << std::endl;
 		//error or exception, change return type funct
@@ -20,22 +30,22 @@ void Server::createSocket()
 	int sockoption = 1;
 	//SET NON BLOCKING AND REUSABLE ADDR
 	//	SOL_SOCKET used for option protocol indipendent, reuse address as 1 = true
-	setsockopt(socket, SOL_SOCKET, SO_REUSEADDR, &sockoption, sizeof(sockoption)); //check error
-	make_socket_non_blocking(socket);
+	setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &sockoption, sizeof(sockoption)); //check error
+	make_socket_non_blocking(_socket);
 
 	//BIND TO ADDRESS AND PORT
-	address.sin_family = AF_INET; //ipv4
-	address.sin_addr.s_addr = INADDR_ANY; //listen on any address
-	address.sin_port = htons(server.port); // convert port value
-	if (bind(socket, (struct sockaddr*)&address, sizeof(address)) < 0)
+	_address.sin_family = AF_INET; //ipv4
+	_address.sin_addr.s_addr = INADDR_ANY; //listen on any address
+	_address.sin_port = htons(_port); // convert port value
+	if (bind(_socket, (struct sockaddr*)&_address, sizeof(_address)) < 0)
 	{
 		std::cerr << "Failed to bind socket!" << std::endl;
-		close(socket);
+		close(_socket);
 		//error or exception, change return type funct
 	}
 	
 	//LISTEN FOR INCOMING CONNECTIONS
-	if (listen(socket, MAX_CONNECTIONS) < 0)
+	if (listen(_socket, MAX_CONNECTIONS) < 0)
 	{
 		std::cerr << "Failed to listen on socket!" << std::endl;
 		//error or exception, change return type function

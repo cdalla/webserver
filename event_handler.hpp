@@ -1,26 +1,39 @@
 #ifndef EVENT_HANDLER
 # define EVENT_HANDLER
 
+#include "webserver.hpp"
+#include "request.hpp"
+#include "response.hpp"
+
+#define MAX_SIZE 1024
+
 class Event_handler
 {
     private:
 
-        Request         request_handl;
-        Response        response_handl;
+        Request         _request_handl;
+        Response        _response_handl;
         
-        char            buff[MAX_SIZE];
-        std::string     buffer_string;
-        size_t          header_end;
-        bool            done;
+        char            _buff[MAX_SIZE];
+        std::string     _buffer_string;
+        size_t          _header_end;
+        bool            _done;
 
-        Server*          server;
+        Server*         _server;
 
     public:
 
         Event_handler(Server *server);
         ~Event_handler() = default;
+        
+        void    consume(int event_type);
 
 
 };
 
 #endif
+
+
+/*
+    Class template? Request and Respond inherit from it
+*/
