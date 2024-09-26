@@ -28,7 +28,6 @@ class Event_handler
         
         void    consume(int event_type);
 
-
 };
 
 #endif

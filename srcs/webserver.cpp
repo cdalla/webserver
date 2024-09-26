@@ -1,6 +1,6 @@
 #include "webserver.hpp"
 
-Webserver::Webserver(std::string filename)
+Webserver::Webserver(const char *default_config) : _defaultConf(default_config)
 {
     //constructor taking file and process configuration
     //fill the vector

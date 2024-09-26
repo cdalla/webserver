@@ -4,7 +4,7 @@
 # include <vector>
 # include <map>
 # include <sys/socket.h>
-# include <sys/epoll.h>
+// # include <sys/epoll.h>
 # include <arpa/inet.h>
 # include <fcntl.h>
 # include <iostream>
@@ -22,7 +22,7 @@
 class Webserver
 {
     private:
-
+		// const char						*_defaultConf; //eventually we'll need to store a default config in here too i guess
         std::vector<Server>             _servers;
         std::vector<Client>             _clients;
         std::map<int, Event_handler*>   _fds;
@@ -38,10 +38,9 @@ class Webserver
 
     public: 
         
-        Webserver(std::string config_file);
+        Webserver(const char *default_config);
         ~Webserver();
 
-        
         void    run();
 
 };
