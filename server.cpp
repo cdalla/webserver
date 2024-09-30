@@ -7,15 +7,15 @@ Server::Server()
     createSocket();
 }
 
-int Server::get_socket() const
-{
-	return this->_socket;
-}
+// int Server::get_socket() const
+// {
+// 	return this->_socket;
+// }
 
-struct epoll_event * Server::get_event()
-{
-	return &(this->_event);
-}
+// struct epoll_event * Server::get_event()
+// {
+// 	return &(this->_event);
+// }
 
 void Server::createSocket()
 {

@@ -9,29 +9,31 @@
 # include <fcntl.h>
 # include <iostream>
 # include <unistd.h>
+# include <cstring>
 
 # include "client.hpp"
 # include "server.hpp"
 //# include "utils.hpp"
-# include "event_handler.hpp"
+# include "socket.hpp"
 
-#define MAX_EVENTS 10
-#define IN 0
-#define OUT 1
+# define MAX_EVENTS 10
+# define IN 0
+# define OUT 1
+# define MAX_SIZE 1024
+# define MAX_CONNECTIONS 10
 
 class Webserver
 {
+    
     private:
 
         std::vector<Server>             _servers;
-        std::vector<Client>             _clients;
-        std::map<int, Event_handler*>   _fds;
+        std::map<int, Socket*>          _fds;
         int                             _epollFd;
-
 
         void    servers_init();
         void    create_Epoll();
-        void	addFdToMap(int fd, Server *server);
+        void	addFdToMap(int fd, Socket *client);
         void    addFdToPoll(int fd, struct epoll_event *event);
         void    addClient(int fd, Server *server);
         void    removeFd(int fd);
@@ -41,8 +43,8 @@ class Webserver
         Webserver(std::string config_file);
         ~Webserver() = default;
 
-        
         void    run();
+        void    change_event(int fd, struct epoll_event *event);
 
 };
 

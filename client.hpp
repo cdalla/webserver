@@ -2,28 +2,30 @@
 # define CLIENT_HPP
 
 # include "webserver.hpp"
+# include "request.hpp"
+# include "response.hpp"
 
-class Client
+class Client : public Socket
 {
 
     private:
 
-			struct epoll_event      _event;
-			struct sockaddr_in      _address;
-    		int                     _socket;
-			socklen_t *             _addrLen;
+		Request*         _req_handl;
+        Response*        _resp_handl;
+
+		char            _req_buff[MAX_SIZE];
+        std::string     _resp_string;
+        bool            _done;
+
+        Server*         _server;
+
 
     public:
 			
-			Client();
-			~Client() = default;
+			Client(Server *server);
+			~Client();
 
-			int 					get_socket() const;
-			struct sockaddr_in * 	get_address();
-			socklen_t * 			get_addLen() const;
-			struct epoll_event *	get_event();
-			void					set_socket(int socket);
-			
+			virtual bool    		consume(int event_type);
 
 };
 

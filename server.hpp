@@ -3,25 +3,19 @@
 
 #include "webserver.hpp"
 
-# define MAX_CONNECTIONS 10
-
-class Server
+class Server : public Socket
 {
 	private:    
-        
-        struct sockaddr_in 		_address;
-	    struct epoll_event 		_event;
-	    int 					_socket;
+    
 	    unsigned int 			_port;
 	
 	public:
 	
-    	Server(){};
+    	Server();
 		~Server() = default;
 
         void 					createSocket();
-		int						get_socket() const;
-		struct epoll_event *	get_event();
+		virtual bool    consume(int event_type);
 
 };
 

@@ -40,18 +40,22 @@ void	Webserver::run()
 				if( eventFd == (*servIt).get_socket())
                     addClient(eventFd, &(*servIt));
 			}
-			// maybe first loop to check new connection and then event handler if
 			//process connection
 			if (events_queue[n].events & EPOLLIN && _fds.find(eventFd) != _fds.end())
-				_fds[eventFd]->consume(IN);
-			else if (events_queue[n].events & EPOLLOUT)
-				_fds[eventFd]->consume(OUT);
-			//else if (cgi)
+			{
+				if (_fds[eventFd]->consume(IN))
+					change_event(eventFd, _fds[eventFd]->get_event());
+
+			}
+			else if (events_queue[n].events & EPOLLOUT && _fds.find(eventFd) != _fds.end())
+			{
+				if (_fds[eventFd]->consume(OUT))
+					removeFd(eventFd); //close conn and remove fd
+			}
 			else
 			{
 				//remove fd from epoll uknown event
 				removeFd(eventFd);
-				close(eventFd);
 			}
 		}
 	}

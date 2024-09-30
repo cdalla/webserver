@@ -24,12 +24,11 @@ void    Webserver::addClient(int fd, Server *server)
         //fd already present 
         return ;
     }
-	Client client;
-
+	Socket *client = new Client(server);
     //add new socket to epoll instance
 	//accept connection and add it to connections vector
-	client.set_socket(accept(fd, (struct sockaddr*)client.get_address(), client.get_addLen()));
-	if (client.get_socket() == -1)
+	client->set_socket(accept(fd, (struct sockaddr*)client->get_address(), client->get_addLen()));
+	if (client->get_socket() == -1)
 	{
 		if (errno == EAGAIN || errno == EWOULDBLOCK)
 		{
@@ -38,10 +37,19 @@ void    Webserver::addClient(int fd, Server *server)
 		}
 		std::cerr << "Error accepting connection" << std::endl;				
 	}
-    make_socket_non_blocking(client.get_socket());
-	addFdToPoll(client.get_socket(), client.get_event());
-	addFdToMap(client.get_socket(), server);
-	_clients.push_back(client);
+    make_socket_non_blocking(client->get_socket());
+	addFdToPoll(client->get_socket(), client->get_event());
+	addFdToMap(client->get_socket(), client);
+}
+
+void	Webserver::addFdToMap(int fd, Socket *socket)
+{
+	if (_fds.find(fd) != _fds.end())
+	{
+		//fd already present
+		return;
+	}
+	_fds[fd] = socket;
 }
 
 //add fds to epoll pool
@@ -52,26 +60,24 @@ void    Webserver::addFdToPoll(int fd, struct epoll_event *event)
 		(*event).data.fd = fd;
 		if (epoll_ctl(_epollFd, EPOLL_CTL_ADD, fd, event) == -1)
 		{
-			std::cerr << "Failed to add server socket to epoll instance" << std::endl;
+			std::cerr << "Failed to add socket to epoll instance" << std::endl;
 			//error or exception
 			//close socket and epollfd
 		}
 }
 
-void	Webserver::addFdToMap(int fd, Server *server)
+void	Webserver::change_event(int fd, struct epoll_event *event)
 {
-	//create handler and add to map
-	if (_fds.find(fd) != _fds.end())
+	(*event).events = EPOLLOUT;
+	if (epoll_ctl(_epollFd, EPOLL_CTL_MOD, fd, event) == -1)
 	{
-		//fd already present
-		return;
+		std::cerr << "Failed to modify socket event in epoll instance" << std::endl;
+		//error or exception
+		//close socket and epollfd
 	}
-	Event_handler *handler = new Event_handler(server);
-	_fds[fd] = handler;
 }
 
-
-//remove fd from Epoll, Clients vector, map
+//remove fd from Epoll, map
 void    Webserver::removeFd(int fd)
 {
     //remove from Epoll
@@ -79,11 +85,5 @@ void    Webserver::removeFd(int fd)
 	//remove from _fds
 	delete (_fds[fd]);
 	_fds.erase(fd);
-	//remove from clients
-	std::vector<Client>::iterator it = _clients.begin();
-	for (it; it != _clients.end(); ++it)
-	{
-		if ((*it).get_socket() == fd)
-			_clients.erase(it);
-	}
+	close (fd);
 }
