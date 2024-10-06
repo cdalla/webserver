@@ -19,6 +19,7 @@ class serverParser : public baseParser<VirtualServer> {
 		void	parseHost(std::vector<std::string> &args);
 		void	parseName(std::vector<std::string> &args);
 		void	parseLocation(std::vector<std::string> &tokens, std::vector<std::string>::iterator &i);
+		void	checkHomeLocation(void);
 
 		//member attributes
 		void	addDirective(std::string &directive, std::vector<std::string> &args, std::string newDirective);

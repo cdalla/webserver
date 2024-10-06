@@ -3,6 +3,7 @@
 Server::Server(VirtualServer configStruct) : _config(configStruct) {
     //fill info to set the socket
     //fill with conf info
+	_port = _config.listen;
     createSocket();
 }
 

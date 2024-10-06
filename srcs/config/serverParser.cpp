@@ -78,6 +78,7 @@ VirtualServer	serverParser::parseServer(std::vector<std::string> &tokens, std::v
 		addDirective(directive, args, "hoho");
 	if (i == tokens.end())
 		throw std::runtime_error("Invalid server configuration: missing closing bracket");
+	checkHomeLocation();
 	return context;
 }
 
@@ -85,6 +86,8 @@ VirtualServer	serverParser::parseServer(std::vector<std::string> &tokens, std::v
 	numbers:numbers -> address:port (port == host)
 	numbers			-> address (and 80 will be used for port)
 */
+
+// gonna need to come back to it because i do think we need to build in the functionality of being able to listen on different addresses (so not just the port)
 void	serverParser::parseListen(std::vector<std::string> &args) {
 	if (args.size() != 1 || context.listen != 0)
 		throw ConfigException();
@@ -98,11 +101,6 @@ void	serverParser::parseListen(std::vector<std::string> &args) {
 		throw std::runtime_error("Invalid listen directive: port not a valid integer");
 	}
 
-	// try {
-	// 	context.listen = std::stoul(args[0]);
-	// } catch (std::exception &e) {
-	// 	throw e.what();
-	// }
 }
 
 void	serverParser::parseHost(std::vector<std::string> &args) {
@@ -129,9 +127,45 @@ void	serverParser::addDirective(std::string &directive, std::vector<std::string>
 
 void	serverParser::parseLocation(std::vector<std::string> &tokens, std::vector<std::string>::iterator &i) {
 	
-	locationParser location;
+	locationParser parser;
+	Location	location = parser.parseLocation(tokens, i);
 
-	context.locations.push_back(location.parseLocation(tokens, i));
+	for (std::vector<Location>::iterator it = context.locations.begin(); it != context.locations.end(); it++) {
+		if ((*it).path == location.path)
+			return ;
+
+	}
+	context.locations.push_back(location);
+
+	// think about what to do when there are multiple locations with the same path
+}
+
+void	serverParser::checkHomeLocation(void) {
+
+	//loop through locations, see if location with path "/" exists
+	// if yes, return
+	// if no, create location with path "/". Move configurations from this server instance to newly created "/" location and push location to back of _locations vector
+
+	for (std::vector<Location>::iterator it = context.locations.begin(); it != context.locations.end(); it++) {
+		if ((*it).path == "/") //set empty directives to the default settings
+			return ;
+	}
+
+	Location	home;
+	// copy context directives to home
+	// set empty directives to the default settings
+
+	home.root = context.root;
+	home.cgi_pass = context.cgi_pass;
+	home.upload_dir = context.upload_dir;
+	home.redirect_url = context.redirect_url;
+	home.max_body_size = context.max_body_size;
+	home.autoindex = context.autoindex;
+	home.index = context.index;
+	home.methods = context.methods;
+	home.error_pages = context.error_pages;
+
+	context.locations.push_back(home);
 }
 
 std::ostream&   operator<<(std::ostream& out, VirtualServer const &obj) {
