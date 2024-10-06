@@ -14,8 +14,8 @@ class Socket
 
     public:
 
-        Socket();
-        ~Socket() = default;
+        Socket() = default;
+        virtual ~Socket() = default;
 
         struct sockaddr_in * 	get_address(){ return &(this->_address);}
         socklen_t * 			get_addLen() const {return (socklen_t *)sizeof(this->_address);};
@@ -23,7 +23,7 @@ class Socket
         int 					get_socket() const {return this->_socket;}
         void                    set_socket(int socket) {this->_socket = socket;}
 
-        virtual bool            consume(int event_type){}; 
+        virtual bool            consume(int event_type){(void)event_type;return false;} 
 
 };
 

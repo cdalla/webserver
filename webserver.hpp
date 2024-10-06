@@ -15,12 +15,16 @@
 # include "server.hpp"
 //# include "utils.hpp"
 # include "socket.hpp"
+# include "response.hpp"
+# include "request.hpp"
 
 # define MAX_EVENTS 10
 # define IN 0
 # define OUT 1
 # define MAX_SIZE 1024
 # define MAX_CONNECTIONS 10
+
+class Server;
 
 class Webserver
 {

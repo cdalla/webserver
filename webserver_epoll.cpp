@@ -1,8 +1,15 @@
 #include "webserver.hpp"
 
+/*
+	CREATE EPOLL INSTANCE
+	ADD ALL SERVER TO EPOLL AND TO MAP CONTAINER
+
+	*from linux 2.6.8 parameter size on epoll_create is ignored because 
+	 epoll data struct is dinamically resized
+*/
 void    Webserver::create_Epoll()
 {
-    _epollFd = epoll_create(1); //from linux 2.6.8 parameter size is ignored because epoll data struct is dinamically resized
+    _epollFd = epoll_create(1); 
 	if (_epollFd == -1)
 	{
 		std::cerr << "Failed to create epoll instance" << std::endl;
@@ -17,6 +24,10 @@ void    Webserver::create_Epoll()
     }
 }
 
+/*
+	ADD NEW SOCKET TO EPOLL INSTANCE
+	ACCEPT CONNECTION AND ADD IT TO THE FDS MAP
+*/
 void    Webserver::addClient(int fd, Server *server)
 {
     if (_fds.find(fd) != _fds.end())
@@ -25,8 +36,6 @@ void    Webserver::addClient(int fd, Server *server)
         return ;
     }
 	Socket *client = new Client(server);
-    //add new socket to epoll instance
-	//accept connection and add it to connections vector
 	client->set_socket(accept(fd, (struct sockaddr*)client->get_address(), client->get_addLen()));
 	if (client->get_socket() == -1)
 	{
@@ -52,7 +61,10 @@ void	Webserver::addFdToMap(int fd, Socket *socket)
 	_fds[fd] = socket;
 }
 
-//add fds to epoll pool
+/*
+	SET EVENT FOR THE FD
+	ADD IT TO THE EPOLL INSTANCE
+*/
 void    Webserver::addFdToPoll(int fd, struct epoll_event *event) 
 {
 
@@ -77,12 +89,17 @@ void	Webserver::change_event(int fd, struct epoll_event *event)
 	}
 }
 
-//remove fd from Epoll, map
+
+/*
+	REMOVE FD FROM EPOLL INSTANCE
+	REMOVE FROM FDS MAP AND DELETE HIS DATA
+*/
 void    Webserver::removeFd(int fd)
 {
-    //remove from Epoll
-	epoll_ctl(_epollFd, EPOLL_CTL_DEL, fd, NULL);
-	//remove from _fds
+	if (epoll_ctl(_epollFd, EPOLL_CTL_DEL, fd, NULL) == -1)
+	{
+		std::cerr << "Failed to delete socket event in epoll instance" << std::endl;
+	}
 	delete (_fds[fd]);
 	_fds.erase(fd);
 	close (fd);

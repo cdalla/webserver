@@ -1,12 +1,18 @@
 #include "request.hpp"
 
-int Request::function()
+Request::Request(Client *ptr) : _ptr(ptr)
+{
+    return ;
+}
+
+bool Request::function(char *buff)
 {
     for (int i = 0; i < MAX_SIZE; i++)
     {
-        if (_ptr->_buff[i] != '\0')
+        if (buff[i] != '\0')
         {
-            return ;
+            return false;
         }
     }
+    return false;
 }
