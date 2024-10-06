@@ -2,10 +2,16 @@
 # define CLIENT_HPP
 
 # include "webserver.hpp"
+# include "socket.hpp"
+# include "server.hpp"
 # include "request.hpp"
 # include "response.hpp"
 
-class Client : public Socket
+class Server;
+class Request;
+class Response;
+
+class Client: public Socket
 {
 
     private:
@@ -13,7 +19,7 @@ class Client : public Socket
 		Request*         _req_handl;
         Response*        _resp_handl;
 
-		char            _req_buff[MAX_SIZE];
+		char            _req_buff[1024];
         std::string     _resp_string;
         bool            _done;
 
@@ -22,10 +28,10 @@ class Client : public Socket
 
     public:
 			
-			Client(Server *server);
-			~Client();
+		Client(Server *server);
+		~Client();
 
-			virtual bool    		consume(int event_type);
+		virtual bool    		consume(int event_type);
 
 };
 

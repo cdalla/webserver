@@ -4,11 +4,23 @@ Webserver::Webserver(std::string filename)
 {
     //constructor taking file and process configuration
     //fill the vector
-    servers_init();
+	
+	{
+		//FOR TEST
+		(void) filename;
+   		Server test;
+		test.set_socket(8080);
+		_servers.push_back(test);
+	}
+
+	servers_init();
+	create_Epoll();
+
 }
 
-//possible to delete it and put in constructor
-//loop servers vector to set up sockets
+/*
+	LOOP TO INITIALIZE SERVER SOCKET
+*/
 void    Webserver::servers_init()
 {
     std::vector<Server>::iterator it = _servers.begin();
@@ -18,19 +30,26 @@ void    Webserver::servers_init()
 	}
 }
 
-//epoll_wait loop
+/*
+	MAIN PROGRAM LOOP:
+		-receive number of event by epoll_wait
+		-process the event fds triggered
+		-add new client or process IN/OUT data transfer
+*/
 void	Webserver::run()
 {
     struct epoll_event	events_queue[MAX_EVENTS];
 	int readyFds;
 	while (true)
 	{
-		readyFds = epoll_wait(_epollFd, events_queue, MAX_EVENTS, 0); //timeout at zero, no waiting for events on fds
+		readyFds = epoll_wait(_epollFd, events_queue, MAX_EVENTS, 0);
 		if (readyFds == -1)
 		{
 			std::cerr << "failed epoll wait" << std::endl;
+			exit(1);
 			//error or exception
 		}
+		std::cout << "Waiting on events.." << std::endl; 
 		for (int n = 0; n < readyFds; n++)
 		{
             int eventFd = events_queue[n].data.fd;
@@ -40,7 +59,6 @@ void	Webserver::run()
 				if( eventFd == (*servIt).get_socket())
                     addClient(eventFd, &(*servIt));
 			}
-			//process connection
 			if (events_queue[n].events & EPOLLIN && _fds.find(eventFd) != _fds.end())
 			{
 				if (_fds[eventFd]->consume(IN))
@@ -50,7 +68,7 @@ void	Webserver::run()
 			else if (events_queue[n].events & EPOLLOUT && _fds.find(eventFd) != _fds.end())
 			{
 				if (_fds[eventFd]->consume(OUT))
-					removeFd(eventFd); //close conn and remove fd
+					removeFd(eventFd);
 			}
 			else
 			{

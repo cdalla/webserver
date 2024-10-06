@@ -1,9 +1,10 @@
-#ifndef SERVER_HPP
-# define SERVER_HPP
+#ifndef SERVER_H
+# define SERVER_H
 
 #include "webserver.hpp"
+#include "socket.hpp"
 
-class Server : public Socket
+class Server : public Socket 
 {
 	private:    
     

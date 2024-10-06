@@ -1,14 +1,17 @@
 #ifndef RESPONSE_HPP
 # define RESPONSE_HPP
 
-#include "webserver.hpp"
+# include "webserver.hpp"
+# include "client.hpp"
+
+class Client;
 
 class Response
 {
     
     private:
 
-        Client          *_ptr;
+        Client*             _ptr;
 
     public:
 

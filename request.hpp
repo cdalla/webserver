@@ -1,21 +1,25 @@
 #ifndef REQUEST_HPP
-# define RESQUEST_HPP
+# define REQUEST_HPP
 
-#include "webserver.hpp"
+# include "webserver.hpp"
+# include "response.hpp"
+# include "client.hpp"
+
+class Client;
 
 class Request
 {
 
     private:
 
-        Client          *_ptr;
+        Client*          _ptr;
 
     public:
 
-        Request(Client *ptr);
+        Request(Client* ptr);
         ~Request() = default;
         
-        int function(char *buff);
+        bool function(char *buff);
 
 };
 
