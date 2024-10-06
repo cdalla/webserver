@@ -41,7 +41,7 @@ class Webserver
         Webserver(const char *default_config);
         ~Webserver();
 
-        Config							config;
+        Config		config;
 
         void    run();
 };

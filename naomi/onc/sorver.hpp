@@ -1,5 +1,5 @@
-#ifndef SERVER_HPP
-# define SERVER_HPP
+#ifndef SORVER_HPP
+# define SORVER_HPP
 
 // #include "response.hpp"
 #include <sys/socket.h>
@@ -10,10 +10,10 @@
 
 class Response;
 
-class Server {
+class Sorver {
 	public:
-		Server();
-		~Server();
+		Sorver();
+		~Sorver();
 
 		int		create(void);
 		int		run(char **env);

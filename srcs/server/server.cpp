@@ -1,10 +1,12 @@
 #include "server.hpp"
 
-Server::Server(VirtualServer config) : _config(config) {
+Server::Server(VirtualServer configStruct) : _config(configStruct) {
     //fill info to set the socket
     //fill with conf info
     createSocket();
 }
+
+Server::~Server(void) {}
 
 int Server::get_socket() const
 {

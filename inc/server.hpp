@@ -5,8 +5,7 @@
 
 # define MAX_CONNECTIONS 10
 
-class Server
-{
+class Server {
 	private:
         
         struct sockaddr_in 		_address;
@@ -18,8 +17,9 @@ class Server
 	public:
 	
     	// Server(void);
-		Server(VirtualServer config);
-		~Server() = default;
+		Server(VirtualServer configStruct);
+		~Server(void);
+		// ~Server() = default;
 
         void 					createSocket();
 		int						get_socket() const;
