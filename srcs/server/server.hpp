@@ -13,10 +13,12 @@ class Server
 	    struct epoll_event 		_event;
 	    int 					_socket;
 	    unsigned int 			_port;
+		VirtualServer			_config; // just for now to try and force my code + carlo's code together without worrying about optimization or logical thinking
 	
 	public:
 	
-    	Server(){};
+    	// Server(void);
+		Server(VirtualServer config);
 		~Server() = default;
 
         void 					createSocket();

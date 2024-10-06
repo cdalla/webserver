@@ -4,14 +4,18 @@ Webserver::Webserver(const char *config_path) : config(config_path) {
     //constructor taking file and process configuration
     //fill the vector
 	config.parseConfig();
+	// after parseConfig, the config class will have a vector of VirtualServers. Eventually need to use that info to make the servers but for now just gonna insantiate a new Server for each VirtualServer struct in the config class, and push that to the _servers vector
     servers_init();
 }
 
 Webserver::~Webserver(){;}
 
 //loop servers vector to set up sockets
-void    Webserver::servers_init()
-{
+void    Webserver::servers_init() {
+	for (std::vector<VirtualServer>::iterator it = config.servers.begin(); it != config.servers.end(); it++) {
+		Server newServer(*it);
+		_servers.push_back(newServer);
+	}
     std::vector<Server>::iterator it = _servers.begin();
 	for (; it != _servers.end(); ++it)
 	{

@@ -14,7 +14,7 @@ class Config {
 				virtual const char* what() const throw() { return ("Server config exception: invalid configuration"); };
 		};
 
-		std::vector<VirtualServer>  servers;
+		std::vector<VirtualServer>  servers; // should proba ly rename to "configs" or something
 		std::vector<unsigned int> listens;
 		// std::map<unsigned int, int>	listens;
 

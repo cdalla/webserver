@@ -1,7 +1,6 @@
 #include "server.hpp"
 
-Server::Server()
-{
+Server::Server(VirtualServer config) : _config(config) {
     //fill info to set the socket
     //fill with conf info
     createSocket();
