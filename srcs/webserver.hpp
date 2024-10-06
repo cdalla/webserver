@@ -12,6 +12,7 @@
 
 # include "client.hpp"
 # include "server.hpp"
+# include "config.hpp"
 //# include "utils.hpp"
 # include "event_handler.hpp"
 
@@ -23,7 +24,7 @@ class Webserver
 {
     private:
 		// const char						*_defaultConf; //eventually we'll need to store a default config in here too i guess
-        std::vector<Server>             _servers;
+		std::vector<Server>             _servers;
         std::vector<Client>             _clients;
         std::map<int, Event_handler*>   _fds;
         int                             _epollFd;
@@ -35,14 +36,14 @@ class Webserver
         void    addFdToPoll(int fd, struct epoll_event *event);
         void    addClient(int fd, Server *server);
 
-
     public: 
         
         Webserver(const char *default_config);
         ~Webserver();
 
-        void    run();
+        Config							config;
 
+        void    run();
 };
 
 

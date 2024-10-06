@@ -7,7 +7,7 @@
 
 class Server
 {
-	private:    
+	private:
         
         struct sockaddr_in 		_address;
 	    struct epoll_event 		_event;

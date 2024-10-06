@@ -1,9 +1,9 @@
 #include "webserver.hpp"
 
-Webserver::Webserver(const char *default_config) : _defaultConf(default_config)
-{
+Webserver::Webserver(const char *config_path) : config(config_path) {
     //constructor taking file and process configuration
     //fill the vector
+	config.parseConfig();
     servers_init();
 }
 

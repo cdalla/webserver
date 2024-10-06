@@ -31,7 +31,6 @@ void	baseParser<T>::parseMethods(std::vector<std::string> &args) {
 		if (*i == "GET" || *i == "POST" || *i == "DELETE" || *i == "PATCH")
 			context.methods.push_back(*i);
 		else {
-
 			throw ConfigException();
 		}
 	}

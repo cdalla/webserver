@@ -12,7 +12,7 @@ int	main(int argc, char **argv) {
 };
 
 Config::Config(const char *path): _path(path) {
-	parseConfig();
+	// parseConfig();
 };
 
 Config::~Config(void) {
