@@ -3,21 +3,10 @@
 
 #include "config.hpp"
 #include "colours.hpp"
-#include "serverParser.hpp"
 
-int	main(int argc, char **argv) {
+Config::Config(const char *path): _path(path) {};
 
-	Config config(argv[1]);
-	return (0);
-};
-
-Config::Config(const char *path): _path(path) {
-	// parseConfig();
-};
-
-Config::~Config(void) {
-	
-};
+Config::~Config(void) { };
 
 void	Config::parseConfig(void) {
 
@@ -51,8 +40,6 @@ void	Config::parseConfig(void) {
 		}
 		i++;
 	}
-	for (size_t i = 0; i < servers.size(); i++)
-		std::cout << servers[i] << std::endl;
 };
 
 std::ostream&   operator<<(std::ostream& out, Config const &obj) {

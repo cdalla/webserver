@@ -12,10 +12,8 @@ Webserver::~Webserver(){};
 
 //loop servers vector to set up sockets
 void    Webserver::servers_init() {
-	// for (std::vector<VirtualServer>::iterator superit = config.servers.begin(); superit != config.servers.end(); superit++) {
-	for (size_t i = 0; i < config.servers.size(); i++ ) {
-		Server newServer(config.servers[i]);
-		_servers.push_back(newServer);
+	for (std::vector<VirtualServer>::iterator it = config.servers.begin(); it != config.servers.end(); it++) {
+		_servers.push_back(Server(*it));
 	}
     std::vector<Server>::iterator it = _servers.begin();
 	for (; it != _servers.end(); ++it)
