@@ -12,13 +12,17 @@ void make_socket_non_blocking(int socket_fd)
     int flags;
 
     flags = fcntl(socket_fd, F_GETFL, 0);
-    if (flags == -1) {
+    if (flags == -1)
+    {
+        //FATAL
         perror("Couldn't get socket flags");
         exit(1);
     }
 
     flags |= O_NONBLOCK;
-    if (fcntl(socket_fd, F_SETFL, flags) == -1) {
+    if (fcntl(socket_fd, F_SETFL, flags) == -1) 
+    {
+        //FATAL
         perror("Couldn't set socket flags");
         exit(-1);
     }

@@ -19,6 +19,7 @@ void Server::createSocket()
 	_socket = socket(AF_INET, SOCK_STREAM, 0);
 	if (!_socket)
 	{
+		//FATAL
 		std::cerr << "Failed to create socket!" << std::endl;
 		//error or exception, change return type funct
 	}
@@ -26,6 +27,7 @@ void Server::createSocket()
 	int sockoption = 1;
 	if (setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &sockoption, sizeof(sockoption)) < 0)
 	{
+		//FATAL
 		std::cerr << "Failed to setsockopt!" << std::endl; 
 	} //check error
 	make_socket_non_blocking(_socket);
@@ -35,6 +37,7 @@ void Server::createSocket()
 	_address.sin_port = htons(_port);
 	if (bind(_socket, (struct sockaddr*)&_address, sizeof(_address)) < 0)
 	{
+		//FATAL
 		std::cerr << "Failed to bind socket!" << std::endl;
 		close(_socket);
 		//error or exception, change return type funct
@@ -42,6 +45,7 @@ void Server::createSocket()
 	
 	if (listen(_socket, MAX_CONNECTIONS) < 0)
 	{
+		//FATAL
 		std::cerr << "Failed to listen on socket!" << std::endl;
 		//error or exception, change return type function
 	}

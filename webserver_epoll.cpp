@@ -13,6 +13,7 @@ void    Webserver::create_Epoll()
 	if (_epollFd == -1)
 	{
 		std::cerr << "Failed to create epoll instance" << std::endl;
+		//FATAL ERROR
 		//close all server sockets
 		//error or exception
 	}
@@ -32,7 +33,9 @@ void    Webserver::addClient(int fd, Server *server)
 {
     if (_fds.find(fd) != _fds.end())
     {
-        //fd already present 
+        //fd already present
+		//does nothing just skip
+		std::cout << "fd " << fd << " already present!" << std::endl;
         return ;
     }
 	Socket *client = new Client(server);
@@ -41,10 +44,12 @@ void    Webserver::addClient(int fd, Server *server)
 	{
 		if (errno == EAGAIN || errno == EWOULDBLOCK)
 		{
-			//busy server cant accept connection now
+			std::cout << "Cannot accept new connetion" << std::endl;
+			delete client;
 			return;
 		}
-		std::cerr << "Error accepting connection" << std::endl;				
+		std::cerr << "Error accepting connection" << std::endl;
+		//fatal		
 	}
     make_socket_non_blocking(client->get_socket());
 	addFdToPoll(client->get_socket(), client->get_event());
@@ -56,6 +61,7 @@ void	Webserver::addFdToMap(int fd, Socket *socket)
 	if (_fds.find(fd) != _fds.end())
 	{
 		//fd already present
+		std::cout << "fd " << fd << " already present!" << std::endl;
 		return;
 	}
 	_fds[fd] = socket;
@@ -84,6 +90,7 @@ void	Webserver::change_event(int fd, struct epoll_event *event)
 	if (epoll_ctl(_epollFd, EPOLL_CTL_MOD, fd, event) == -1)
 	{
 		std::cerr << "Failed to modify socket event in epoll instance" << std::endl;
+		//FATAL ERROR
 		//error or exception
 		//close socket and epollfd
 	}
@@ -99,6 +106,7 @@ void    Webserver::removeFd(int fd)
 	if (epoll_ctl(_epollFd, EPOLL_CTL_DEL, fd, NULL) == -1)
 	{
 		std::cerr << "Failed to delete socket event in epoll instance" << std::endl;
+		//FATAL ERROR
 	}
 	delete (_fds[fd]);
 	_fds.erase(fd);

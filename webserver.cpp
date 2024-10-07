@@ -18,6 +18,11 @@ Webserver::Webserver(std::string filename)
 
 }
 
+Webserver::~Webserver()
+{
+	clean();
+}
+
 /*
 	LOOP TO INITIALIZE SERVER SOCKET
 */
@@ -27,6 +32,20 @@ void    Webserver::servers_init()
 	for (; it != _servers.end(); ++it)
 	{
 		(*it).createSocket();
+	}
+}
+
+/*
+	delete all fds from epoll
+	delete all clients
+	close all fds
+*/
+void	Webserver::clean()
+{
+	std::map<int, Socket *>::iterator it = _fds.begin();
+	for (; it != _fds.end(); ++it)
+	{
+		removeFd(it->first);
 	}
 }
 
@@ -46,6 +65,7 @@ void	Webserver::run()
 		if (readyFds == -1)
 		{
 			std::cerr << "failed epoll wait" << std::endl;
+			//FATAL ERROR
 			exit(1);
 			//error or exception
 		}

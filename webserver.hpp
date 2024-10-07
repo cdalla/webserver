@@ -41,11 +41,12 @@ class Webserver
         void    addFdToPoll(int fd, struct epoll_event *event);
         void    addClient(int fd, Server *server);
         void    removeFd(int fd);
+        void    clean();
 
     public: 
         
         Webserver(std::string config_file);
-        ~Webserver() = default;
+        ~Webserver();
 
         void    run();
         void    change_event(int fd, struct epoll_event *event);
