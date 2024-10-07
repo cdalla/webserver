@@ -1,42 +1,46 @@
-NAME := webserver
+# **************************************************************************** #
+#                                                                              #
+#                                                         ::::::::             #
+#    Makefile                                           :+:    :+:             #
+#                                                      +:+                     #
+#    By: nsterk <nsterk@student.codam.nl>             +#+                      #
+#                                                    +#+                       #
+#    Created: 2022/04/13 14:42:55 by nsterk        #+#    #+#                  #
+#    Updated: 2024/07/07 14:46:20 by nsterk        ########   odam.nl          #
+#                                                                              #
+# **************************************************************************** #
 
-CC := c++
+NAME		:=	webserver
 
-FLAGS := -Wall -Werror -Wextra
+INC_DIR		:=	inc
+SRCS_DIR	:=	srcs
+OBJ_DIR		:=	objs
+VPATH		:=	$(subst $(space),:,$(shell find srcs -type d))
 
-HEADER :=	webserver.hpp\
-			server.hpp\
-			client.hpp\
-			socket.hpp\
-			request.hpp\
-			response.hpp
+SRCS		=	main.cpp webserver.cpp utils.cpp client.cpp server.cpp response.cpp request.cpp serverParser.cpp locationParser.cpp config.cpp baseParser.cpp
+OBJS		=	$(addprefix $(OBJ_DIR)/, $(SRCS:.cpp=.o))
 
-SRC := 	main.cpp\
-		webserver.cpp\
-		webserver_epoll.cpp\
-		server.cpp\
-		client.cpp\
-		utils.cpp\
-		request.cpp\
-		response.cpp
+CC			:=	c++
+FLAGS		:= -std=c++11 -fsanitize=address -g -I$(INC_DIR)
 
-OBJ =	$(SRC:%.cpp=obj/%.o)
-		
-all: $(NAME)
-	
-$(NAME): $(OBJ) $(HEADER)
-	@$(CC) $(FLAGS) $(OBJ) -o $@
+all:		$(NAME)
 
-obj/%.o:%.cpp $(HEADER)
-	@mkdir -p obj
-	$(CC) -c $(FLAGS) $< -o $@
+$(NAME):	$(OBJS)
+	$(CC) $(OBJS) $(FLAGS) -o $(NAME)
+
+$(OBJ_DIR)/%.o: $(notdir %.cpp)
+	@ mkdir -p $(OBJ_DIR)
+	$(CC) $(FLAGS) -c $< -o $@
+
+run:	all
+	@ ./$(NAME)
 
 clean:
-	rm -r obj
+	@ rm -rf $(OBJ_DIR)
 
 fclean: clean
-	rm -f $(NAME)
+	@ rm -rf $(NAME)
 
 re: fclean all
 
-.PHONY: all, clean, fclean, re
+.PHONY: all clean fclean re

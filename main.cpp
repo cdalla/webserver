@@ -1,19 +1,18 @@
 #include "webserver.hpp"
 
-int main()
+int main(int argc, char **argv)
 {
-	Webserver main("file");
+	if (argc != 2) {
+		std::cout << "Exactly one argument expected" << std::endl;
+		return (0);
+	}
+	Webserver main(argv[1]);
 
-	main.run();
-	
-    
-    
-    
-    // std::vector<Server>::iterator it = servers.begin();
-	// for (; it != servers.end(); ++it)
-	// {
-	// 	close((*it).socket);
-	// }
+	try {
+		main.run();
+	} catch (std::exception &e) {
+		std::cerr << e.what() << std::endl;
+	}
 	
 	exit(0);
 }

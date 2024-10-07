@@ -1,18 +1,11 @@
 #include "webserver.hpp"
 
-Webserver::Webserver(std::string filename)
+Webserver::Webserver(const char *default_config) : config(default_config)
 {
     //constructor taking file and process configuration
     //fill the vector
-	
-	{
-		//FOR TEST
-		(void) filename;
-   		Server test;
-		test.set_socket(8080);
-		_servers.push_back(test);
-	}
 
+	config.parseConfig();
 	servers_init();
 	create_Epoll();
 
@@ -28,6 +21,9 @@ Webserver::~Webserver()
 */
 void    Webserver::servers_init()
 {
+	for (std::vector<VirtualServer>::iterator it = config.servers.begin(); it != config.servers.end(); it++) {
+		_servers.push_back(Server(*it));
+	}
     std::vector<Server>::iterator it = _servers.begin();
 	for (; it != _servers.end(); ++it)
 	{
@@ -58,7 +54,7 @@ void	Webserver::clean()
 void	Webserver::run()
 {
     struct epoll_event	events_queue[MAX_EVENTS];
-	int readyFds;
+	int readyFds = 0;
 	while (true)
 	{
 		readyFds = epoll_wait(_epollFd, events_queue, MAX_EVENTS, 0);

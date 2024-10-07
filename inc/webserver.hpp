@@ -11,9 +11,11 @@
 # include <unistd.h>
 # include <cstring>
 
-# include "client.hpp"
+# include "colours.hpp"
+# include "ConfigStructs.hpp"
+# include "config.hpp"
 # include "server.hpp"
-//# include "utils.hpp"
+# include "client.hpp"
 # include "socket.hpp"
 # include "response.hpp"
 # include "request.hpp"
@@ -45,9 +47,10 @@ class Webserver
 
     public: 
         
-        Webserver(std::string config_file);
+        Webserver(const char *default_config);
         ~Webserver();
 
+        class Config		config;
         void    run();
         void    change_event(int fd, struct epoll_event *event);
 
