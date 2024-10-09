@@ -3,8 +3,8 @@
 
 #include "baseParser.hpp"
 
-# define serverMap std::map<std::string, void(serverParser::*)(std::vector<std::string> &args)>
-# define locationMap std::map<std::string, void(locationParser::*)(std::vector<std::string> &args)>
+// # define serverMap std::map<std::string, void(serverParser::*)(std::vector<std::string> &args)>
+// # define locationMap std::map<std::string, void(locationParser::*)(std::vector<std::string> &args)>
 
 class serverParser : public baseParser<VirtualServer> {
 	public:

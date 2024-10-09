@@ -1,7 +1,7 @@
-#include <map>
-
 #ifndef BASEPARSER_HPP
 # define BASEPARSER_HPP
+
+#include "ConfigStructs.hpp"
 
   template <typename T>
 class baseParser {

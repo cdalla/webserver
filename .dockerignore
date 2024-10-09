@@ -1,0 +1,6 @@
+.github
+.gitignore
+.DS_Store
+.dockerignore
+.vscode
+garbage

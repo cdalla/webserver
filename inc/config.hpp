@@ -2,9 +2,9 @@
 # define CONFIG_HPP
 
 #include <string>
+#include <vector>
 #include "ConfigStructs.hpp"
 #include "serverParser.hpp"
-
 
 class Config {
 	public:
