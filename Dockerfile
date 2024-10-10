@@ -10,11 +10,11 @@ WORKDIR /webserv
 # Copy source files to working directory
 COPY . /webserv
 
-CMD ls -laR
+RUN ls -laR
 
-# # Compile code
-# CMD ["make"]
+# Compile code
+RUN ["make"]
 
-# Run code
-# CMD ["webserver", "config/test.conf"]
+# Run the webserver. The second string is the argument: change this if you want to change the configuration file
+RUN ["./webserver", "config/test.conf"]
 

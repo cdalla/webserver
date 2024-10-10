@@ -16,6 +16,7 @@ locationParser::locationParser(void) : baseParser<Location>() {
 locationParser::~locationParser(void) {}
 
 locationMap	locationParser::_initLocationFunctions() {
+
 	locationMap newMap;
 
 	newMap["cgi_pass"] = &locationParser::parseCgiPass;

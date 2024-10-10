@@ -18,7 +18,6 @@ class Config {
 
 		std::vector<VirtualServer>  servers; // should proba ly rename to "configs" or something
 		std::vector<unsigned int> listens;
-		// std::map<unsigned int, int>	listens;
 
 		void			parseConfig(void);
 	

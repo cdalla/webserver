@@ -44,15 +44,10 @@ void	Config::parseConfig(void) {
 
 std::ostream&   operator<<(std::ostream& out, Config const &obj) {
 
-	// out << CYAN "HTTP Request\n" RST;
-	// out << "  " U_WHT "General:\n" RST;
-	// out << "    Method: " << obj.method << "\n";
-	// out << "    URL: " << obj.getURL() << "\n";
-	// out << "  " U_WHT "Parsing variables:\n" RST;
-	// out << "    exists: " << (obj.exists? "true" : "false") << "\n";
-	// out << "    resource: " << obj.resource << "\n";
-	// out << "    extension: " << obj.extension << "\n";
-	// out << "    _path: " << obj.getPath() << "\n";
+	out << CYAN "Config\n" RST;
+	out << U_WHT << "Servers:\n" << RST;
+	for (size_t i = 0; i < obj.servers.size(); i++)
+		out << obj.servers[i];
 	return (out);
 }
 
