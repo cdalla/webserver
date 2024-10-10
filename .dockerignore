@@ -4,3 +4,5 @@
 .dockerignore
 .vscode
 garbage
+README.md
+objs
