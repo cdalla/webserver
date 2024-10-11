@@ -60,7 +60,7 @@ Location	locationParser::parseLocation(std::vector<std::string> &tokens, std::ve
 		}
 		i++;
 	}
-	if (directive != "") // wonder if it's even possible to make it out of the loop above without a directive (if there's a way you could get that with a valid config file)
+	if (directive != "") // to do: wonder if it's even possible to make it out of the loop above without a directive (if there's a way you could get that with a valid config file)
 		addDirective(directive, args, "");
 	if (*i != "}")
 		throw std::runtime_error("Invalid location configuration: missing closing bracket");

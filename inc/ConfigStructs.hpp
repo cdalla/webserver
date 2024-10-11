@@ -61,7 +61,7 @@ struct VirtualServer
 	std::vector<Location>		locations;
 };
 
-# define serverMap std::map<std::string, void(serverParser::*)(std::vector<std::string> &args)>
-# define locationMap std::map<std::string, void(locationParser::*)(std::vector<std::string> &args)>
+# define serverMap std::map<std::string, void(serverParser::*)(std::vector<std::string> &args)> //function map for servers
+# define locationMap std::map<std::string, void(locationParser::*)(std::vector<std::string> &args)> //function map for locations
 
 #endif

@@ -3,6 +3,17 @@
 
 #include "ConfigStructs.hpp"
 
+/**
+ * 		ABOUT BASEPARSER CLASS
+ * There is a lot of overlap between parsing a server and parsing a location. To avoid redundant functions,
+ * we have a template base class for parsing a server or a location. This baseParser contains the functions for
+ * parsing directives that can appear in the context of a server and in the context of a location.
+ * 
+ * The baseParser class also contains a template object 'context'. If the baseParser class is instantiated
+ * as the base of a serverParser, this object will have type VirtualServer. If it's instantiated as the base
+ * of a locationParser, this object will have type Location.
+ * 
+ */
   template <typename T>
 class baseParser {
 	public:

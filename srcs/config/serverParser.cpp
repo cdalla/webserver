@@ -5,15 +5,6 @@
 #include <iostream>
 #include "colours.hpp"
 
-/**
- * TO DO
- * 
- * - home location
- * After server has been parsed, check if there's a "/" location.
- * If not, create a "/" location and copy the following VirtualServer attributes to that location instance:
- * 
- * - de
- */
 serverMap	serverParser::_initServerFunctions() {
 	serverMap newMap;
 
@@ -45,6 +36,24 @@ serverParser::serverParser(void) : baseParser<VirtualServer>() {
 
 serverParser::~serverParser(void) {};
 
+/**
+ * Main loop:
+ * 
+ * Check if token is in serverMap (the list of supported directives) or if it's 'location'
+ * 		
+ * 	no: scenario a & b
+ * 	scenario a: token is not in serverMap, it is 'location', so it's a directive but one that is not handled like the other directives.
+ * 		a1. if there's a directive in memory, add the directive to the server
+ * 		a2. parse location and add to vector of locations
+ * 	
+ *	scenario b: token is not in serverMap and is also not 'location', so it's an argument to a directive
+ * 		b1. push token to args
+ * 
+ * 	yes: scenario c
+ * 	scenario c: token is in serverMap, so it's a directive
+ * 		c1. if directive is not empty, add the directive in memory to the server configuration
+ * 		c2. store value of token in directive
+ */
 VirtualServer	serverParser::parseServer(std::vector<std::string> &tokens, std::vector<std::string>::iterator &i) {
 
 	std::vector<std::string>	args;
@@ -57,18 +66,18 @@ VirtualServer	serverParser::parseServer(std::vector<std::string> &tokens, std::v
 	i++; // We don't want to parse the opening bracket so increment once more
 	
 	while (i != tokens.end() && *i != "}") {
-		if (_serverFunctions.find(*i) == _serverFunctions.end()) { // token is not in serverMap: it's location or an argument
-			//scenario 1: token == "location" -> add result from locationParser to location vector
+		if (_serverFunctions.find(*i) == _serverFunctions.end()) { // checks if token is not in serverMap
+			//scenario a: token == "location" -> add result from locationParser to location vector
 			if (*i == "location") {
 				if (directive != "")
 					addDirective(directive, args, *i);
 				parseLocation(tokens, i);
 				continue ;
 			}
-			else
+			else // scenario b
 				args.push_back(*i);
 		}
-		else { //token is in serverMap: so it's a directive
+		else { // scenario c
 			if (directive != "")
 				addDirective(directive, args, *i);
 			else
@@ -76,20 +85,23 @@ VirtualServer	serverParser::parseServer(std::vector<std::string> &tokens, std::v
 		}
 		i++;
 	}
-	if (directive != "")
+	if (directive != "") // if we still have a directve in memory after exiting the loop, this needs to be added before we can continue.
 		addDirective(directive, args, "hoho");
 	if (i == tokens.end())
 		throw std::runtime_error("Invalid server configuration: missing closing bracket");
-	checkHomeLocation();
+	checkHomeLocation(); // to make response handling easier and be able to send back a location, even if there isn't a match (by returning the "home" location. must have a home location for each server in order to do that)
 	return context;
 }
 
-/* nginx parses listen as
-	numbers:numbers -> address:port (port == host)
-	numbers			-> address (and 80 will be used for port)
-*/
+/**
+ * to do:
+ * nginx parses listen as
+ * numbers:numbers -> address:port (port == host)
+ * numbers			-> address (and 80 will be used for port)
+ * 
+ */
 
-// gonna need to come back to it because i do think we need to build in the functionality of being able to listen on different addresses (so not just the port)
+// to do: gonna need to come back to it because i do think we need to build in the functionality of being able to listen on different addresses (so not just the port)
 void	serverParser::parseListen(std::vector<std::string> &args) {
 	if (args.size() != 1 || context.listen != 0)
 		throw ConfigException();
@@ -105,6 +117,7 @@ void	serverParser::parseListen(std::vector<std::string> &args) {
 
 }
 
+// to do: plz ignore this empty function for now
 void	serverParser::parseHost(std::vector<std::string> &args) {
 
 }
@@ -139,23 +152,22 @@ void	serverParser::parseLocation(std::vector<std::string> &tokens, std::vector<s
 	}
 	context.locations.push_back(location);
 
-	// think about what to do when there are multiple locations with the same path
+	// to do: think about what to do when there are multiple locations with the same path
 }
 
+/**
+ * loop through locations, see if location with path "/" exists
+ * if yes, return
+ * if no, create location with path "/". Copy directives from context (representing a VirtulServer) to newly created "/" location and push location to back of _locations vector
+ */
 void	serverParser::checkHomeLocation(void) {
 
-	//loop through locations, see if location with path "/" exists
-	// if yes, return
-	// if no, create location with path "/". Move configurations from this server instance to newly created "/" location and push location to back of _locations vector
-
 	for (std::vector<Location>::iterator it = context.locations.begin(); it != context.locations.end(); it++) {
-		if ((*it).path == "/") //set empty directives to the default settings
+		if ((*it).path == "/") // to do: set empty directives to the default settings
 			return ;
 	}
 
 	Location	home;
-	// copy context directives to home
-	// set empty directives to the default settings
 
 	home.root = context.root;
 	home.cgi_pass = context.cgi_pass;
@@ -166,6 +178,7 @@ void	serverParser::checkHomeLocation(void) {
 	home.index = context.index;
 	home.methods = context.methods;
 	home.error_pages = context.error_pages;
+	// to do: set empty directives to the default settings
 
 	context.locations.push_back(home);
 }
@@ -187,9 +200,8 @@ std::ostream&   operator<<(std::ostream& out, VirtualServer const &obj) {
 	for (size_t i = 0; i < obj.index.size(); i++)
 		out << obj.index[i] << " ";
 	out << "\nerror_pages:" << std::endl;
-	for (std::map<unsigned int, std::string>::const_iterator it = obj.error_pages.begin(); it != obj.error_pages.end(); ++it) {
+	for (std::map<unsigned int, std::string>::const_iterator it = obj.error_pages.begin(); it != obj.error_pages.end(); ++it)
 			out << "	" << it->first << " " << it->second << std::endl;
-	}
 	for(size_t i = 0; i < obj.locations.size(); i++)
 		std::cout << obj.locations[i] << std::endl;
 	return (out);

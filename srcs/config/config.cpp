@@ -6,8 +6,15 @@
 
 Config::Config(const char *path): _path(path) {};
 
-Config::~Config(void) { };
+Config::~Config(void) {};
 
+/**
+ * Main loop
+ * 	if token == "server"
+ * 		instantiate serverParser instance called parser
+ * 		pass tokens and current location to the parseServer function of parser, and push the result to servers
+ * 	increment i, and we're ready to parse and add the next server
+ */
 void	Config::parseConfig(void) {
 
 	std::ifstream ifs(_path);
