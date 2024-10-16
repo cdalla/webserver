@@ -6,7 +6,6 @@
 #include "ConfigStructs.hpp"
 #include "serverParser.hpp"
 
-
 /**
  * 		ABOUT CONFIG, SERVERPARSER, LOCATIONPARSER - WHAT IS BEING CALLED BY WHAT
  * 
@@ -46,6 +45,7 @@ class Config {
 		};
 
 		std::vector<VirtualServer>  servers; // should proba ly rename to "configs" or something
+		VirtualServer				defaultServer;
 		std::vector<unsigned int> listens;
 
 		void			parseConfig(void);
@@ -57,3 +57,11 @@ class Config {
 std::ostream&   operator<<(std::ostream& out, Config const &obj);
 
 #endif
+
+/**
+ * configuration parsing to do's
+ * 
+ * - hostname (host::port, right now we just do port)
+ * - In the configuration file setup multiple ports and use different websites. Use the browser to ensure that the configuration works as expected and shows the right website
+ * - In the configuration, try to setup the same port multiple times. It should not work
+ */

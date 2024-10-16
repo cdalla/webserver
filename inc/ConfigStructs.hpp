@@ -17,7 +17,6 @@
  * @param methods vector<string>
  * @param error_pages vector<uint, string>
  */
-
 struct Location {
 	std::string					path;
 	std::string					root;
@@ -48,11 +47,12 @@ struct Location {
 struct VirtualServer
 {
 	std::string					server_name;
+	std::map<std::string, unsigned int>	listendirective;
 	unsigned int				listen; //port
 	std::string					root;
 	std::string					cgi_pass;
 	std::string					upload_dir;
-	std::string					redirect_url;
+	std::string					redirect_url; //to do: implemnt defining HTTP redirection in config file
 	std::string					max_body_size;
 	bool						autoindex;
 	std::vector<std::string>	index; //for if requested resource is directory

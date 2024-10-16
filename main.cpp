@@ -6,10 +6,11 @@ int main(int argc, char **argv)
 		std::cout << "Exactly one argument expected" << std::endl;
 		return (0);
 	}
-	Webserver main(argv[1]);
+
+	Webserver webserv(argv[1]);
 
 	try {
-		main.run();
+		webserv.run();
 	} catch (std::exception &e) {
 		std::cerr << e.what() << std::endl;
 	}

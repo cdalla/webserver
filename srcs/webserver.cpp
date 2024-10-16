@@ -8,7 +8,6 @@ Webserver::Webserver(const char *default_config) : config(default_config)
 	config.parseConfig();
 	servers_init();
 	create_Epoll();
-
 }
 
 Webserver::~Webserver()
@@ -55,6 +54,7 @@ void	Webserver::run()
 {
     struct epoll_event	events_queue[MAX_EVENTS];
 	int readyFds = 0;
+	return ; //! ADDED THIS FOR EASY CONFIG CHECKING OBV THIS NEEDS TO GO!!!
 	while (true)
 	{
 		readyFds = epoll_wait(_epollFd, events_queue, MAX_EVENTS, 0);

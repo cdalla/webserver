@@ -16,5 +16,5 @@ RUN ls -laR
 RUN ["make"]
 
 # Run the webserver. The second string is the argument: change this if you want to change the configuration file
-RUN ["./webserver", "config/test.conf"]
+# RUN ["./webserver", "config/test.conf"]
 

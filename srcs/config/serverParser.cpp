@@ -24,7 +24,6 @@ serverMap	serverParser::_initServerFunctions() {
 
 serverMap	serverParser::_serverFunctions = serverParser::_initServerFunctions();
 
-
 serverParser::serverParser(void) : baseParser<VirtualServer>() {
 	context.listen = 0;
 	context.autoindex = false; // the default for nginx is also false
@@ -93,26 +92,47 @@ VirtualServer	serverParser::parseServer(std::vector<std::string> &tokens, std::v
 	return context;
 }
 
-/**
- * to do:
- * nginx parses listen as
- * numbers:numbers -> address:port (port == host)
- * numbers			-> address (and 80 will be used for port)
+/** listen nginx documentation: https://nginx.org/en/docs/http/ngx_http_core_module.html#listen
+ * listen formats
+ * 		listen	address[:port]
+ * 		listen	port
  * 
+ * scenario 1: ':' is present
+ * 		both address and port are specified. split token on ':' character. word 1 is the address, word 2 is the port
+ * scenario 2: no ':'
+ * 		only the address or only the port is specified. We need to find out which one it is.
+ * 			scenario 2a: token is only digits -> token represents port
+ * 			scenario 2b: token represents address. 80 will be used for the port. address token is only valid if:
+ * 								token is only alphabetical characters --> is hostname
+ * 								token made up of digits and periods --> is IP address
+ * 								token is an asterisk <-- screw implementing this
  */
 
-// to do: gonna need to come back to it because i do think we need to build in the functionality of being able to listen on different addresses (so not just the port)
 void	serverParser::parseListen(std::vector<std::string> &args) {
+	std::string address;
+	std::string	port;
+	std::string::size_type pos;
+
 	if (args.size() != 1 || context.listen != 0)
-		throw ConfigException();
+		throw std::runtime_error("Configuration error: invalid listen directive");
+	
+	pos = args[0].find_first_of(':');
+	if (pos != std::string::npos) {
+		// scenario 1
+		address = args[0].substr(0, pos);
+		std::cout << B_MAGENTA << "address: " << address << RST << std::endl;
+		port = args[0].substr(pos + 1, args[0].size() - 1);
+		std::cout << B_MAGENTA << "port: " << port << RST << std::endl;
+	}
+	
 	for (size_t i = 0; i < args[0].length(); i++) {
 		if (!isdigit(args[0][i]))
-			throw std::runtime_error("Invalid listen directive: port can only contain digits");
+			throw std::runtime_error("Configuration error: invalid listen directive - port can only contain digits");
 	}
 	try {
 		context.listen = std::stoul(args[0]);
 	} catch (std::exception &e) {
-		throw std::runtime_error("Invalid listen directive: port not a valid integer");
+		throw std::runtime_error("Configuration error: invalid listen directive - port not a valid integer");
 	}
 
 }
@@ -122,6 +142,7 @@ void	serverParser::parseHost(std::vector<std::string> &args) {
 
 }
 
+// to do: multiple server names are allowed. ngin documentation server_name: https://nginx.org/en/docs/http/ngx_http_core_module.html#server_name
 void	serverParser::parseName(std::vector<std::string> &args) {
 	if (args.size() > 1)
 		throw std::runtime_error("Invalid server name");
