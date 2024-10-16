@@ -8,12 +8,11 @@ int main(int argc, char **argv)
 	}
 
 	Webserver webserv(argv[1]);
-
 	try {
 		webserv.run();
 	} catch (std::exception &e) {
 		std::cerr << e.what() << std::endl;
 	}
 	
-	exit(0);
+	return(0);
 }

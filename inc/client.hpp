@@ -23,13 +23,13 @@ class Client: public Socket
         std::string     _resp_string;
         bool            _done;
 
-        Server*         _server;
 
 
     public:
 			
 		Client(Server *server);
 		~Client();
+        Server*         _server;
 
 		virtual bool    		consume(int event_type);
 

@@ -23,6 +23,7 @@ void    Webserver::create_Epoll()
         addFdToPoll((*it).get_socket(), (*it).get_event());
 		addFdToMap((*it).get_socket(), &(*it));
     }
+	std::cout << B_MAGENTA << _fds.size() << RST << std::endl;
 }
 
 /*
@@ -31,15 +32,16 @@ void    Webserver::create_Epoll()
 */
 void    Webserver::addClient(int fd, Server *server)
 {
-    if (_fds.find(fd) != _fds.end())
-    {
-        //fd already present
-		//does nothing just skip
-		std::cout << "fd " << fd << " already present!" << std::endl;
-        return ;
-    }
+    // if (_fds.find(fd) != _fds.end())
+    // {
+    //     //fd already present
+	// 	//does nothing just skip
+	// 	std::cout << "fd " << fd << " already present!" << std::endl;
+    //     return ;
+    // }
+	std::cout << "adding client" << std::endl;
 	Socket *client = new Client(server);
-	client->set_socket(accept(fd, (struct sockaddr*)client->get_address(), client->get_addLen()));
+	client->set_socket(accept(fd, (struct sockaddr*)&server->_address, &server->_addrLen));
 	if (client->get_socket() == -1)
 	{
 		if (errno == EAGAIN || errno == EWOULDBLOCK)
@@ -52,7 +54,7 @@ void    Webserver::addClient(int fd, Server *server)
 		//fatal		
 	}
     make_socket_non_blocking(client->get_socket());
-	addFdToPoll(client->get_socket(), client->get_event());
+	addFdToPoll(client->get_socket(), server->get_event());
 	addFdToMap(client->get_socket(), client);
 }
 
@@ -105,10 +107,11 @@ void    Webserver::removeFd(int fd)
 {
 	if (epoll_ctl(_epollFd, EPOLL_CTL_DEL, fd, NULL) == -1)
 	{
-		std::cerr << "Failed to delete socket event in epoll instance" << std::endl;
+		// std::cerr << "Failed to delete socket event in epoll instance" << std::endl;
 		//FATAL ERROR
 	}
-	delete (_fds[fd]);
+	if (dynamic_cast<Client *>(_fds[fd]))
+		delete (_fds[fd]);
 	_fds.erase(fd);
 	close (fd);
 }

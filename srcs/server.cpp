@@ -17,7 +17,7 @@ Server::Server(VirtualServer configStruct) : _config(configStruct)
 void Server::createSocket()
 {
 	_socket = socket(AF_INET, SOCK_STREAM, 0);
-	if (!_socket)
+	if (_socket < 0)
 	{
 		//FATAL
 		std::cerr << "Failed to create socket!" << std::endl;
@@ -35,7 +35,8 @@ void Server::createSocket()
 	_address.sin_family = AF_INET;
 	_address.sin_addr.s_addr = INADDR_ANY;
 	_address.sin_port = htons(_port);
-	if (bind(_socket, (struct sockaddr*)&_address, sizeof(_address)) < 0)
+	_addrLen = sizeof(_address);
+	if (bind(_socket, (struct sockaddr*)&_address, _addrLen) < 0)
 	{
 		//FATAL
 		std::cerr << "Failed to bind socket!" << std::endl;
@@ -52,7 +53,9 @@ void Server::createSocket()
 	std::cout << "ok on port " << _socket << "!" << std::endl;
 }
 
-		
+
+
+
 bool    Server::consume(int event_type)
 {
 	(void)event_type;

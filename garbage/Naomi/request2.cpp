@@ -1,10 +1,11 @@
-#include "request.hpp"
+#include "request2.hpp"
 #include "colours.hpp"
 #include <unistd.h>
 #include <dirent.h>
 // #include <iostream>
 
-Request::Request(void) {
+
+Request::Request(Client* ptr) : _ptr(ptr) {
 
 	valRead = 0;
 	exists = true;
@@ -34,6 +35,8 @@ void	Request::initHeaders(void) {
 	_headers["Pragma"] = "";
 	_headers["Cache-Control"] = "";
 }
+
+
 
 void	Request::readRequest(int server_fd) {
 	char	buf[1024];

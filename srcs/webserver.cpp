@@ -28,6 +28,7 @@ void    Webserver::servers_init()
 	{
 		(*it).createSocket();
 	}
+	// std::cout << B_MAGENTA << _fds.size() << RST << std::endl;
 }
 
 /*
@@ -54,7 +55,7 @@ void	Webserver::run()
 {
     struct epoll_event	events_queue[MAX_EVENTS];
 	int readyFds = 0;
-	return ; //! ADDED THIS FOR EASY CONFIG CHECKING OBV THIS NEEDS TO GO!!!
+	//return ; //! ADDED THIS FOR EASY CONFIG CHECKING OBV THIS NEEDS TO GO!!!
 	while (true)
 	{
 		readyFds = epoll_wait(_epollFd, events_queue, MAX_EVENTS, 0);
@@ -65,12 +66,12 @@ void	Webserver::run()
 			exit(1);
 			//error or exception
 		}
-		std::cout << "Waiting on events.." << std::endl; 
+		// std::cout << "Waiting on events.." << std::endl; 
 		for (int n = 0; n < readyFds; n++)
 		{
             int eventFd = events_queue[n].data.fd;
 			std::vector<Server>::iterator servIt = _servers.begin();
-			for(; servIt < _servers.end(); ++servIt)
+			for(; servIt < _servers.end(); servIt++)
 			{
 				if( eventFd == (*servIt).get_socket())
                     addClient(eventFd, &(*servIt));
@@ -78,7 +79,7 @@ void	Webserver::run()
 			if (events_queue[n].events & EPOLLIN && _fds.find(eventFd) != _fds.end())
 			{
 				if (_fds[eventFd]->consume(IN))
-					change_event(eventFd, _fds[eventFd]->get_event());
+					change_event(eventFd, ((Client *)_fds[eventFd])->_server->get_event());
 
 			}
 			else if (events_queue[n].events & EPOLLOUT && _fds.find(eventFd) != _fds.end())

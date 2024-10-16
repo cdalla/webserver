@@ -1,26 +1,22 @@
 #ifndef REQUEST_HPP
 # define REQUEST_HPP
 
-# include "webserver.hpp"
-# include "response.hpp"
-# include "client.hpp"
+#include <string>
+// #include <sstream>
+#include <map>
+#include <iostream>
+#include "client.hpp"
 
-class Client;
+class Request {
 
-class Request
-{
+	private:
+		Client*	_ptr;
 
-    private:
-
-        Client*          _ptr;
-
-    public:
-
-        Request(Client* ptr);
-        ~Request() = default;
-        
-        // bool function(char *buff);
-        void		readRequest(void);
+	public:
+		Request(Client *ptr);
+		~Request(void);
+	
+		void		readRequest(int server_fd);
 		void		parseRequest(void);
 		void		printHeaders(void);
 
@@ -57,10 +53,8 @@ class Request
 		std::string		_body;
 		std::string		_rawRequest;
 		std::map<std::string, std::string>	_headers;
-
 };
 
 std::ostream&   operator<<(std::ostream& out, Request const &obj);
-
 
 #endif

@@ -1,10 +1,22 @@
 #include "request.hpp"
-#include "utils.hpp"
+// #include "utils.hpp"
 #include <unistd.h>
 #include <sstream>
 // #include <iostream>
 
 // void	trimCRLF() {}
+
+
+std::string	getLine(std::string	str, size_t start) {
+
+	std::string	line;
+	size_t		end;
+
+	end = str.find("\r\n", start);
+	if (end != std::string::npos)
+		line = str.substr(start, end - start);
+	return (line);
+}
 
 void	Request::parseRequest(void) {
 	parseHeaders();
