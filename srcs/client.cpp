@@ -1,18 +1,18 @@
 #include "client.hpp"
 
-Client::Client(Server *server): _server(server)
+Client::Client(Server *server): _server(server), _req_handl(this), _resp_handl(this)
 {
     _done = false;
-    _req_handl = new Request(this);
-    _resp_handl = new Response(this);
+    // _req_handl = Request(this);
+    // _resp_handl = Response(this);
     return ;
 }
 
 
 Client::~Client()
 {
-    delete _req_handl;
-    delete _resp_handl;
+    // delete _req_handl;
+    // delete _resp_handl;
 }
 
 /*
@@ -41,8 +41,9 @@ bool Client::consume(int event_type)
         //     std::memset(_req_buff, 0, MAX_SIZE);
         // }
         // return (_done);
-        _req_handl->readRequest();
-        std::cout << (*_req_handl) << std::endl;
+        //  std::cout << B_LILA << "1" << RST << std::endl;
+        _req_handl.readRequest();
+        std::cout << (_req_handl) << std::endl;
         return true;
     }
     else
@@ -50,11 +51,11 @@ bool Client::consume(int event_type)
         // if (!_done)
         //     return false;
         
-        _resp_handl->create(*(_req_handl));
-        _resp_string.append(_resp_handl->statusLine);
-        _resp_string.append(_resp_handl->contentType);
-        _resp_string.append(_resp_handl->contentLength);
-        _resp_string.append(_resp_handl->entityBody);
+        _resp_handl.create((_req_handl));
+        _resp_string.append(_resp_handl.statusLine);
+        _resp_string.append(_resp_handl.contentType);
+        _resp_string.append(_resp_handl.contentLength);
+        _resp_string.append(_resp_handl.entityBody);
 
         // _resp_string = _resp_handl->function();
         // bytes = send(_socket, "hi", 2, 0);

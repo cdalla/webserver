@@ -23,6 +23,7 @@ Response::Response(Client *ptr) : _ptr(ptr) {
 	contentLength.append("Content-Length: ");
 	contentType.append("Content-Type: ");
 	binaryMode = false;
+
 };
 
 // Response::~Response(void) {};
@@ -31,8 +32,7 @@ void	Response::create(Request &request) {
 	determineType(request); // set "contentType" and "binaryMode"
 	if (!request.extension.compare(".debug"))
 		return (Debug(request));
-	makeStatusLine(request);
-	fillBody();
+	fillBody(makeStatusLine(request));
 }
 
 void	Response::determineType(Request &r) {
@@ -56,7 +56,7 @@ void	Response::determineType(Request &r) {
 	contentType.append("\r\n");
 }
 
-void	Response::makeStatusLine(Request &r) {
+bool	Response::makeStatusLine(Request &r) {
 	if (binaryMode)
 		_ifs.open(r.resource.c_str(), std::ifstream::in | std::ios::binary);
 	else
@@ -70,23 +70,27 @@ void	Response::makeStatusLine(Request &r) {
 	}
 	else {
 		statusLine.append("500 Internal Server Error\r\n");
-		return ;
+		return true;
 	}
+	return false;
 }
 
-void	Response::fillBody(void) {
+void	Response::fillBody(bool status) {
 
 	std::streampos	size;
-
+        
+	status = status;
 	_ifs.seekg(0, std::ios::end); // Set the file pointer within the input stream. We want to start at 0 (cause we want to use this to get the length of the file) and set it to the end of the file - which is represented by std::ios::end (which is an enumerator))
 	size = _ifs.tellg(); // Tellg will return the position of the file pointer. And we just set it to the end so the location of the file pointer will be the last element, ergo the total filesize.
 	_ifs.seekg(0, std::ios::beg); // Set that bad boy to the start of the input stream again
 	entityBody.resize(size); // Give entityBody enough space that we can read straight into entityBody. This is what ChatGPT did. I'm gonna check later if actually necessary or if can also read into std::string and append that to entityBody. But I think maybe that's not possible because the whole problem with serving images was that I was storing the binary data into std::string but wait entityBody is also std::string. Maybe so we don't have to read line by line?
+	
 	_ifs.read(&entityBody[0], size);
 	_ifs.close();
 	contentLength.append(std::to_string(entityBody.length()));
-	contentLength.append("\r\n\r\n");
 	statusLine.append("\r\n");
+	contentLength.append("\r\n\r\n");
+
 }
 
 void	Response::Debug(Request &request) {
@@ -96,6 +100,12 @@ void	Response::Debug(Request &request) {
 	contentLength.append(std::to_string(entityBody.length()));
 	contentLength.append("\r\n\r\n");
 	statusLine.append("\r\n");
+}
+
+Response&	Response::operator=( Response &obj) {
+	_ptr = obj.getClient();
+	return *(this);
+
 }
 
 std::ostream&	operator<<(std::ostream& out, Response const &obj) {

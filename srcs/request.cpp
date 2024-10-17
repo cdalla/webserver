@@ -1,4 +1,6 @@
 #include "request.hpp"
+# include "client.hpp"
+
 #include "colours.hpp"
 #include <unistd.h>
 #include <dirent.h>
@@ -42,7 +44,6 @@ void	Request::readRequest(void) {
 	valRead = read(connect_fd, buf, 1023);
 	if (valRead < 0) {
 		perror("reading from connection socket failed");
-		// close(server_fd);
 		close(connect_fd);
 		exit(1);
 	}
@@ -133,6 +134,12 @@ std::map<std::string, std::string>	Request::getHeaders(void) const {
 
 void	printSocketInfo(std::ostream& out, Request const &obj);
 void	printRequestDetails(std::ostream& out, Request const &obj);
+
+
+Request&	Request::operator=( Request &obj) {
+	_ptr = obj.getClient();
+	return *(this);
+}
 
 std::ostream&   operator<<(std::ostream& out, Request const &obj) {
 

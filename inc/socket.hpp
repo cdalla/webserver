@@ -1,7 +1,23 @@
 #ifndef SOCKET_HPP
 # define SOCKET_HPP
 
-#include "webserver.hpp"
+// #include "webserver.hpp"
+# include <vector>
+# include <map>
+# include <sys/socket.h>
+# include <sys/epoll.h>
+# include <arpa/inet.h>
+# include <fcntl.h>
+# include <iostream>
+# include <unistd.h>
+# include <cstring>
+
+void make_socket_non_blocking(int socket_fd);
+# define MAX_EVENTS 10
+# define IN 0
+# define OUT 1
+# define MAX_SIZE 1024
+# define MAX_CONNECTIONS 10
 
 class Socket
 {

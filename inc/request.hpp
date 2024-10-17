@@ -1,9 +1,9 @@
 #ifndef REQUEST_HPP
 # define REQUEST_HPP
 
-# include "webserver.hpp"
+// # include "webserver.hpp"
 # include "response.hpp"
-# include "client.hpp"
+// # include "client.hpp"
 
 class Client;
 
@@ -18,6 +18,9 @@ class Request
 
         Request(Client* ptr);
         ~Request() = default;
+
+		Request& operator=( Request &obj);
+
         
         // bool function(char *buff);
         void		readRequest(void);
@@ -42,6 +45,9 @@ class Request
 		std::string	method;
 		std::string	resource;
 		std::string	extension;
+
+		Client*	getClient(void) {return this->_ptr;};
+
 
 	private:
 

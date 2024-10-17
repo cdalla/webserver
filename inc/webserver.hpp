@@ -15,10 +15,10 @@
 # include "ConfigStructs.hpp"
 # include "config.hpp"
 # include "server.hpp"
-# include "client.hpp"
+// # include "client.hpp"
 # include "socket.hpp"
-# include "response.hpp"
-# include "request.hpp"
+// # include "response.hpp"
+// # include "request.hpp"
 
 # define MAX_EVENTS 10
 # define IN 0

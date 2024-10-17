@@ -1,8 +1,10 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
-#include "webserver.hpp"
+// #include "webserver.hpp"
+// #include "server.hpp"
 #include "socket.hpp"
+#include "ConfigStructs.hpp"
 
 class Server : public Socket 
 {

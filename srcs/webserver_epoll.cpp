@@ -1,4 +1,5 @@
 #include "webserver.hpp"
+#include "client.hpp"
 
 /*
 	CREATE EPOLL INSTANCE
@@ -23,7 +24,7 @@ void    Webserver::create_Epoll()
         addFdToPoll((*it).get_socket(), (*it).get_event());
 		addFdToMap((*it).get_socket(), &(*it));
     }
-	std::cout << B_MAGENTA << _fds.size() << RST << std::endl;
+	// std::cout << B_MAGENTA << _fds.size() << RST << std::endl;
 }
 
 /*

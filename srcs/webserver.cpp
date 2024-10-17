@@ -1,4 +1,6 @@
 #include "webserver.hpp"
+# include "client.hpp"
+
 
 Webserver::Webserver(const char *default_config) : config(default_config)
 {
@@ -79,7 +81,7 @@ void	Webserver::run()
 			if (events_queue[n].events & EPOLLIN && _fds.find(eventFd) != _fds.end())
 			{
 				if (_fds[eventFd]->consume(IN))
-					change_event(eventFd, ((Client *)_fds[eventFd])->_server->get_event());
+					change_event(eventFd, ((Client *) _fds[eventFd])->_server->get_event());
 
 			}
 			else if (events_queue[n].events & EPOLLOUT && _fds.find(eventFd) != _fds.end())

@@ -4,7 +4,7 @@
 #include "server.hpp"
 #include "response.hpp"
 #include "request.hpp"
-#include "cgiHandler.hpp"
+// #include "cgiHandler.hpp"
 #include "colours.hpp"
 
 void	exit_error(const char *str, int fd, int do_close);
