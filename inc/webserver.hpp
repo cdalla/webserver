@@ -15,7 +15,7 @@
 # include "ConfigStructs.hpp"
 # include "config.hpp"
 # include "server.hpp"
-// # include "client.hpp"
+# include "client.hpp"
 # include "socket.hpp"
 // # include "response.hpp"
 // # include "request.hpp"
@@ -27,6 +27,7 @@
 # define MAX_CONNECTIONS 10
 
 class Server;
+// class Client;
 
 class Webserver
 {
@@ -34,12 +35,12 @@ class Webserver
     private:
 
         std::vector<Server>             _servers;
-        std::map<int, Socket*>          _fds;
+        std::map<int, Client>          _fds;
         int                             _epollFd;
 
         void    servers_init();
         void    create_Epoll();
-        void	addFdToMap(int fd, Socket *client);
+        void	addFdToMap(int fd, Client client);
         void    addFdToPoll(int fd, struct epoll_event *event);
         void    addClient(int fd, Server *server);
         void    removeFd(int fd);

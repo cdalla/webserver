@@ -3,9 +3,12 @@
 Client::Client(Server *server): _server(server), _req_handl(this), _resp_handl(this)
 {
     _done = false;
-    return ;
 }
 
+Client::Client(const Client& obj) : _req_handl(obj._req_handl), _resp_handl(obj._resp_handl), _server(obj._server) {
+
+
+}
 
 Client::~Client(void) {}
 

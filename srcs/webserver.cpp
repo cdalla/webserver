@@ -1,5 +1,5 @@
 #include "webserver.hpp"
-# include "client.hpp"
+// # include "client.hpp"
 
 
 Webserver::Webserver(const char *default_config) : config(default_config)
@@ -40,7 +40,7 @@ void    Webserver::servers_init()
 */
 void	Webserver::clean()
 {
-	std::map<int, Socket *>::iterator it = _fds.begin();
+	std::map<int, Client>::iterator it = _fds.begin();
 	for (; it != _fds.end(); ++it)
 	{
 		removeFd(it->first);
@@ -79,17 +79,18 @@ void	Webserver::run()
 				}
 			}
 			if (events_queue[n].events & EPOLLIN && _fds.find(eventFd) != _fds.end()) {
-				if (_fds[eventFd]->consume(IN))
-					change_event(eventFd, ((Client *) _fds[eventFd])->_server->get_event());
+				std::cout << (_fds.find(eventFd) != _fds.end()) << std::endl;
+				// if (_fds[eventFd].consume(IN))
+				// 	change_event(eventFd, _fds[eventFd]._server->get_event());
 			}
 			else if (events_queue[n].events & EPOLLOUT && _fds.find(eventFd) != _fds.end()) {
-				if (_fds[eventFd]->consume(OUT)) {
-					std::cout << "removing fd " << eventFd << " after successful return of consume function" << std::endl;
-					removeFd(eventFd);
-				}
-				else {
-					std::cout << "consume function returned error" << std::endl;
-				}
+				// if (_fds[eventFd].consume(OUT)) {
+				// 	std::cout << "removing fd " << eventFd << " after successful return of consume function" << std::endl;
+				// 	removeFd(eventFd);
+				// }
+				// else {
+				// 	std::cout << "consume function returned error" << std::endl;
+				// }
 			}
 			else {
 				//remove fd from epoll uknown event

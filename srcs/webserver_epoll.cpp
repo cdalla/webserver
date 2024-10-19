@@ -40,24 +40,32 @@ void    Webserver::addClient(int fd, Server *server)
 	// 	std::cout << "fd " << fd << " already present!" << std::endl;
     //     return ;
     // }
-	Socket *client = new Client(server);
-	client->set_socket(accept(fd, (struct sockaddr*)&server->_address, &server->_addrLen));
-	if (client->get_socket() == -1) {
+	// Socket *client = new Client(server);
+	Client client(server);
+	client.set_socket(accept(fd, (struct sockaddr*)&server->_address, &server->_addrLen));
+	if (client.get_socket() == -1) {
 		if (errno == EAGAIN || errno == EWOULDBLOCK) {
 			std::cout << "Cannot accept new connection" << std::endl;
-			delete client;
+			// delete client;
 			return;
 		}
 		std::cerr << "Error accepting connection" << std::endl;
 		//fatal
 	}
-    make_socket_non_blocking(client->get_socket());
-	addFdToPoll(client->get_socket(), server->get_event());
-	addFdToMap(client->get_socket(), client);
-	std::cout << "added new client with fd " << client->get_socket() << std::endl;
+    make_socket_non_blocking(client.get_socket());
+	addFdToPoll(client.get_socket(), server->get_event());
+	if (_fds.find(fd) != _fds.end())
+	{
+		//fd already present
+		std::cout << "fd " << fd << " already present!" << std::endl;
+		return;
+	}
+	_fds[fd] = client;
+	//addFdToMap(client.get_socket(), client);
+	std::cout << "added new client with fd " << client.get_socket() << std::endl;
 }
 
-void	Webserver::addFdToMap(int fd, Socket *socket)
+void	Webserver::addFdToMap(int fd, Client client)
 {
 	if (_fds.find(fd) != _fds.end())
 	{
@@ -65,7 +73,7 @@ void	Webserver::addFdToMap(int fd, Socket *socket)
 		std::cout << "fd " << fd << " already present!" << std::endl;
 		return;
 	}
-	_fds[fd] = socket;
+	_fds[fd] = client;
 }
 
 /*
@@ -106,8 +114,8 @@ void    Webserver::removeFd(int fd)
 		// std::cerr << "Failed to delete socket event in epoll instance" << std::endl;
 		//FATAL ERROR
 	}
-	if (dynamic_cast<Client *>(_fds[fd]))
-		delete (_fds[fd]);
+	// if (dynamic_cast<Client *>(_fds[fd]))
+	// 	delete (_fds[fd]);
 	_fds.erase(fd);
 	close (fd);
 }

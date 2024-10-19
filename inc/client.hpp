@@ -24,11 +24,10 @@ class Client: public Socket
         std::string     _resp_string;
         bool            _done;
 
-
-
     public:
 			
 		Client(Server *server);
+        Client(const Client& obj);
 		~Client();
         Server*         _server;
 

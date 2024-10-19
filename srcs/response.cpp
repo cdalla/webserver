@@ -26,6 +26,10 @@ Response::Response(Client *ptr) : _ptr(ptr) {
 
 };
 
+Response::Response(const Response &obj) : _ptr(obj._ptr)  {
+
+}
+
 // Response::~Response(void) {};
 
 void	Response::create(Request &request) {

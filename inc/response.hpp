@@ -29,6 +29,7 @@ class Response
     public:
 
         Response(Client *ptr);
+		Response(const Response &obj);
         ~Response() = default;
 
 		Response& operator=( Response &obj);
