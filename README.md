@@ -34,5 +34,5 @@ To run the project on a non-Linux system, run the following command in your comm
 docker run --rm -it container /bin/bash
 ```
 
-This will run the container in interactive mode, opening a new shell on the command line.  
-If you want to run the webserver with a different configuration file, you can easily edit the Dockerfile (last line, see comment in Dockerfile)
+This will run the container in interactive mode, opening a new shell on the command line. This shell is now running in Linux, execute the program like you can see in the Linux
+example above

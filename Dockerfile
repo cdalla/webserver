@@ -2,7 +2,9 @@
 FROM ubuntu:latest
 
 # Install packages & software.
-RUN apt-get update && apt-get install -y build-essential
+RUN apt-get update && apt-get install -y build-essential curl
+
+# .... install curl seperately
 
 # Set the working directory inside the container
 WORKDIR /webserv
@@ -10,11 +12,9 @@ WORKDIR /webserv
 # Copy source files to working directory
 COPY . /webserv
 
-RUN ls -laR
-
 # Compile code
-RUN ["make"]
+# RUN ["make"]
 
 # Run the webserver. The second string is the argument: change this if you want to change the configuration file
-# RUN ["./webserver", "config/test.conf"]
+# RUN ["./webserver", "config/sample.conf"]
 

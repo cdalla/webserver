@@ -36,8 +36,6 @@ void	Request::initHeaders(void) {
 	_headers["Cache-Control"] = "";
 }
 
-
-
 void	Request::readRequest(void) {
 	char	buf[1024];
     connect_fd = _ptr->get_socket();

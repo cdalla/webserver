@@ -34,7 +34,7 @@ class Response
 		Response& operator=( Response &obj);
 
         std::string function(void);
-        		void	create(Request &request);
+        void	create(Request &request);
 
 		// std::string	getBody(void) const;
 

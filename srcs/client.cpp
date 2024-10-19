@@ -3,17 +3,11 @@
 Client::Client(Server *server): _server(server), _req_handl(this), _resp_handl(this)
 {
     _done = false;
-    // _req_handl = Request(this);
-    // _resp_handl = Response(this);
     return ;
 }
 
 
-Client::~Client()
-{
-    // delete _req_handl;
-    // delete _resp_handl;
-}
+Client::~Client(void) {}
 
 /*
     DEPENDING ON EVENT TYPE:
@@ -26,7 +20,6 @@ bool Client::consume(int event_type)
 
     if (event_type == IN)
     {
-        // std::cout << "HELLO" << std::endl;
         // if (!_done)
         // {
         //     bytes = recv(_socket, _req_buff, 10, 0);
@@ -35,13 +28,10 @@ bool Client::consume(int event_type)
         //         //error
         //         return false;
         //     }
-        //     std::string woopsie(_req_buff);
-        //     std::cout << woopsie << std::endl;
         //     _done = _req_handl->function(_req_buff);
         //     std::memset(_req_buff, 0, MAX_SIZE);
         // }
         // return (_done);
-        //  std::cout << B_LILA << "1" << RST << std::endl;
         _req_handl.readRequest();
         std::cout << (_req_handl) << std::endl;
         return true;
@@ -57,8 +47,6 @@ bool Client::consume(int event_type)
         _resp_string.append(_resp_handl.contentLength);
         _resp_string.append(_resp_handl.entityBody);
 
-        // _resp_string = _resp_handl->function();
-        // bytes = send(_socket, "hi", 2, 0);
         bytes = send(_socket, _resp_string.c_str(), _resp_string.size(), 0);
         if (bytes < 0)
         {
