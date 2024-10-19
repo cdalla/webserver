@@ -20,6 +20,7 @@ Client::~Client(void) {}
 bool Client::consume(int event_type)
 {
     ssize_t bytes;
+    std::cout << event_type << std::endl;
 
     if (event_type == IN)
     {
@@ -43,7 +44,7 @@ bool Client::consume(int event_type)
     {
         // if (!_done)
         //     return false;
-        
+        std::cout << "here" << std::endl;
         _resp_handl.create((_req_handl));
         _resp_string.append(_resp_handl.statusLine);
         _resp_string.append(_resp_handl.contentType);

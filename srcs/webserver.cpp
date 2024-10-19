@@ -80,17 +80,17 @@ void	Webserver::run()
 			}
 			if (events_queue[n].events & EPOLLIN && _fds.find(eventFd) != _fds.end()) {
 				std::cout << (_fds.find(eventFd) != _fds.end()) << std::endl;
-				// if (_fds[eventFd].consume(IN))
-				// 	change_event(eventFd, _fds[eventFd]._server->get_event());
+				if (_fds.at(eventFd).consume(IN))
+					change_event(eventFd, _fds.at(eventFd)._server->get_event());
 			}
 			else if (events_queue[n].events & EPOLLOUT && _fds.find(eventFd) != _fds.end()) {
-				// if (_fds[eventFd].consume(OUT)) {
-				// 	std::cout << "removing fd " << eventFd << " after successful return of consume function" << std::endl;
-				// 	removeFd(eventFd);
-				// }
-				// else {
-				// 	std::cout << "consume function returned error" << std::endl;
-				// }
+				if (_fds.at(eventFd).consume(OUT)) {
+					std::cout << "removing fd " << eventFd << " after successful return of consume function" << std::endl;
+					removeFd(eventFd);
+				}
+				else {
+					std::cout << "consume function returned error" << std::endl;
+				}
 			}
 			else {
 				//remove fd from epoll uknown event

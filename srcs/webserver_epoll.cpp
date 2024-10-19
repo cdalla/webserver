@@ -22,7 +22,7 @@ void    Webserver::create_Epoll()
 	for (; it != _servers.end(); ++it)
 	{
         addFdToPoll((*it).get_socket(), (*it).get_event());
-		addFdToMap((*it).get_socket(), &(*it));
+		//addFdToMap((*it).get_socket(), &(*it));
     }
 	// std::cout << B_MAGENTA << _fds.size() << RST << std::endl;
 }
@@ -60,7 +60,7 @@ void    Webserver::addClient(int fd, Server *server)
 		std::cout << "fd " << fd << " already present!" << std::endl;
 		return;
 	}
-	_fds[fd] = client;
+	_fds.insert({fd, client});
 	//addFdToMap(client.get_socket(), client);
 	std::cout << "added new client with fd " << client.get_socket() << std::endl;
 }
@@ -73,7 +73,7 @@ void	Webserver::addFdToMap(int fd, Client client)
 		std::cout << "fd " << fd << " already present!" << std::endl;
 		return;
 	}
-	_fds[fd] = client;
+	//_fds[fd] = client;
 }
 
 /*

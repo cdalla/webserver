@@ -95,7 +95,7 @@ void	Request::printHeaders(void) {
 	std::map<std::string, std::string>::iterator it;
 
 	for (it = _headers.begin(); it != _headers.end(); it++) {
-		if (it->first.empty())
+		if (it->first.empty() && it->second.empty())
 			std::cout << it->first << ": " << it->second << std::endl;
 	}
 }
@@ -143,7 +143,8 @@ std::ostream&   operator<<(std::ostream& out, Request const &obj) {
 
 	out << CYAN "HTTP Request\n" RST;
 	out << "  " U_WHT "General:\n" RST;
-	out << "    Method: " << obj.method << "\n";
+	if (obj.method != "")
+		out << "    Method: " << obj.method << "\n";
 	out << "    URL: " << obj.getURL() << "\n";
 	out << "  " U_WHT "Parsing variables:\n" RST;
 	out << "    exists: " << (obj.exists? "true" : "false") << "\n";
