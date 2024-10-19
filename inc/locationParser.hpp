@@ -1,7 +1,7 @@
 #ifndef LOCATIONPARSER_HPP
 # define LOCATIONPARSER_HPP
 
-#include "ConfigStructs.hpp"
+#include "structs.hpp"
 #include "baseParser.hpp"
 
 /**

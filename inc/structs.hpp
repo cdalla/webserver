@@ -1,5 +1,5 @@
-#ifndef CONFIGSTRUCTS_HPP
-# define CONFIGSTRUCTS_HPP
+#ifndef STRUCTS_HPP
+# define STRUCTS_HPP
 
 #include <map>
 #include <vector>
@@ -63,5 +63,29 @@ struct VirtualServer
 
 # define serverMap std::map<std::string, void(serverParser::*)(std::vector<std::string> &args)> //function map for servers
 # define locationMap std::map<std::string, void(locationParser::*)(std::vector<std::string> &args)> //function map for locations
+
+struct Request {
+
+	int			valRead;
+	int			connect_fd;
+	bool		exists;
+
+	std::string		method;
+	std::string		resource;
+	std::string		extension;
+	std::string		_statusLine;
+	std::string		_URL;
+	std::string		_path;
+	std::string		_body;
+	std::string		_rawRequest;
+	std::map<std::string, std::string>	_headers;
+};
+
+struct Response {
+	std::string	statusLine;
+	std::string	contentType;
+	std::string	contentLength;
+	std::string	entityBody;
+};
 
 #endif

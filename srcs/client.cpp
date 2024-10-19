@@ -1,11 +1,11 @@
 #include "client.hpp"
+#include "requestHandler.hpp"
+#include "responseHandler.hpp"
 
-Client::Client(Server *server): _server(server), _req_handl(this), _resp_handl(this)
-{
+Client::Client(Server *server): _server(server) {
     _done = false;
     return ;
 }
-
 
 Client::~Client(void) {}
 
@@ -20,6 +20,8 @@ bool Client::consume(int event_type)
 
     if (event_type == IN)
     {
+		requestHandler handler(this);
+		request = handler.readRequest();
         // if (!_done)
         // {
         //     bytes = recv(_socket, _req_buff, 10, 0);
@@ -32,20 +34,22 @@ bool Client::consume(int event_type)
         //     std::memset(_req_buff, 0, MAX_SIZE);
         // }
         // return (_done);
-        _req_handl.readRequest();
-        std::cout << (_req_handl) << std::endl;
+        // _req_handl.readRequest();
+        // std::cout << (_req_handl) << std::endl;
+        std::cout << request << std::endl;
+
         return true;
     }
     else
     {
         // if (!_done)
         //     return false;
-        
-        _resp_handl.create((_req_handl));
-        _resp_string.append(_resp_handl.statusLine);
-        _resp_string.append(_resp_handl.contentType);
-        _resp_string.append(_resp_handl.contentLength);
-        _resp_string.append(_resp_handl.entityBody);
+		responseHandler handler(this);
+		response = handler.create(request);
+        _resp_string.append(response.statusLine);
+        _resp_string.append(response.contentType);
+        _resp_string.append(response.contentLength);
+        _resp_string.append(response.entityBody);
 
         bytes = send(_socket, _resp_string.c_str(), _resp_string.size(), 0);
         if (bytes < 0)

@@ -12,7 +12,7 @@
 # include <cstring>
 
 # include "colours.hpp"
-# include "ConfigStructs.hpp"
+# include "structs.hpp"
 # include "config.hpp"
 # include "server.hpp"
 // # include "client.hpp"

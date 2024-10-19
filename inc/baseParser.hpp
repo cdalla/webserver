@@ -1,10 +1,12 @@
 #ifndef BASEPARSER_HPP
 # define BASEPARSER_HPP
 
-#include "ConfigStructs.hpp"
+#include "structs.hpp"
 
 /**
+ * 		!!! this is only for parsing configuration files
  * 		ABOUT BASEPARSER CLASS
+ * 
  * There is a lot of overlap between parsing a server and parsing a location. To avoid redundant functions,
  * we have a template base class for parsing a server or a location. This baseParser contains the functions for
  * parsing directives that can appear in the context of a server and in the context of a location.

@@ -5,8 +5,10 @@
 // # include "socket.hpp"
 // #include "client.hpp"
 # include "server.hpp"
-# include "request.hpp"
-# include "response.hpp"
+// # include "request.hpp"
+// # include "response.hpp"
+
+#include "structs.hpp"
 
 // class Server;
 // class Request;
@@ -17,14 +19,12 @@ class Client: public Socket
 
     private:
 
-		Request        _req_handl;
-        Response        _resp_handl;
+		Request        request;
+        Response        response;
 
 		char            _req_buff[1024];
         std::string     _resp_string;
         bool            _done;
-
-
 
     public:
 			

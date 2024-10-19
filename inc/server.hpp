@@ -4,7 +4,7 @@
 // #include "webserver.hpp"
 // #include "server.hpp"
 #include "socket.hpp"
-#include "ConfigStructs.hpp"
+#include "structs.hpp"
 
 class Server : public Socket 
 {

@@ -1,11 +1,6 @@
-#include "request.hpp"
-// #include "utils.hpp"
+#include "requestHandler.hpp"
 #include <unistd.h>
 #include <sstream>
-// #include <iostream>
-
-// void	trimCRLF() {}
-
 
 std::string	getLine(std::string	str, size_t start) {
 
@@ -15,68 +10,68 @@ std::string	getLine(std::string	str, size_t start) {
 	end = str.find("\r\n", start);
 	if (end != std::string::npos)
 		line = str.substr(start, end - start);
+
 	return (line);
 }
 
-void	Request::parseRequest(void) {
+void	requestHandler::parseRequest(void) {
+
 	parseHeaders();
-	if (extension.compare(".debug") && extension.compare(".exit"))
-	{
-		if (setPath("www", _path) > 0)
-			exists = false;
+	if (request.extension.compare(".debug") && request.extension.compare(".exit")) {
+		if (setPath("www", request._path) > 0)
+			request.exists = false;
 	}
 }
 
-void	Request::parseHeaders(void) {
+void	requestHandler::parseHeaders(void) {
 
-	std::istringstream	requestStream(_rawRequest);
+	std::istringstream	requestStream(request._rawRequest);
 	std::string	key;
 	std::string	value;
 
-	std::getline(requestStream, _statusLine);
+	std::getline(requestStream, request._statusLine);
 	parseStatusLine();
 	for (std::string line; std::getline(requestStream, line);) {
 
-		if (line.compare("\r"))
-		{
+		if (line.compare("\r")) {
 			key = getKey(line);
 			value = getValue(line);
-			if (_headers.count(key))
-				_headers[key] = value;
+			if (request._headers.count(key))
+				request._headers[key] = value;
 		}
 		else {
 			for (std::string line; std::getline(requestStream, line);) {
-				_body += line;
-				_body += '\n';
+				request._body += line;
+				request._body += '\n';
 			}
 		}
 	}
 }
 
-void	Request::parseStatusLine(void) {
+void	requestHandler::parseStatusLine(void) {
 
-	size_t start = _statusLine.find_first_of('/') + 1;
-	size_t end = _statusLine.find_first_of(' ', start);
+	size_t start = request._statusLine.find_first_of('/') + 1;
+	size_t end = request._statusLine.find_first_of(' ', start);
 
-	method = _statusLine.substr(0, start - 2);
+	request.method = request._statusLine.substr(0, start - 2);
 	if (start == end) {
-		_path.append("index.html");
-		extension = ".html";
+		request._path.append("index.html");
+		request.extension = ".html";
 	}
 	else {
-		_URL = _statusLine.substr(start, end - start);
-		start = _URL.find_first_of('.');
+		request._URL = request._statusLine.substr(start, end - start);
+		start = request._URL.find_first_of('.');
 		if (start == std::string::npos)
-			extension = ".html";
+			request.extension = ".html";
 		else
-			extension = _URL.substr(start);
-		_path.append(_URL);
+			request.extension = request._URL.substr(start);
+		request._path.append(request._URL);
 		if (start == std::string::npos)
-			_path.append(extension);
+			request._path.append(request.extension);
 	}
 }
 
-std::string	Request::getKey(const std::string &line) {
+std::string	requestHandler::getKey(const std::string &line) {
 
 	std::string	key;
 	size_t		end;
@@ -84,10 +79,11 @@ std::string	Request::getKey(const std::string &line) {
 	end = line.find_first_of(':');
 	if (end == std::string::npos) //! error handling
 		exit(1);
+
 	return (line.substr(0, end));
 }
 
-std::string	Request::getValue(const std::string &line) {
+std::string	requestHandler::getValue(const std::string &line) {
 
 	std::string value;
 	size_t	start;
@@ -95,5 +91,6 @@ std::string	Request::getValue(const std::string &line) {
 
 	start = line.find_first_of(':') + 2; //! error handling
 	end = line.find_first_of('\r');
+
 	return (line.substr(start, end - start));
 }

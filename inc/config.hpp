@@ -3,7 +3,7 @@
 
 #include <string>
 #include <vector>
-#include "ConfigStructs.hpp"
+#include "structs.hpp"
 #include "serverParser.hpp"
 
 /**
