@@ -88,7 +88,8 @@ void	Webserver::run()
 					removeFd(eventFd);
 				}
 				else {
-					std::cout << "consume function returned error" << std::endl;
+					std::cout << "removing fd " << eventFd << " after error in consume function" << std::endl;
+					removeFd(eventFd);
 				}
 			}
 			else {

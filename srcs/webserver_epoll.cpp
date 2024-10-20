@@ -95,7 +95,6 @@ void	Webserver::change_event(int fd, struct epoll_event *event)
 	}
 }
 
-
 /*
 	REMOVE FD FROM EPOLL INSTANCE
 	REMOVE FROM FDS MAP AND DELETE HIS DATA
@@ -103,11 +102,11 @@ void	Webserver::change_event(int fd, struct epoll_event *event)
 void    Webserver::removeFd(int fd)
 {
 	if (epoll_ctl(_epollFd, EPOLL_CTL_DEL, fd, NULL) == -1) {
-		// std::cerr << "Failed to delete socket event in epoll instance" << std::endl;
+		std::cerr << "Failed to delete socket event in epoll instance" << std::endl;
 		//FATAL ERROR
 	}
+	close (fd);
 	if (dynamic_cast<Client *>(_fds[fd]))
 		delete (_fds[fd]);
 	_fds.erase(fd);
-	close (fd);
 }
