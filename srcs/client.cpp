@@ -1,5 +1,5 @@
 #include "client.hpp"
-#include "requestHandler.hpp"
+#include "requestParser"
 #include "responseHandler.hpp"
 
 Client::Client(Server *server): _server(server) {
@@ -20,24 +20,28 @@ bool Client::consume(int event_type)
 
     if (event_type == IN)
     {
-		requestHandler handler(this);
-		request = handler.readRequest();
-        // if (!_done)
-        // {
-        //     bytes = recv(_socket, _req_buff, 10, 0);
-        //     if (bytes < 0)
-        //     {
-        //         //error
-        //         return false;
-        //     }
-        //     _done = _req_handl->function(_req_buff);
-        //     std::memset(_req_buff, 0, MAX_SIZE);
-        // }
-        // return (_done);
-        // _req_handl.readRequest();
-        // std::cout << (_req_handl) << std::endl;
-        std::cout << request << std::endl;
+        size_t  buffer_size = 1024;
+        char    buffer[buffer_size];
+        ssize_t bytes_read;
+        ssize_t total_bytes_read = 0;
+        RequestParser parser;
 
+        int client_socket = this->get_socket();
+        
+        while ((bytes_read = read(client_socket, buffer, buffer_size - 1)) > 0) {
+            total_bytes_read += bytes_read;
+            if (parser.feed(buffer))
+                break ;
+            std::memset(buffer, buffer_size);
+        }
+        close(client_socket)
+        if (bytes_read == -1 || total_bytes_read = 0) {
+            std::cerr << "Read failed" << std::endl;
+            return false;
+        }
+
+        this->request = parser.get_parsed_request();
+        std::cout << "Read successful: " << total_bytes_read << " bytes" << std::endl;
         return true;
     }
     else

@@ -66,19 +66,20 @@ struct VirtualServer
 
 struct Request {
 
-	int			valRead;
-	int			connect_fd;
 	bool		exists;
+	int			error; // if not error 0
+	bool		is_cgi;
 
 	std::string		method;
 	std::string		resource;
 	std::string		extension;
-	std::string		_statusLine;
-	std::string		_URL;
+	std::string		uri;
 	std::string		_path;
-	std::string		_body;
-	std::string		_rawRequest;
-	std::map<std::string, std::string>	_headers;
+	std::string		body;
+	std::map<std::string, std::string>	headers;
+	char			**env;
+	char			*script_name;
+
 };
 
 struct Response {
