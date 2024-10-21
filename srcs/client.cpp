@@ -18,8 +18,11 @@ bool Client::consume(int event_type)
 {
     ssize_t bytes;
 
+
+    std::cout << "handling event on fd: " << this->get_socket() << std::endl;
     if (event_type == IN)
     {
+        std::cout << "IN EVENT" << std::endl;
 		requestHandler handler(this);
 		request = handler.readRequest();
         // if (!_done)
@@ -36,12 +39,14 @@ bool Client::consume(int event_type)
         // return (_done);
         // _req_handl.readRequest();
         // std::cout << (_req_handl) << std::endl;
-        std::cout << request << std::endl;
+       // std::cout << request << std::endl;
 
         return true;
     }
-    else
+    else if (event_type == OUT)
     {
+        std::cout << "OUT EVENT" << std::endl;
+
         // if (!_done)
         //     return false;
 		responseHandler handler(this);
@@ -58,5 +63,10 @@ bool Client::consume(int event_type)
             return false;   
         }
         return (true);
+    }
+    else
+    {
+        std::cout << "EVENT PASSED TO CLIENT ERROR" << std::endl;
+        return true;
     }
 }

@@ -13,11 +13,11 @@
 # include <cstring>
 
 void make_socket_non_blocking(int socket_fd);
-# define MAX_EVENTS 10
+# define MAX_EVENTS 100
 # define IN 0
 # define OUT 1
 # define MAX_SIZE 1024
-# define MAX_CONNECTIONS 10
+# define MAX_CONNECTIONS 100
 
 class Socket
 {
