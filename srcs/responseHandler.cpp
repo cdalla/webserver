@@ -82,8 +82,6 @@ void	responseHandler::fillBody(bool status) {
 Response	responseHandler::Debug(Request &request) {
 
 	response.statusLine.append("200 OK");
-	response.entityBody.append("This is the raw request: \n");
-	response.entityBody.append(request._rawRequest);
 	response.contentLength.append(std::to_string(response.entityBody.length()));
 	response.contentLength.append("\r\n\r\n");
 	response.statusLine.append("\r\n");

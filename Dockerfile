@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y build-essential curl
 WORKDIR /webserv
 
 # Copy source files to working directory
-COPY . /webserv
+COPY . .
 
 # Compile code
 # RUN ["make"]

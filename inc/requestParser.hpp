@@ -13,6 +13,7 @@ class RequestParser
         bool    _is_first_line;
         std::string _buffer;
         std::string _last_key;
+        VirtualServer _config;
 
         std::string     _query_string;
         unsigned int    _max_body_size;
@@ -36,7 +37,7 @@ class RequestParser
         void        create_env(void);
         
     public:
-        RequestParser(void);
+        RequestParser(VirtualServer config);
         ~RequestParser(void);
 
         bool        feed(const char* chunk);

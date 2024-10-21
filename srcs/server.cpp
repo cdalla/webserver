@@ -53,11 +53,13 @@ void Server::createSocket()
 	std::cout << "ok on port " << _socket << "!" << std::endl;
 }
 
-
-
-
 bool    Server::consume(int event_type)
 {
 	(void)event_type;
 	return false;
+}
+
+VirtualServer	Server::get_config() const
+{
+	return _config;
 }

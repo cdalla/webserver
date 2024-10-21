@@ -1,5 +1,5 @@
 #include "client.hpp"
-#include "requestParser"
+#include "requestParser.hpp"
 #include "responseHandler.hpp"
 
 Client::Client(Server *server): _server(server) {
@@ -7,7 +7,18 @@ Client::Client(Server *server): _server(server) {
     return ;
 }
 
-Client::~Client(void) {}
+Client::~Client(void) {
+    if (request.env != nullptr) {
+        for (int i = 0; i < 33; ++i) {
+            if (request.env[i] != nullptr) {
+                delete[] request.env[i];
+            }
+        }
+        delete[] request.env;
+    }
+    if (request.script_name != nullptr)
+        delete[] request.script_name;
+}
 
 /*
     DEPENDING ON EVENT TYPE:
@@ -24,18 +35,17 @@ bool Client::consume(int event_type)
         char    buffer[buffer_size];
         ssize_t bytes_read;
         ssize_t total_bytes_read = 0;
-        RequestParser parser;
+        RequestParser parser(_server->get_config());
 
         int client_socket = this->get_socket();
-        
+        std::memset(buffer, 0, buffer_size);
         while ((bytes_read = read(client_socket, buffer, buffer_size - 1)) > 0) {
             total_bytes_read += bytes_read;
             if (parser.feed(buffer))
                 break ;
-            std::memset(buffer, buffer_size);
+            std::memset(buffer, 0, buffer_size);
         }
-        close(client_socket)
-        if (bytes_read == -1 || total_bytes_read = 0) {
+        if (bytes_read == -1 || total_bytes_read == 0) {
             std::cerr << "Read failed" << std::endl;
             return false;
         }

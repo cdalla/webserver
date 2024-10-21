@@ -16,6 +16,7 @@ class responseHandler {
     private:
 
         Client*             _ptr;
+		
 
         void		determineType(Request &request);
 		bool		makeStatusLine(Request &r);
