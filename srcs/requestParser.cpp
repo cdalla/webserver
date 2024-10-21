@@ -1,17 +1,22 @@
-#include "RequestParser.hpp"
+#include "requestParser.hpp"
 #include <string.h>
 #include <stdlib.h>
 #include <sstream> 
 
-RequestParser::RequestParser(void): _is_header_finish(0), _is_first_line(0), _max_body_size(0),
-    _is_chunked(false), _current_chunk_size(0), _is_reading_chunk_size(true), finished_request.env(NULL), finished_request.error(0) {}
+RequestParser::RequestParser(VirtualServer config): _is_header_finish(0), _is_first_line(0),
+    _is_chunked(false), _current_chunk_size(0), _is_reading_chunk_size(true), _config(config) {
+	finished_request.error = 0;
+	_max_body_size = config.max_body_size.empty() ? 0 : std::stoi(config.max_body_size);
+	finished_request.script_name = NULL;
+	finished_request.env = new char*[33];
+    for (int i = 0; i < 32; ++i) {
+        finished_request.env[i] = NULL;
+    }
+    finished_request.env[32] = NULL;
+
+	}
 
 RequestParser::~RequestParser(void){
-	if (finished_request.env == NULL)
-		return ;
-	for (int i = 0; i < 33; i++)
-		free(finished_request.env[i]);
-	free(finished_request.env);
 }
 
 
@@ -95,6 +100,7 @@ bool  RequestParser::parse_protocol(void)
 		return true;
 	}
 	_protocol = "HTTP/1.1";
+	// std::cout << "&protocol " << _protocol << std::endl;
 	_buffer.erase(0, _buffer.find_first_of('\n') + 1);
 	_is_first_line = 1;
 	return false;
@@ -103,14 +109,20 @@ bool  RequestParser::parse_protocol(void)
 bool  RequestParser::set_MetAddProt(void)
 {
 	if (_buffer.find_first_of('\n') == std::string::npos)
+	{
+		// std::cout << "no new line" << std::endl;
 		return true;
+	}
 	finished_request.method  = _buffer.substr(0, _buffer.find_first_of(' '));
-	if (st_check_method(finished_request.method) == METHOD_NOT_ALLOW)
+	// std::cout << "&method " << finished_request.method << std::endl;
+	if (st_check_method(finished_request.method) == METHOD_NOT_ALLOW){
 		finished_request.error = METHOD_NOT_ALLOW;
+		// std::cout << "method not allow" << std::endl;
 		return true;
+	}
 	_buffer.erase(0, _buffer.find_first_of(' ') + 1);
-	std::cout << _buffer<< std::endl << std::endl;
 	finished_request.uri = _buffer.substr(0, _buffer.find_first_of(' '));
+	// std::cout << "&uri " << finished_request.uri << std::endl;
 	_script_name = finished_request.uri;
 	_query_string = "";
 	finished_request.is_cgi = true;
@@ -120,7 +132,8 @@ bool  RequestParser::set_MetAddProt(void)
 		_script_name = finished_request.uri.substr(0,finished_request.uri.find('?'));
 	}
 	finished_request.script_name = new char[_script_name.size() + 1];
-        std::strcpy(finished_request.script_name, _script_name.c_str());
+
+    strcpy(finished_request.script_name, _script_name.c_str());
 	_buffer.erase(0, _buffer.find_first_of(' ') + 1);
 	return parse_protocol();
 }
@@ -130,39 +143,44 @@ void RequestParser::set_map(void)
 	_is_header_finish = 0;
 	// check if there some value in the string
 	if (_buffer.find_first_of('\n') == std::string::npos)
-		return ;
-	std::string value;
-
-	while (_buffer.find_first_of('\n') != 0)
 	{
+		std::cout << "no finished header" << std::endl;
+		return ;
+	}
+	std::string value;
+	while (_buffer.size() && _buffer.find_first_of('\n') != 0)
+	{
+		if (_buffer.find_first_of("\r\n\r\n") == 0 || _buffer.find_first_of("\n\n") == 0){
+			break;
+		}
 		//checking if part of previus key
 		while (_buffer.find_first_of(':') == std::string::npos || _buffer.find_first_of(':') > _buffer.find_first_of('\n'))
 		{
 			value = _buffer.substr(_buffer.find_first_not_of(" \t"), _buffer.find_first_of("\r\n"));
-				_buffer.erase(0 ,_buffer.find_first_of('\n') + 1);
-				if((finished_request.headers[ _last_key]).find_last_of(',') != (finished_request.headers[ _last_key]).length())
+			// std::cout << "1value " << value << std::endl;
+			_buffer.erase(0 ,_buffer.find_first_of('\n') + 1);
+			if((finished_request.headers[ _last_key]).find_last_of(',') != (finished_request.headers[ _last_key]).length())
 				finished_request.headers[ _last_key].append(", ");
 			finished_request.headers[ _last_key].append(value);
 		}
-		if (_buffer.find_first_of('\n') != 0)
-			break ;
 		_last_key = _buffer.substr(0, _buffer.find_first_of(':'));
+		// std::cout << "key " << _last_key << std::endl;
 		_buffer.erase(0,_buffer.find_first_of(':') + 2);
 		if (_buffer.find_first_of("\r\n") != std::string::npos)
 			value = _buffer.substr(0, _buffer.find_first_of("\r\n"));
 		else
 			value = _buffer.substr(_buffer.find_first_not_of(" \t"), _buffer.find_first_of('\n'));
+		// std::cout << "value " << value << std::endl;
 		_buffer.erase(0,_buffer.find_first_of('\n') + 1);
 		finished_request.headers[ _last_key] =  value;
 		if (_buffer.find_first_of('\n') == std::string::npos)
 			return ;
 	}
 	_is_header_finish = 1;
-	if (_buffer.find_first_of("\r\n") == std::string::npos)
-		_buffer.erase(0, 1);
-	else
+	if (_buffer.find_first_of("\r\n\r\n") == std::string::npos)
 		_buffer.erase(0, 2);
-    
+	else
+		_buffer.erase(0, 4);
     if (finished_request.headers.find("Transfer-Encoding") != finished_request.headers.end() &&
         finished_request.headers["Transfer-Encoding"].find("chunked") != std::string::npos)
     {
@@ -173,19 +191,22 @@ void RequestParser::set_map(void)
 bool RequestParser::feed(const char *chunk)
 {
 	_buffer.append(chunk);
+	// std::cout << "buffer " << _buffer << std::endl;
 	if (!_is_first_line)
     {
 		int result = set_MetAddProt();
         if (result)
             return result;
     }
-	if (_is_first_line && !_is_header_finish)
+	if (_is_first_line && !_is_header_finish){
+		// std::cout << "working on the headers" << std::endl;
 		set_map();
         if (!_is_header_finish)
             return 0;
-	if (_is_header_finish && _max_body_size == 0)
+	}
+	if (_is_header_finish)
 	{   
-		_max_body_size = 66666666;
+		// std::cout << "headers finished" << std::endl;
         if (!_is_chunked)
         { 
             if (finished_request.headers.find("Content-Length") == finished_request.headers.end() || stoi(finished_request.headers["Content-Length"]) < 0 )
@@ -195,7 +216,8 @@ bool RequestParser::feed(const char *chunk)
         }
     }
 	if (_is_first_line && _is_header_finish)
-    {
+    {	
+		std::cout << "working on the body" << std::endl;
         int body_result = set_body();
         if (body_result != 0)
 			finished_request.error = body_result;
@@ -228,7 +250,7 @@ bool RequestParser::feed(const char *chunk)
         }
     }
 
-    return 0;
+    return false;
 }
 
 
@@ -244,11 +266,8 @@ static char * joing_string(const char *str1, const char *str2)
 
 void RequestParser::create_env(void)
 {
-	finished_request.env = new char*[33];
-	finished_request.env[32] = NULL;
 	finished_request.env[0] = joing_string("COMSPEC=","");
-     //TODO: coming from config
-	finished_request.env[1] = joing_string("DOCUMENT_ROOT=","");
+	finished_request.env[1] = joing_string("DOCUMENT_ROOT=",_config.root.c_str());
 	finished_request.env[2] = joing_string("GATEWAY_INTERFACE=","");
 	finished_request.env[3] = joing_string("HOME=","");
 	finished_request.env[4] = joing_string("HTTP_ACCEPT=","");
@@ -265,15 +284,14 @@ void RequestParser::create_env(void)
 	finished_request.env[15] = joing_string("QUERY_STRING=",_query_string.c_str());
 	finished_request.env[16] = joing_string("REMOTE_ADDR=","");
 	finished_request.env[17] = joing_string("REMOTE_PORT=","");
-	finished_request.env[18] = joing_string("REQUEST_METHOD=", _method.c_str());
-	finished_request.env[19] = joing_string("REQUEST_URI=", _uri.c_str());
-    // TODO: coming from config
-	finished_request.env[20] = joing_string("SCRIPT_FILENAME=","DOCUMENT_ROOT+filename");
+	finished_request.env[18] = joing_string("REQUEST_METHOD=", finished_request.method.c_str());
+	finished_request.env[19] = joing_string("REQUEST_URI=", finished_request.uri.c_str());
+	finished_request.env[20] = joing_string("SCRIPT_FILENAME=",(_config.root + _script_name).c_str());
 	finished_request.env[21] = joing_string("SCRIPT_NAME=",_script_name.c_str());
 	finished_request.env[22] = joing_string("SERVER_ADDR=","");
 	finished_request.env[23] = joing_string("SERVER_ADMIN=","");
-	finished_request.env[24] = joing_string("SERVER_NAME=","");
-	finished_request.env[25] = joing_string("SERVER_PORT=","");
+	finished_request.env[24] = joing_string("SERVER_NAME=",_config.server_name.c_str());
+	finished_request.env[25] = joing_string("SERVER_PORT=",std::to_string(_config.listen).c_str());
 	finished_request.env[26] = strdup("SERVER_PROTOCOL=HTTP/1.1");
 	finished_request.env[27] = joing_string("SERVER_SIGNATURE=","");
 	finished_request.env[28] = joing_string("SERVER_SOFTWARE=","");
