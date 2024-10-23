@@ -4,6 +4,12 @@
 #include "baseParser.cpp"
 #include "colours.hpp"
 
+/*
+
+- default settings?
+- errors/fatal errors/misconfiguration
+*/
+
 locationParser::locationParser(void) : baseParser<Location>() {
 	context.path = "";
 	context.root = "";

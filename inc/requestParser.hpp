@@ -13,13 +13,14 @@ class RequestParser
         bool    _is_first_line;
         std::string _buffer;
         std::string _last_key;
+        VirtualServer _config;
 
         std::string     _query_string;
         unsigned int    _max_body_size;
         std::string     _script_name;
         std::string     _protocol;
         std::string     _body;
-        Request finished_request;
+        Request         &finished_request;
 
         bool            _is_chunked;
         std::string     _chunked_buffer;
@@ -36,11 +37,11 @@ class RequestParser
         void        create_env(void);
         
     public:
-        RequestParser(void);
+        RequestParser(VirtualServer config, Request &request);
         ~RequestParser(void);
 
         bool        feed(const char* chunk);
-        Request     get_parsed_request(void) const;
+        Request     get_parsed_request(void);
 };
 
 typedef enum e_request_type

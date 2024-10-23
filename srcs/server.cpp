@@ -36,7 +36,7 @@ void Server::createSocket()
 	_address.sin_addr.s_addr = INADDR_ANY;
 	_address.sin_port = htons(_port);
 	_addrLen = sizeof(_address);
-	if (bind(_socket, (struct sockaddr*)&_address, _addrLen) < 0)
+	if (bind(_socket, reinterpret_cast<sockaddr*>(&_address), _addrLen) < 0)
 	{
 		//FATAL
 		std::cerr << "Failed to bind socket!" << std::endl;
@@ -53,11 +53,13 @@ void Server::createSocket()
 	std::cout << "ok on port " << _socket << "!" << std::endl;
 }
 
-
-
-
 bool    Server::consume(int event_type)
 {
 	(void)event_type;
 	return false;
+}
+
+VirtualServer	Server::get_config() const
+{
+	return _config;
 }

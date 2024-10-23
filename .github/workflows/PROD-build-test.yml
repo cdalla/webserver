@@ -1,0 +1,40 @@
+name: Build and Test
+
+on:
+  workflow_dispatch:
+
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential
+
+    - name: Build
+      run: make
+
+    - name: Start server
+      run: |
+        ./webserv config/sample.config &
+        echo $! > .pid
+        sleep 5  # Give the server some time to start up
+
+    - name: Test server
+      run: |
+        response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080)
+        if [ $response = "200" ]; then
+          echo "Server is responding correctly"
+        else
+          echo "Server is not responding as expected"
+          exit 1
+        fi
+
+    - name: Stop server
+      run: kill $(cat .pid)
+      if: always()

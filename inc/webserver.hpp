@@ -20,11 +20,11 @@
 // # include "response.hpp"
 // # include "request.hpp"
 
-# define MAX_EVENTS 10
+//# define MAX_EVENTS 100
 # define IN 0
 # define OUT 1
 # define MAX_SIZE 1024
-# define MAX_CONNECTIONS 10
+//# define MAX_CONNECTIONS 10
 
 class Server;
 
@@ -40,7 +40,7 @@ class Webserver
         void    servers_init();
         void    create_Epoll();
         void	addFdToMap(int fd, Socket *client);
-        void    addFdToPoll(int fd, struct epoll_event *event);
+        void    addFdToPoll(int fd);
         void    addClient(int fd, Server *server);
         void    removeFd(int fd);
         void    clean();
@@ -52,7 +52,7 @@ class Webserver
 
         class Config		config;
         void    run();
-        void    change_event(int fd, struct epoll_event *event);
+        void    change_event(int fd);
 
 };
 

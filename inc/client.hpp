@@ -27,13 +27,12 @@ class Client: public Socket
         bool            _done;
 
     public:
-			
+
 		Client(Server *server);
 		~Client();
         Server*         _server;
 
-		virtual bool    		consume(int event_type);
-
+		virtual bool	consume(int event_type);
 };
 
 #endif

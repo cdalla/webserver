@@ -20,6 +20,7 @@ class Server : public Socket
 
         void 					createSocket();
 		virtual bool    consume(int event_type);
+		VirtualServer			get_config() const;
 
 };
 
