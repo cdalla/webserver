@@ -51,11 +51,11 @@ void    Webserver::addClient(int fd, Server *server)
 		std::cerr << "Error accepting connection" << std::endl;
 		//fatal
 	}
-	std::cout << "accepted new client on fd: " << client->get_socket() << std::endl;
+	// std::cout << "accepted new client on fd: " << client->get_socket() << std::endl;
     make_socket_non_blocking(client->get_socket());
 	addFdToPoll(client->get_socket(), server->get_event());
 	addFdToMap(client->get_socket(), client);
-	std::cout << "added new client with fd " << client->get_socket() << " on server fd: "<< server->get_socket() << std::endl;
+	// std::cout << "added new client with fd " << client->get_socket() << " on server fd: "<< server->get_socket() << std::endl;
 }
 
 void	Webserver::addFdToMap(int fd, Socket *socket)
@@ -100,7 +100,7 @@ void	Webserver::change_event(int fd, struct epoll_event *event)
 		//error or exception
 		//close socket and epollfd
 	}
-	std::cout << "succefully changed event on fd: " << fd << std::endl;
+	// std::cout << "succefully changed event on fd: " << fd << std::endl;
 }
 
 /*

@@ -24,6 +24,7 @@ class responseHandler {
 		bool			_makeStatusLine(Request &r);
 		void			_fillBody(bool status);
 		Response		_debug(Request &request);
+		// Location		_getLocation(std::string const &path);
 		
 		int				_statusCode;
 		bool			_binaryMode;
@@ -32,18 +33,19 @@ class responseHandler {
 
     public:
 
-        responseHandler(Client *ptr);
+        responseHandler(Client *ptr, VirtualServer config);
 		// responseHandler(const responseHandler &src);
         ~responseHandler(void);
 
 		// responseHandler& operator=(responseHandler &src);
 
         Response	create(Request &request);
-
 		Client*		getClient(void) const;
 		int			getStatusCode(void) const;
 		bool		getBinaryMode(void) const;
 		Response	getResponse(void) const;
+
+		VirtualServer	config;
 };
 
 std::ostream&	operator<<(std::ostream& out, responseHandler const &obj);

@@ -54,6 +54,7 @@ Request	requestHandler::readRequest(void) {
 	return (request);
 };
 
+// can be used for directory listing
 int		requestHandler::setPath(std::string current_dir, std::string path) {
 
 	DIR				*dir;

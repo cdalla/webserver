@@ -72,7 +72,7 @@ void	Webserver::run()
 		for (int n = 0; n < readyFds; n++)
 		{
             int eventFd = events_queue[n].data.fd;
-			std::cout << "event on fd: " << eventFd << std::endl;
+			// std::cout << "event on fd: " << eventFd << std::endl;
 			bool newClient = false;
 			std::vector<Server>::iterator servIt = _servers.begin();
 			for (; servIt < _servers.end(); servIt++) {
@@ -81,27 +81,26 @@ void	Webserver::run()
 					newClient = true;
 				}
 			}
-			if (!newClient)
-			{
-			if (events_queue[n].events & EPOLLIN && _fds.find(eventFd) != _fds.end()) {
-				if (_fds[eventFd]->consume(IN))
-					change_event(eventFd, ((Client *) _fds[eventFd])->_server->get_event());
-			}
-			else if (events_queue[n].events & EPOLLOUT && _fds.find(eventFd) != _fds.end()) {
-				if (_fds[eventFd]->consume(OUT)) {
-					std::cout << "removing fd " << eventFd << " after successful return of consume function" << std::endl;
-					removeFd(eventFd);
+			if (!newClient) {
+				if (events_queue[n].events & EPOLLIN && _fds.find(eventFd) != _fds.end()) {
+					if (_fds[eventFd]->consume(IN))
+						change_event(eventFd, ((Client *) _fds[eventFd])->_server->get_event());
+				}
+				else if (events_queue[n].events & EPOLLOUT && _fds.find(eventFd) != _fds.end()) {
+					if (_fds[eventFd]->consume(OUT)) {
+						// std::cout << "removing fd " << eventFd << " after successful return of consume function" << std::endl;
+						removeFd(eventFd);
+					}
+					else {
+						std::cout << "removing fd " << eventFd << " after error in consume function" << std::endl;
+						removeFd(eventFd);
+					}
 				}
 				else {
-					std::cout << "removing fd " << eventFd << " after error in consume function" << std::endl;
+					//remove fd from epoll uknown event
+					std::cout << "removing fd " << eventFd << " from epoll because it is an unknown event" << std::endl;
 					removeFd(eventFd);
 				}
-			}
-			else {
-				//remove fd from epoll uknown event
-				std::cout << "removing fd " << eventFd << " from epoll because it is an unknown event" << std::endl;
-				removeFd(eventFd);
-			}
 			}
 		}
 	}

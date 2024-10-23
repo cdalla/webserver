@@ -1,7 +1,8 @@
 #include "responseHandler.hpp"
 #include "colours.hpp"
+#include "utils.hpp"
 
-responseHandler::responseHandler(Client *ptr) : _ptr(ptr) {
+responseHandler::responseHandler(Client *ptr, VirtualServer config) : _ptr(ptr), config(config) {
 
 	_response.statusLine.append("HTTP/1.1 ");
 	_response.contentLength.append("Content-Length: ");
@@ -28,6 +29,9 @@ Response	responseHandler::create(Request &request) {
 	_determineType(request); // set "contentType" and "binaryMode"
 	if (!request.extension.compare(".debug"))
 		return (_debug(request));
+
+	response = methods[request.method];
+	
 	_fillBody(_makeStatusLine(request));
 
 	return (_response);
@@ -101,6 +105,16 @@ Response	responseHandler::_debug(Request &request) {
 	_response.statusLine.append("\r\n");
 
 	return (_response);
+}
+
+Location	responseHandler::_getLocation(std::string const &path) {
+	Location	longestMatch;
+	std::string	prefix = get_URI_prefix(path);
+
+	for (std::vector<Location>::iterator it = config.locations.begin(); it != config.locations.end(); it++) {
+		std::string::const_iterator pathIter = path.begin();
+		std::string::iterator locationIter = (*it).path.begin();	
+	}
 }
 
 /* 	GETTERS & SETTERS */

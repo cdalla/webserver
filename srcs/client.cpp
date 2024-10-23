@@ -22,7 +22,7 @@ bool Client::consume(int event_type)
     std::cout << "handling event on fd: " << this->get_socket() << std::endl;
     if (event_type == IN)
     {
-        std::cout << "IN EVENT" << std::endl;
+        // std::cout << "IN EVENT" << std::endl;
 		requestHandler handler(this);
 		request = handler.readRequest();
         // if (!_done)
@@ -45,7 +45,7 @@ bool Client::consume(int event_type)
     }
     else if (event_type == OUT)
     {
-        std::cout << "OUT EVENT" << std::endl;
+        // std::cout << "OUT EVENT" << std::endl;
 
         // if (!_done)
         //     return false;

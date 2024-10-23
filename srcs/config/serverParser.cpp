@@ -120,9 +120,9 @@ void	serverParser::parseListen(std::vector<std::string> &args) {
 	if (pos != std::string::npos) {
 		// scenario 1
 		address = args[0].substr(0, pos);
-		std::cout << B_MAGENTA << "address: " << address << RST << std::endl;
+		// std::cout << B_MAGENTA << "address: " << address << RST << std::endl;
 		port = args[0].substr(pos + 1, args[0].size() - 1);
-		std::cout << B_MAGENTA << "port: " << port << RST << std::endl;
+		// std::cout << B_MAGENTA << "port: " << port << RST << std::endl;
 	}
 	
 	for (size_t i = 0; i < args[0].length(); i++) {
@@ -151,7 +151,7 @@ void	serverParser::parseName(std::vector<std::string> &args) {
 
 void	serverParser::addDirective(std::string &directive, std::vector<std::string> &args, std::string newDirective) {
 	if (directive == ""|| !args.size())
-		throw ConfigException();
+		throw std::runtime_error("add directive error");
 
 	(this->*serverParser::_serverFunctions[directive])(args);
 	args.clear();

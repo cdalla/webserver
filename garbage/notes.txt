@@ -1,0 +1,19 @@
+{index.html,style.css,hall-of-fame.html,ShutUp.jpg,dwight.jpg,dwight.html,menu.js,style.css,menu.js.dwight.html,index.html,style.css,index.html,lute.jpg,denholm.html,style.css,menu.js,style.css,index.html,Clueless.jpg,biggie.html,style.css,hall-of-fame.html,lucille.html,style.css,menu.js,style.css,denholm.html}
+
+*General*
+- default configuration
+
+*Configuration*
+- 
+
+*Request*
+- find location & set path
+
+
+
+getLocation: match URI to location and return
+
+for (every location)
+	string		prefix
+	size_t		longestMatch
+	Location	currentMatch
