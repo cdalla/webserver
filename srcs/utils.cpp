@@ -1,5 +1,5 @@
-
 #include "webserver.hpp"
+#include "utils.hpp"
 
  //flagged non blocking //check return of fcntl
 	/*
@@ -26,4 +26,13 @@ void make_socket_non_blocking(int socket_fd)
         perror("Couldn't set socket flags");
         exit(-1);
     }
+}
+
+std::string		get_URI_prefix(std::string const &URI) {
+
+	std::string::size_type pos = URI.find_last_of('/');
+	if (pos == npos)
+		throw std::runtime_error("Error extracting prefix from URI: no forward slash present"); // i don't see how we would ever even make it here
+
+	return (URI.substr(0, pos));
 }

@@ -1,0 +1,8 @@
+.github
+.gitignore
+.DS_Store
+.dockerignore
+.vscode
+garbage
+README.md
+objs

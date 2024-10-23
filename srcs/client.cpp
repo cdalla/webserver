@@ -1,19 +1,13 @@
 #include "client.hpp"
+#include "requestHandler.hpp"
+#include "responseHandler.hpp"
 
-Client::Client(Server *server): _server(server)
-{
+Client::Client(Server *server): _server(server) {
     _done = false;
-    _req_handl = new Request(this);
-    _resp_handl = new Response(this);
     return ;
 }
 
-
-Client::~Client()
-{
-    delete _req_handl;
-    delete _resp_handl;
-}
+Client::~Client(void) {}
 
 /*
     DEPENDING ON EVENT TYPE:
@@ -24,33 +18,55 @@ bool Client::consume(int event_type)
 {
     ssize_t bytes;
 
+
+    std::cout << "handling event on fd: " << this->get_socket() << std::endl;
     if (event_type == IN)
     {
-        if (!_done)
-        {
-            bytes = recv(_socket, _req_buff, MAX_SIZE, 0);
-            if (bytes < 0)
-            {
-                //error
-                return false;
-            }
-            _done = _req_handl->function(_req_buff);
-            std::memset(_req_buff, 0, MAX_SIZE);
-        }
-        return (_done);
+        // std::cout << "IN EVENT" << std::endl;
+		requestHandler handler(this);
+		request = handler.readRequest();
+        // if (!_done)
+        // {
+        //     bytes = recv(_socket, _req_buff, 10, 0);
+        //     if (bytes < 0)
+        //     {
+        //         //error
+        //         return false;
+        //     }
+        //     _done = _req_handl->function(_req_buff);
+        //     std::memset(_req_buff, 0, MAX_SIZE);
+        // }
+        // return (_done);
+        // _req_handl.readRequest();
+        // std::cout << (_req_handl) << std::endl;
+       // std::cout << request << std::endl;
+
+        return true;
     }
-    else
+    else if (event_type == OUT)
     {
-        if (!_done)
-            return false;
-        
-        _resp_string = _resp_handl->function();
+        // std::cout << "OUT EVENT" << std::endl;
+
+        // if (!_done)
+        //     return false;
+		responseHandler handler(this);
+		response = handler.create(request);
+        _resp_string.append(response.statusLine);
+        _resp_string.append(response.contentType);
+        _resp_string.append(response.contentLength);
+        _resp_string.append(response.entityBody);
+
         bytes = send(_socket, _resp_string.c_str(), _resp_string.size(), 0);
         if (bytes < 0)
         {
             //error
             return false;   
         }
-        return (_done);
+        return (true);
+    }
+    else
+    {
+        std::cout << "EVENT PASSED TO CLIENT ERROR" << std::endl;
+        return true;
     }
 }

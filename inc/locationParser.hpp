@@ -1,8 +1,17 @@
 #ifndef LOCATIONPARSER_HPP
 # define LOCATIONPARSER_HPP
 
-#include "ConfigStructs.hpp"
+#include "structs.hpp"
 #include "baseParser.hpp"
+
+/**
+ * 		ABOUT LOCATIONPARSER CLASS
+ * locationParser inherits the shared parsing functions and an object called context from baseParser.
+ * In a locationParser, this object (context) has type Location.
+ * 
+ * The main entry point for locationParser is the function parseLocation. It takes a vector of tokens
+ * and the our current location parsing these tokens (i). Par
+ */
 
 class locationParser: public baseParser<Location> {
 	public:

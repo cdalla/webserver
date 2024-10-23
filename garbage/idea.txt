@@ -53,3 +53,4 @@ Connection::Connection(Interface interf)
 	addrLen = (socklen_t *)sizeof(interf.address);
 	this->socket = accept(interf.socket, (struct sockeaddr *)&addr, addrLen);
 }
+

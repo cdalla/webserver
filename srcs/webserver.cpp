@@ -1,4 +1,6 @@
 #include "webserver.hpp"
+# include "client.hpp"
+
 
 Webserver::Webserver(const char *default_config) : config(default_config)
 {
@@ -8,7 +10,6 @@ Webserver::Webserver(const char *default_config) : config(default_config)
 	config.parseConfig();
 	servers_init();
 	create_Epoll();
-
 }
 
 Webserver::~Webserver()
@@ -29,6 +30,7 @@ void    Webserver::servers_init()
 	{
 		(*it).createSocket();
 	}
+	// std::cout << B_MAGENTA << _fds.size() << RST << std::endl;
 }
 
 /*
@@ -55,9 +57,10 @@ void	Webserver::run()
 {
     struct epoll_event	events_queue[MAX_EVENTS];
 	int readyFds = 0;
+	//return ; //! ADDED THIS FOR EASY CONFIG CHECKING OBV THIS NEEDS TO GO!!!
 	while (true)
 	{
-		readyFds = epoll_wait(_epollFd, events_queue, MAX_EVENTS, 0);
+		readyFds = epoll_wait(_epollFd, events_queue, MAX_EVENTS, 10);
 		if (readyFds == -1)
 		{
 			std::cerr << "failed epoll wait" << std::endl;
@@ -65,31 +68,39 @@ void	Webserver::run()
 			exit(1);
 			//error or exception
 		}
-		std::cout << "Waiting on events.." << std::endl; 
+		// std::cout << "Waiting on events.." << std::endl;
 		for (int n = 0; n < readyFds; n++)
 		{
             int eventFd = events_queue[n].data.fd;
+			// std::cout << "event on fd: " << eventFd << std::endl;
+			bool newClient = false;
 			std::vector<Server>::iterator servIt = _servers.begin();
-			for(; servIt < _servers.end(); ++servIt)
-			{
-				if( eventFd == (*servIt).get_socket())
+			for (; servIt < _servers.end(); servIt++) {
+				if( eventFd == (*servIt).get_socket()) {
                     addClient(eventFd, &(*servIt));
+					newClient = true;
+				}
 			}
-			if (events_queue[n].events & EPOLLIN && _fds.find(eventFd) != _fds.end())
-			{
-				if (_fds[eventFd]->consume(IN))
-					change_event(eventFd, _fds[eventFd]->get_event());
-
-			}
-			else if (events_queue[n].events & EPOLLOUT && _fds.find(eventFd) != _fds.end())
-			{
-				if (_fds[eventFd]->consume(OUT))
+			if (!newClient) {
+				if (events_queue[n].events & EPOLLIN && _fds.find(eventFd) != _fds.end()) {
+					if (_fds[eventFd]->consume(IN))
+						change_event(eventFd, ((Client *) _fds[eventFd])->_server->get_event());
+				}
+				else if (events_queue[n].events & EPOLLOUT && _fds.find(eventFd) != _fds.end()) {
+					if (_fds[eventFd]->consume(OUT)) {
+						// std::cout << "removing fd " << eventFd << " after successful return of consume function" << std::endl;
+						removeFd(eventFd);
+					}
+					else {
+						std::cout << "removing fd " << eventFd << " after error in consume function" << std::endl;
+						removeFd(eventFd);
+					}
+				}
+				else {
+					//remove fd from epoll uknown event
+					std::cout << "removing fd " << eventFd << " from epoll because it is an unknown event" << std::endl;
 					removeFd(eventFd);
-			}
-			else
-			{
-				//remove fd from epoll uknown event
-				removeFd(eventFd);
+				}
 			}
 		}
 	}
