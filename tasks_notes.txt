@@ -9,11 +9,11 @@
 *Request*
 - find location & set path
 
+*Response*
+- status codes
+- default error pages
 
-
-getLocation: match URI to location and return
-
-for (every location)
-	string		prefix
-	size_t		longestMatch
-	Location	currentMatch
+*Error*
+- error handling
+- class to output messages
+- connection timeouts
