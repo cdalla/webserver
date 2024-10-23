@@ -21,10 +21,9 @@ void    Webserver::create_Epoll()
     std::vector<Server>::iterator it = _servers.begin();
 	for (; it != _servers.end(); ++it)
 	{
-        addFdToPoll((*it).get_socket(), (*it).get_event());
+        addFdToPoll((*it).get_socket());
 		addFdToMap((*it).get_socket(), &(*it));
     }
-	// std::cout << B_MAGENTA << _fds.size() << RST << std::endl;
 }
 
 /*
@@ -33,13 +32,6 @@ void    Webserver::create_Epoll()
 */
 void    Webserver::addClient(int fd, Server *server)
 {
-    // if (_fds.find(fd) != _fds.end())
-    // {
-    //     //fd already present
-	// 	//does nothing just skip
-	// 	std::cout << "fd " << fd << " already present!" << std::endl;
-    //     return ;
-    // }
 	Socket *client = new Client(server);
 	client->set_socket(accept(fd, reinterpret_cast<sockaddr*>(&server->_address), &server->_addrLen));
 	if (client->get_socket() == -1) {
@@ -51,11 +43,9 @@ void    Webserver::addClient(int fd, Server *server)
 		std::cerr << "Error accepting connection" << std::endl;
 		//fatal
 	}
-	// std::cout << "accepted new client on fd: " << client->get_socket() << std::endl;
     make_socket_non_blocking(client->get_socket());
-	addFdToPoll(client->get_socket(), server->get_event());
+	addFdToPoll(client->get_socket());
 	addFdToMap(client->get_socket(), client);
-	// std::cout << "added new client with fd " << client->get_socket() << " on server fd: "<< server->get_socket() << std::endl;
 }
 
 void	Webserver::addFdToMap(int fd, Socket *socket)
@@ -73,34 +63,29 @@ void	Webserver::addFdToMap(int fd, Socket *socket)
 	SET EVENT FOR THE FD
 	ADD IT TO THE EPOLL INSTANCE
 */
-void    Webserver::addFdToPoll(int fd, struct epoll_event *event) 
+void    Webserver::addFdToPoll(int fd) 
 {
-
-	(*event).events = EPOLLIN;
-	(*event).data.fd = fd;
-	epoll_event eventboh{};
-	eventboh.events = EPOLLIN;
-	eventboh.data.fd = fd;
-	if (epoll_ctl(_epollFd, EPOLL_CTL_ADD, fd, &eventboh) == -1) {
+	epoll_event event{};
+	event.events = EPOLLIN;
+	event.data.fd = fd;
+	if (epoll_ctl(_epollFd, EPOLL_CTL_ADD, fd, &event) == -1) {
 		std::cerr << "Failed to add socket to epoll instance" << std::endl;
 		//error or exception
 		//close socket and epollfd
 	}
 }
 
-void	Webserver::change_event(int fd, struct epoll_event *event)
+void	Webserver::change_event(int fd)
 {
-	epoll_event eventboh{};
-	eventboh.events = EPOLLOUT;
-	eventboh.data.fd = fd;
-	(*event).events = EPOLLOUT;
-	if (epoll_ctl(_epollFd, EPOLL_CTL_MOD, fd, &eventboh) == -1) {
+	epoll_event event{};
+	event.events = EPOLLOUT;
+	event.data.fd = fd;
+	if (epoll_ctl(_epollFd, EPOLL_CTL_MOD, fd, &event) == -1) {
 		std::cerr << "Failed to modify socket event in epoll instance" << std::endl;
 		//FATAL ERROR
 		//error or exception
 		//close socket and epollfd
 	}
-	// std::cout << "succefully changed event on fd: " << fd << std::endl;
 }
 
 /*
