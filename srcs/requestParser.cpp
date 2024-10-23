@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <sstream> 
 
-RequestParser::RequestParser(VirtualServer config): _is_header_finish(0), _is_first_line(0),
-    _is_chunked(false), _current_chunk_size(0), _is_reading_chunk_size(true), _config(config) {
+RequestParser::RequestParser(VirtualServer config, Request &request): _is_header_finish(0), _is_first_line(0),
+    _is_chunked(false), _current_chunk_size(0), _is_reading_chunk_size(true), _config(config), finished_request(request) {
 	finished_request.error = 0;
 	_max_body_size = config.max_body_size.empty() ? 0 : std::stoi(config.max_body_size);
 	finished_request.script_name = NULL;
@@ -14,7 +14,7 @@ RequestParser::RequestParser(VirtualServer config): _is_header_finish(0), _is_fi
     }
     finished_request.env[32] = NULL;
 
-	}
+}
 
 RequestParser::~RequestParser(void){
 }
@@ -132,7 +132,6 @@ bool  RequestParser::set_MetAddProt(void)
 		_script_name = finished_request.uri.substr(0,finished_request.uri.find('?'));
 	}
 	finished_request.script_name = new char[_script_name.size() + 1];
-
     strcpy(finished_request.script_name, _script_name.c_str());
 	_buffer.erase(0, _buffer.find_first_of(' ') + 1);
 	return parse_protocol();
@@ -298,10 +297,4 @@ void RequestParser::create_env(void)
 	finished_request.env[29] = joing_string("SYSTEMROOT=","");
 	finished_request.env[30] = joing_string("TERM=","");
 	finished_request.env[31] = joing_string("WINDIR=","");
-}
-
-
-Request	RequestParser::get_parsed_request(void) const
-{
-	return finished_request;
 }

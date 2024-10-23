@@ -2,21 +2,25 @@
 #include "requestParser.hpp"
 #include "responseHandler.hpp"
 
+
 Client::Client(Server *server): _server(server) {
     _done = false;
     return ;
 }
 
 Client::~Client(void) {
-    if (request.env != nullptr) {
+    if (this->get_socket() != -1) {
+        close(this->get_socket());
+    }
+    if (this->request.env != NULL) {
         for (int i = 0; i < 33; ++i) {
-            if (request.env[i] != nullptr) {
-                delete[] request.env[i];
+            if (this->request.env[i] != NULL) {
+                delete[] this->request.env[i];
             }
         }
-        delete[] request.env;
+        delete[] this->request.env;
     }
-    if (request.script_name != nullptr)
+    if (request.script_name != NULL)
         delete[] request.script_name;
 }
 
@@ -37,7 +41,7 @@ bool Client::consume(int event_type)
         char    buffer[buffer_size];
         ssize_t bytes_read;
         ssize_t total_bytes_read = 0;
-        RequestParser parser(_server->get_config());
+        RequestParser parser(_server->get_config(), this->request);
 
         int client_socket = this->get_socket();
         std::memset(buffer, 0, buffer_size);
@@ -51,8 +55,6 @@ bool Client::consume(int event_type)
             std::cerr << "Read failed" << std::endl;
             return false;
         }
-
-        this->request = parser.get_parsed_request();
         std::cout << "Read successful: " << total_bytes_read << " bytes" << std::endl;
         return true;
     }
@@ -63,7 +65,7 @@ bool Client::consume(int event_type)
         // if (!_done)
         //     return false;
 		responseHandler handler(this);
-		response = handler.create(request);
+		response = handler.create(this->request);
         _resp_string.append(response.statusLine);
         _resp_string.append(response.contentType);
         _resp_string.append(response.contentLength);

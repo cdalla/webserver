@@ -99,7 +99,6 @@ Response	responseHandler::_debug(Request &request) {
 
 	_response.statusLine.append("200 OK");
 	_response.entityBody.append("This is the raw request: \n");
-	_response.entityBody.append(request._rawRequest);
 	_response.contentLength.append(std::to_string(_response.entityBody.length()));
 	_response.contentLength.append("\r\n\r\n");
 	_response.statusLine.append("\r\n");
