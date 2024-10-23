@@ -33,7 +33,7 @@ class responseHandler {
 
     public:
 
-        responseHandler(Client *ptr, VirtualServer config);
+        responseHandler(Client *ptr);
 		// responseHandler(const responseHandler &src);
         ~responseHandler(void);
 
