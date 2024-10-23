@@ -59,6 +59,7 @@ struct VirtualServer
 	std::vector<std::string>	methods;
 	std::map<unsigned int, std::string>	error_pages;
 	std::vector<Location>		locations;
+	std::map<std::string, Location> locationMap;
 };
 
 # define serverMap std::map<std::string, void(serverParser::*)(std::vector<std::string> &args)> //function map for servers

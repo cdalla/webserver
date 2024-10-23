@@ -29,6 +29,8 @@ bool Client::consume(int event_type)
 {
     ssize_t bytes;
 
+
+    std::cout << "handling event on fd: " << this->get_socket() << std::endl;
     if (event_type == IN)
     {
         size_t  buffer_size = 1024;
@@ -54,8 +56,10 @@ bool Client::consume(int event_type)
         std::cout << "Read successful: " << total_bytes_read << " bytes" << std::endl;
         return true;
     }
-    else
+    else if (event_type == OUT)
     {
+        // std::cout << "OUT EVENT" << std::endl;
+
         // if (!_done)
         //     return false;
 		responseHandler handler(this);
@@ -72,5 +76,10 @@ bool Client::consume(int event_type)
             return false;   
         }
         return (true);
+    }
+    else
+    {
+        std::cout << "EVENT PASSED TO CLIENT ERROR" << std::endl;
+        return true;
     }
 }

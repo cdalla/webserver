@@ -12,34 +12,44 @@
 class Client;
 
 class responseHandler {
-    
+
     private:
 
-        Client*             _ptr;
+
+		Client*			_ptr;
+
+		Response		_GET(Request &request);
+		Response		_POST(Request &request);
+		Response		_DELETE(Request &request);
+        void			_determineType(Request &request);
+		bool			_makeStatusLine(Request &r);
+		void			_fillBody(bool status);
+		Response		_debug(Request &request);
+		// Location		_getLocation(std::string const &path);
 		
-
-        void		determineType(Request &request);
-		bool		makeStatusLine(Request &r);
-		void		fillBody(bool status);
-		Response	Debug(Request &request);
-
+		int				_statusCode;
+		bool			_binaryMode;
 		std::ifstream	_ifs;
+		Response		_response;
 
     public:
 
         responseHandler(Client *ptr);
+		// responseHandler(const responseHandler &src);
         ~responseHandler(void);
 
-		responseHandler& operator=( responseHandler &obj);
-
-		Response response;
+		// responseHandler& operator=(responseHandler &src);
 
         Response	create(Request &request);
+		Client*		getClient(void) const;
+		int			getStatusCode(void) const;
+		bool		getBinaryMode(void) const;
+		Response	getResponse(void) const;
 
-		int		statusCode;
-		bool	binaryMode;
-
-		Client*	getClient(void) {return this->_ptr;};
+		VirtualServer	config;
 };
+
+std::ostream&	operator<<(std::ostream& out, responseHandler const &obj);
+std::ostream&	operator<<(std::ostream& out, Response const &obj);
 
 #endif

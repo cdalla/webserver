@@ -36,7 +36,7 @@ void Server::createSocket()
 	_address.sin_addr.s_addr = INADDR_ANY;
 	_address.sin_port = htons(_port);
 	_addrLen = sizeof(_address);
-	if (bind(_socket, (struct sockaddr*)&_address, _addrLen) < 0)
+	if (bind(_socket, reinterpret_cast<sockaddr*>(&_address), _addrLen) < 0)
 	{
 		//FATAL
 		std::cerr << "Failed to bind socket!" << std::endl;
