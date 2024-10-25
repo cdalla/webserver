@@ -4,6 +4,7 @@
 
 Client::Client(Server *server): _server(server) {
     _done = false;
+    reset_last_activity();
     return ;
 }
 
@@ -16,10 +17,12 @@ Client::~Client(void) {}
 */
 bool Client::consume(int event_type)
 {
+    std::cout << "handling event on fd: " << this->get_socket() << std::endl;
+    reset_last_activity();
+
     ssize_t bytes;
 
 
-    std::cout << "handling event on fd: " << this->get_socket() << std::endl;
     if (event_type == IN)
     {
         // std::cout << "IN EVENT" << std::endl;
@@ -69,4 +72,19 @@ bool Client::consume(int event_type)
         std::cout << "EVENT PASSED TO CLIENT ERROR" << std::endl;
         return true;
     }
+}
+
+
+void Client::reset_last_activity()
+{
+    _last_activity = std::chrono::steady_clock::now();
+}
+
+bool Client::has_timeout()
+{
+    auto now = std::chrono::steady_clock::now();
+    auto difference = std::chrono::duration_cast<std::chrono::seconds>(now - _last_activity);
+    if (difference.count() > TIMEOUT)
+        return true;
+    return false; 
 }

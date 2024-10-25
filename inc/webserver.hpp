@@ -19,6 +19,8 @@
 # include "socket.hpp"
 // # include "response.hpp"
 // # include "request.hpp"
+# include "utils.hpp"
+# include "WebservException.hpp"
 
 //# define MAX_EVENTS 100
 # define IN 0
@@ -39,24 +41,20 @@ class Webserver
 
         void    servers_init();
         void    create_Epoll();
-        void	addFdToMap(int fd, Socket *client);
         void    addFdToPoll(int fd);
         void    addClient(int fd, Server *server);
         void    removeFd(int fd);
-        void    clean();
+        void    change_event(int fd);
+        void    check_timeouts();
 
     public: 
         
-        Webserver(const char *default_config);
+        Webserver(std::string default_config);
         ~Webserver();
 
         class Config		config;
         void    run();
-        void    change_event(int fd);
 
 };
-
-
-void make_socket_non_blocking(int socket_fd);
 
 #endif

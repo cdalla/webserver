@@ -13,19 +13,21 @@ void make_socket_non_blocking(int socket_fd)
 
     flags = fcntl(socket_fd, F_GETFL, 0);
     if (flags == -1)
-    {
-        //FATAL
-        perror("Couldn't get socket flags");
-        exit(1);
-    }
+		throw WebservException("Failed to fcntl get_flag: " + std::string(strerror(errno)));
 
     flags |= O_NONBLOCK;
     if (fcntl(socket_fd, F_SETFL, flags) == -1) 
-    {
-        //FATAL
-        perror("Couldn't set socket flags");
-        exit(-1);
-    }
+		throw WebservException("Failed to fcntl set_flag: " + std::string(strerror(errno)));
+}
+
+void print_msg(std::string param)
+{
+    std::cout << GRN << "Webserver: " << param << std::endl;
+}
+
+void print_error(std::string param)
+{
+     std::cerr << RED << "Webserver_error: " << param << std::endl;
 }
 
 // std::string		get_URI_prefix(std::string const &URI) {

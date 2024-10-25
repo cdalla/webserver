@@ -2,7 +2,7 @@
 # include "client.hpp"
 
 
-Webserver::Webserver(const char *default_config) : config(default_config)
+Webserver::Webserver(std::string default_config) : config(default_config.c_str())
 {
 	config.parseConfig();
 	servers_init();
@@ -11,7 +11,11 @@ Webserver::Webserver(const char *default_config) : config(default_config)
 
 Webserver::~Webserver()
 {
-	clean();
+	std::map<int, Socket *>::iterator it = _fds.begin();
+	for (; it != _fds.end(); ++it)
+	{
+		removeFd(it->first);
+	}
 }
 
 /*
@@ -29,17 +33,16 @@ void    Webserver::servers_init()
 	}
 }
 
-/*
-	delete all fds from epoll
-	delete all clients
-	close all fds
-*/
-void	Webserver::clean()
+void	Webserver::check_timeouts()
 {
 	std::map<int, Socket *>::iterator it = _fds.begin();
 	for (; it != _fds.end(); ++it)
 	{
-		removeFd(it->first);
+		if (dynamic_cast<Client *>(it->second) && reinterpret_cast<Client *>(it->second)->has_timeout())
+		{
+			print_error("Removing fd for timeout");
+			removeFd(it->first);
+		}
 	}
 }
 
@@ -55,14 +58,11 @@ void	Webserver::run()
 	int readyFds = 0;
 	while (true)
 	{
+		check_timeouts();
 		readyFds = epoll_wait(_epollFd, events_queue, MAX_EVENTS, 10);
 		if (readyFds == -1)
-		{
-			std::cerr << "failed epoll wait" << std::endl;
-			//FATAL ERROR
-			exit(1);
-			//error or exception
-		}
+			throw WebservException("Epoll wait failure: " + std::string(strerror(errno)));
+		
 		for (int n = 0; n < readyFds; n++)
 		{
             int eventFd = events_queue[n].data.fd;
