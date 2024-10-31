@@ -69,7 +69,6 @@ struct Request {
 
 	bool		exists;
 	int			error; // if not error 0
-	bool		is_cgi;
 
 	std::string		method;
 	std::string		resource;
@@ -78,8 +77,7 @@ struct Request {
 	std::string		_path;
 	std::string		body;
 	std::map<std::string, std::string>	headers;
-	char			**env;
-	char			*script_name;
+	std::string			*script_name;
 
 };
 

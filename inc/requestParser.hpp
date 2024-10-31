@@ -33,15 +33,12 @@ class RequestParser
         int     set_body(void);
         bool    handle_chunked_data(void);
         
-        size_t      get_bodySize(void) const;
-        void        create_env(void);
         
     public:
         RequestParser(VirtualServer config, Request &request);
         ~RequestParser(void);
 
         bool        feed(const char* chunk);
-        Request     get_parsed_request(void);
 };
 
 typedef enum e_request_type

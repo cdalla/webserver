@@ -12,16 +12,6 @@ Client::~Client(void) {
     if (this->get_socket() != -1) {
         close(this->get_socket());
     }
-    if (this->request.env != NULL) {
-        for (int i = 0; i < 33; ++i) {
-            if (this->request.env[i] != NULL) {
-                delete[] this->request.env[i];
-            }
-        }
-        delete[] this->request.env;
-    }
-    if (request.script_name != NULL)
-        delete[] request.script_name;
 }
 
 /*

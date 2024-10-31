@@ -7,13 +7,6 @@ RequestParser::RequestParser(VirtualServer config, Request &request): _is_header
     _is_chunked(false), _current_chunk_size(0), _is_reading_chunk_size(true), _config(config), finished_request(request) {
 	finished_request.error = 0;
 	_max_body_size = config.max_body_size.empty() ? 0 : std::stoi(config.max_body_size);
-	finished_request.script_name = NULL;
-	finished_request.env = new char*[33];
-    for (int i = 0; i < 32; ++i) {
-        finished_request.env[i] = NULL;
-    }
-    finished_request.env[32] = NULL;
-
 }
 
 RequestParser::~RequestParser(void){
@@ -131,8 +124,8 @@ bool  RequestParser::set_MetAddProt(void)
 		_query_string = finished_request.uri.substr(finished_request.uri.find('?'), finished_request.uri.length());
 		_script_name = finished_request.uri.substr(0,finished_request.uri.find('?'));
 	}
-	finished_request.script_name = new char[_script_name.size() + 1];
-    strcpy(finished_request.script_name, _script_name.c_str());
+	finished_request.script_name = _script_name;
+
 	_buffer.erase(0, _buffer.find_first_of(' ') + 1);
 	return parse_protocol();
 }
@@ -226,7 +219,6 @@ bool RequestParser::feed(const char *chunk)
         {
             if (_current_chunk_size == 0 && _is_reading_chunk_size)
             {
-                create_env();
                 return true;
             }
         }
@@ -235,15 +227,11 @@ bool RequestParser::feed(const char *chunk)
             if (finished_request.headers.find("Content-Length") != finished_request.headers.end())
             {
                 if (_body.size() == (size_t)stoi(finished_request.headers["Content-Length"]))
-                {
-                    create_env();
                     return true;
-                }
             }
             else
-            {
+{
                 // If no Content-Length and not chunked, assume the request is complete
-                create_env();
                 return true;
             }
         }
@@ -253,48 +241,4 @@ bool RequestParser::feed(const char *chunk)
 }
 
 
-static char * joing_string(const char *str1, const char *str2)
-{
-	size_t size = strlen(str1) + strlen(str2);
-	char* string = new char[size + 1];
-	strcpy(string, str1);
-	strcat(string, str2);
-	string[size] = '\0';
-	return (string);
-}
 
-void RequestParser::create_env(void)
-{
-	finished_request.env[0] = joing_string("COMSPEC=","");
-	finished_request.env[1] = joing_string("DOCUMENT_ROOT=",_config.root.c_str());
-	finished_request.env[2] = joing_string("GATEWAY_INTERFACE=","");
-	finished_request.env[3] = joing_string("HOME=","");
-	finished_request.env[4] = joing_string("HTTP_ACCEPT=","");
-	finished_request.env[5] = joing_string("HTTP_ACCEPT_CHARSET=","");
-	finished_request.env[6] = joing_string("HTTP_ACCEPT_ENCODING=","");
-	finished_request.env[7] = joing_string("HTTP_ACCEPT_LANGUAGE=","");
-	finished_request.env[8] = joing_string("HTTP_CONNECTION=","");
-	finished_request.env[9] = joing_string("HTTP_HOST=","");
-	finished_request.env[10] = joing_string("HTTP_USER_AGENT=","");
-	finished_request.env[11] = joing_string("PATH=","");
-	finished_request.env[12] = joing_string("PATHEXT=","");
-	finished_request.env[13] = joing_string("PATH_INFO=","");
-	finished_request.env[14] = joing_string("PATH_TRANSLATED=","");
-	finished_request.env[15] = joing_string("QUERY_STRING=",_query_string.c_str());
-	finished_request.env[16] = joing_string("REMOTE_ADDR=","");
-	finished_request.env[17] = joing_string("REMOTE_PORT=","");
-	finished_request.env[18] = joing_string("REQUEST_METHOD=", finished_request.method.c_str());
-	finished_request.env[19] = joing_string("REQUEST_URI=", finished_request.uri.c_str());
-	finished_request.env[20] = joing_string("SCRIPT_FILENAME=",(_config.root + _script_name).c_str());
-	finished_request.env[21] = joing_string("SCRIPT_NAME=",_script_name.c_str());
-	finished_request.env[22] = joing_string("SERVER_ADDR=","");
-	finished_request.env[23] = joing_string("SERVER_ADMIN=","");
-	finished_request.env[24] = joing_string("SERVER_NAME=",_config.server_name.c_str());
-	finished_request.env[25] = joing_string("SERVER_PORT=",std::to_string(_config.listen).c_str());
-	finished_request.env[26] = strdup("SERVER_PROTOCOL=HTTP/1.1");
-	finished_request.env[27] = joing_string("SERVER_SIGNATURE=","");
-	finished_request.env[28] = joing_string("SERVER_SOFTWARE=","");
-	finished_request.env[29] = joing_string("SYSTEMROOT=","");
-	finished_request.env[30] = joing_string("TERM=","");
-	finished_request.env[31] = joing_string("WINDIR=","");
-}
