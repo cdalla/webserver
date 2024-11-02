@@ -20,8 +20,15 @@ class responseHandler {
 		std::string		_file;
 		std::string 	_content_type;
 		std::string 	_body;
+		std::string 	_root;
+		std::list<std::string> _cgi_ext;
+		std::string		_upload_dir;
 		std::string 	_response;
 		char**			_env;
+		std::list<std::string>		_index;
+		bool 			_autoindex;
+		
+		
 
 		std::string 	_getStatusMessage(int error);
 		void			_determineType( std::string path );
@@ -33,6 +40,7 @@ class responseHandler {
 		void 			_createEnv( void );
 		void 			_createResponse( void );
 		void 			_locationHandler( std::string path );
+		void 			_handleDirRequest( std::string path );
 	public:
 
         responseHandler( Client *ptr );

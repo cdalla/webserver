@@ -9,7 +9,8 @@
 #include <cctype>
 #include "CgiHandler.hpp"
 
-responseHandler::responseHandler(Client *ptr) : _ptr(ptr)
+DEFAULT_ROOT="/var/www/html"
+responseHandler::responseHandler(Client *ptr) : _ptr(ptr), _upload_dir("")
 {
 	_env = new char *[33];
 	for (int i = 0; i < 32; ++i)
@@ -42,7 +43,6 @@ std::string responseHandler::get(void)
 
 void responseHandler::_determineType(std::string path)
 {
-
 	std::string extension;
 	size_t pos;
 
@@ -53,27 +53,18 @@ void responseHandler::_determineType(std::string path)
 		extension = "";
 	if (extension == "html" || extension == "css")
 		_content_type = "text/" + extension;
-	else if (extension == "js")
-		_content_type = "application/javascript";
 	else if (extension == "jpeg" || extension == "jpg")
 		_content_type = "image/jpeg";
 	else if (extension == "png")
 		_content_type = "image/png";
 	else if (extension == "gif")
-		_content_type = "image/gif";
-	else if (extension == "svg")
-		_content_type = "image/svg+xml";
-	else if (extension == "ico")
 		_content_type = "image/x-icon";
-	else if (extension == "txt")
+	else  
 		_content_type = "text/plain";
-	else
-		_content_type = "application/octet-stream";
 }
 
 void responseHandler::_handleError(int error)
 {
-
 	_createErrorPage(error);
 	_response = std::to_string(error);
 	_response.append(" ");
@@ -88,7 +79,6 @@ void responseHandler::_handleError(int error)
 
 void responseHandler::_createErrorPage(int error)
 {
-
 	std::string errorPage;
 	std::string errorMessage;
 
@@ -99,7 +89,6 @@ void responseHandler::_createErrorPage(int error)
 
 std::string responseHandler::_getStatusMessage(int error)
 {
-
 	switch (error)
 	{
 	case 400:
@@ -112,8 +101,6 @@ std::string responseHandler::_getStatusMessage(int error)
 		return "Method Not Allowed";
 	case 413:
 		return "Payload Too Large";
-	case 501:
-		return "Not Implemented";
 	case 505:
 		return "HTTP Version Not Supported";
 	default:
@@ -236,8 +223,8 @@ static char *joing_string(const char *str1, const char *str2)
 
 void responseHandler::_createEnv(void)
 {
-	_env[0] = joing_string("COMSPEC=", "");
-	_env[1] = joing_string("DOCUMENT_ROOT=", _ptr->_config.root.c_str());
+	_env[0] = joing_string("UPLOAD_DIR=", _upload_dir.c_str());
+	_env[1] = joing_string("DOCUMENT_ROOT=", _root.c_str());
 	_env[2] = joing_string("SCRIPT_FILENAME=", (_ptr->_config.root + request.script_name).c_str());
 	_env[3] = joing_string("PATH_INFO=", request.uri.c_str());
 	_env[4] = joing_string("PATH_TRANSLATED=", request.uri.c_str());
@@ -263,8 +250,8 @@ void responseHandler::_createEnv(void)
 	_env[24] = joing_string("HTTP_REFERER=", request.headers["Referer"].c_str());
 	_env[25] = joing_string("HTTP_USER_AGENT=", request.headers["User-Agent"].c_str());
 	_env[26] = joing_string("REDIRECT_STATUS" =, "200");
-	_env[27] = joing_string("REDIRECT_URL=", request.uri.c_str());
-	_env[28] = joing_string("REDIRECT_URI=", request.uri.c_str());
+	_env[27] = joing_string("REDIRECT_URL=", "");
+	_env[28] = joing_string("REDIRECT_URI=", "");
 	_env[29] = joing_string("GATEWAY_INTERFACE=", "CGI/1.1");
 	_env[30] = joing_string("SERVER_ADMIN=", "");
 	_env[31] = joing_string("SERVER_SIGNATURE=", "");
@@ -280,8 +267,107 @@ void responseHandler::_createResponse(void)
 	_locationHandler();
 }
 
+void responseHandler::_handleDirRequest( std::string path )
+{
+	  if (_index.empty()) {
+       for (std::list<std::string>::iterator it = _index.begin(); it != _index.end(); ++it) {
+            std::string filePath = _root + *it;
+            if (access(filePath.c_str(), F_OK) != -1) {
+				if (filePath.find_last_of(".") != std::string::npos)
+				{
+					std::string extention = filePath.substr(filePath.find_last_of(".") + 1);
+					if (_cgi_ext.find(extention) != _cgi_ext.end())
+					{
+						_handleCGI(filePath);
+						return;
+					}
+					_handlePage(filePath);
+                	return;
+            	}
+        }
+        if (!_autoindex) {
+            _handleError(403);
+            return;
+        }
+    }
+    if (_autoindex) {
+        _handleDirectory(_root + path);
+        return;
+    }
+    _handleError(404);
+}
+
 void responseHandler::_locationHandler(std::string path)
 {
-	
-	
+	str::string to_locate = path;
+	while (prt->_config.locations.find(to_locate) == _ptr->_config.locations.end())
+	{
+		size_t pos = path.find_last_of("/");
+		if (pos == std::string::npos)
+			break;
+		to_locate = path.substr(0, pos);
+	}
+	if (to_locate.empty())
+	{
+		std::string pos = path.find_last_of(".");
+		if (pos != std::string::npos)
+		{	
+			to_locate = path.substr(pos + 1);
+		}
+	}
+	Location location = _ptr->_config.locations.find(to_locate);
+	_cgi_ext = ptr->config.cgi_ext;
+	_root = _ptr->_config.root ? _ptr->_config.root : DEFAULT_ROOT;
+	_upload_dir = _ptr->_config.upload_dir ? _ptr->_config.upload_dir : "";
+	_autoindex = _ptr->_config.autoindex;
+	_index = _ptr->_config.index;
+	if (location == _ptr->_config.locations.end())
+	{
+		if (!_ptr->config.method.empty() && _prt->config.methods.find(_ptr->request.method) == _ptr->_config.methods.end())
+		{
+			_handleError(405);
+			return;
+		}
+		if (path.find_last_of(".") != std::string::npos)
+		{
+			_handlePage(_root + path);
+			return;
+		}
+		_handleDirRequest(_root + path);
+		return;
+	}
+	if (!location.root.empty())
+		_root = location.root;
+	if (!location.upload_dir.empty())
+		_upload_dir = location.upload_dir;
+	if (!location.cgi_ext.empty())
+		_cgi_ext = location.cgi_ext;
+	if (!location.index.empty())
+		_index = location.index;
+	_autoindex = location.autoindex;
+	if (location.methods.empty())
+	{
+		if ( !_ptr->_config.methods.empty() && _prt->config.methods.find(_ptr->request.method) == _ptr->_config.methods.end())
+		{
+			_handleError(405);
+			return;
+		}
+	}
+	else if (_ptr->_config.methods.find(_ptr->request.method) == _ptr->_config.methods.end())
+	{
+			_handleError(405);
+			return;
+	}
+	if (path == to_locate)
+	{
+		_handleDirRequest(path);
+		return;
+	}
+	std::string extention = filePath.substr(filePath.find_last_of(".") + 1);
+	if (_cgi_ext.find(extention) != _cgi_ext.end())
+	{
+		_handleCGI(_root + path.substr(to_locate.length()));
+		return;
+	}
+	_handlePage(_root + path.substr(to_locate.length()));
 }

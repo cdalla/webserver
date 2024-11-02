@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <list>
 
 /**
  * @param path string
@@ -20,13 +21,13 @@
 struct Location {
 	std::string					path;
 	std::string					root;
-	std::string					cgi_pass;
+	std::list<std::string>		cgi_ext;
 	std::string					upload_dir;
 	std::string					redirect_url;
 	std::string					max_body_size;
 	bool						autoindex;
-	std::vector<std::string>	index; //for if requested resource is directory
-	std::vector<std::string>	methods;
+	std::list<std::string>		index; //for if requested resource is directory
+	std::list<std::string>		methods;
 	std::map<unsigned int, std::string>	error_pages;
 };
 
