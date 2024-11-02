@@ -51,7 +51,7 @@ struct VirtualServer
 	std::map<std::string, unsigned int>	listendirective;
 	unsigned int				listen; //port
 	std::string					root;
-	std::string					cgi_pass;
+	std::vector<std::string>	cgi_ext;
 	std::string					upload_dir;
 	std::string					redirect_url; //to do: implemnt defining HTTP redirection in config file
 	std::string					max_body_size;

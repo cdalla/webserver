@@ -31,7 +31,7 @@ bool Client::consume(int event_type)
         char    buffer[buffer_size];
         ssize_t bytes_read;
         ssize_t total_bytes_read = 0;
-        RequestParser parser(_server->get_config(), this->request);
+        RequestParser parser(server->get_config(), this->request);
 
         int client_socket = this->get_socket();
         std::memset(buffer, 0, buffer_size);
@@ -55,13 +55,9 @@ bool Client::consume(int event_type)
         // if (!_done)
         //     return false;
 		responseHandler handler(this);
-		response = handler.create(this->request);
-        _resp_string.append(response.statusLine);
-        _resp_string.append(response.contentType);
-        _resp_string.append(response.contentLength);
-        _resp_string.append(response.entityBody);
+        std::string response = handler.get();
 
-        bytes = send(_socket, _resp_string.c_str(), _resp_string.size(), 0);
+        bytes = send(_socket, response.c_str(), response.size(), 0);
         if (bytes < 0)
         {
             //error

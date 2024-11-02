@@ -19,8 +19,8 @@ class Client: public Socket
 
     private:
 
-		Request        request;
-        Response        response;
+
+
 
 		char            _req_buff[1024];
         std::string     _resp_string;
@@ -30,7 +30,9 @@ class Client: public Socket
 
 		Client(Server *server);
 		~Client();
-        Server*         _server;
+        Server*        server;
+        std::string    response;
+        Request        request;
 
 		virtual bool	consume(int event_type);
 };

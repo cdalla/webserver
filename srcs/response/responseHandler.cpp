@@ -8,9 +8,12 @@
 #include <unistd.h>
 #include <cctype>
 #include "CgiHandler.hpp"
+#include <dirent.h>
+#include <string.h>
 
-DEFAULT_ROOT="/var/www/html"
-responseHandler::responseHandler(Client *ptr) : _ptr(ptr), _upload_dir("")
+#define DEFAULT_ROOT="/var/www/html"
+
+responseHandler::responseHandler(Client *ptr) : _client(ptr), _upload_dir(""), _config(ptr->server->get_config())
 {
 	_env = new char *[33];
 	for (int i = 0; i < 32; ++i)
@@ -26,15 +29,13 @@ responseHandler::~responseHandler(void)
 	{
 		for (int i = 0; i < 33; ++i)
 		{
-			if (request.env[i] != NULL)
+			if (_env[i] != NULL)
 			{
-				delete[] request.env[i];
+				delete[] _env[i];
 			}
 		}
-		delete[] request.env;
+		delete[] _env;
 	}
-	if (request.script_name != NULL)
-		delete[] request.script_name;
 };
 
 std::string responseHandler::get(void)
@@ -197,18 +198,18 @@ void responseHandler::_handleDirectory(std::string path)
 		_response.append("\r\n\r\n");
 		_response.append(_body);
 	}
+}
 
-	void responseHandler::_handleCGI(std::string path)
+void responseHandler::_handleCGI(std::string path)
+{
+	_createEnv();
+	CgiHandler cgi(path.c_str(), _env, _client->request.body.c_str());
+	if (cgi.get_status_code() != 200)
 	{
-		_createEnv();
-		CgiHandler cgi(path.c_str(), _ptr->_env, _ptr->request.body.c_str());
-		if (cgi.get_status_code() != 200)
-		{
-			_handleError(cgi.get_status_code());
-			return;
-		}
-		_response = cgi.get_response();
+		_handleError(cgi.get_status_code());
+		return;
 	}
+	_response = cgi.get_response();
 }
 
 static char *joing_string(const char *str1, const char *str2)
@@ -225,30 +226,30 @@ void responseHandler::_createEnv(void)
 {
 	_env[0] = joing_string("UPLOAD_DIR=", _upload_dir.c_str());
 	_env[1] = joing_string("DOCUMENT_ROOT=", _root.c_str());
-	_env[2] = joing_string("SCRIPT_FILENAME=", (_ptr->_config.root + request.script_name).c_str());
-	_env[3] = joing_string("PATH_INFO=", request.uri.c_str());
-	_env[4] = joing_string("PATH_TRANSLATED=", request.uri.c_str());
-	_env[5] = joing_string("QUERY_STRING=", request.query_string.c_str());
+	_env[2] = joing_string("SCRIPT_FILENAME=", (_config->root + _client->zrequest.script_name).c_str());
+	_env[3] = joing_string("PATH_INFO=", _ptr->request.uri.c_str());
+	_env[4] = joing_string("PATH_TRANSLATED=", _ptr->request.uri.c_str());
+	_env[5] = joing_string("QUERY_STRING=", _ptr->request.query_string.c_str());
 	_env[6] = joing_string("REMOTE_ADDR=", _ptr->_client_ip.c_str());
 	_env[7] = joing_string("REMOTE_IDENT=", "");
 	_env[8] = joing_string("REMOTE_USER=", "");
-	_env[9] = joing_string("REQUEST_METHOD=", request.method.c_str());
-	_env[10] = joing_string("REQUEST_URI=", request.uri.c_str());
-	_env[11] = joing_string("SCRIPT_NAME=", request.script_name);
+	_env[9] = joing_string("REQUEST_METHOD=", _ptr->request.method.c_str());
+	_env[10] = joing_string("REQUEST_URI=", _ptr->request.uri.c_str());
+	_env[11] = joing_string("SCRIPT_NAME=", _ptr->request.script_name);
 	_env[12] = joing_string("SERVER_NAME=", _ptr->_config.server_name.c_str());
 	_env[13] = joing_string("SERVER_PORT=", std::to_string(_ptr->_config.listen).c_str());
 	_env[14] = joing_string("SERVER_PROTOCOL=", "HTTP/1.1");
 	_env[15] = joing_string("SERVER_SOFTWARE=", "webserv/1.0");
 	_env[16] = joing_string("CONTENT_LENGTH=", std::to_string(request.body.length()).c_str());
-	_env[17] = joing_string("CONTENT_TYPE=", request.headers["Content-Type"].c_str());
-	_env[18] = joing_string("HTTP_ACCEPT=", request.headers["Accept"].c_str());
-	_env[19] = joing_string("HTTP_ACCEPT_CHARSET=", request.headers["Accept-Charset"].c_str());
-	_env[20] = joing_string("HTTP_ACCEPT_ENCODING=", request.headers["Accept-Encoding"].c_str());
-	_env[21] = joing_string("HTTP_ACCEPT_LANGUAGE=", request.headers["Accept-Language"].c_str());
-	_env[22] = joing_string("HTTP_CONNECTION=", request.headers["Connection"].c_str());
-	_env[23] = joing_string("HTTP_HOST=", request.headers["Host"].c_str());
-	_env[24] = joing_string("HTTP_REFERER=", request.headers["Referer"].c_str());
-	_env[25] = joing_string("HTTP_USER_AGENT=", request.headers["User-Agent"].c_str());
+	_env[17] = joing_string("CONTENT_TYPE=", _ptr->request.headers["Content-Type"].c_str());
+	_env[18] = joing_string("HTTP_ACCEPT=", _ptr->request.headers["Accept"].c_str());
+	_env[19] = joing_string("HTTP_ACCEPT_CHARSET=", _ptr->request.headers["Accept-Charset"].c_str());
+	_env[20] = joing_string("HTTP_ACCEPT_ENCODING=", _ptr->request.headers["Accept-Encoding"].c_str());
+	_env[21] = joing_string("HTTP_ACCEPT_LANGUAGE=", _ptr->request.headers["Accept-Language"].c_str());
+	_env[22] = joing_string("HTTP_CONNECTION=", _ptr->request.headers["Connection"].c_str());
+	_env[23] = joing_string("HTTP_HOST=", _ptr->request.headers["Host"].c_str());
+	_env[24] = joing_string("HTTP_REFERER=", _ptr->request.headers["Referer"].c_str());
+	_env[25] = joing_string("HTTP_USER_AGENT=", _ptr->request.headers["User-Agent"].c_str());
 	_env[26] = joing_string("REDIRECT_STATUS" =, "200");
 	_env[27] = joing_string("REDIRECT_URL=", "");
 	_env[28] = joing_string("REDIRECT_URI=", "");
@@ -259,12 +260,12 @@ void responseHandler::_createEnv(void)
 
 void responseHandler::_createResponse(void)
 {
-	if (request.error)
+	if (_ptr->request.error)
 	{
-		_handleError(request.error);
+		_handleError(_ptr->request.error);
 		return;
 	}
-	_locationHandler();
+	_locationHandler(_ptr->request.uri);
 }
 
 void responseHandler::_handleDirRequest( std::string path )
@@ -284,6 +285,7 @@ void responseHandler::_handleDirRequest( std::string path )
 					_handlePage(filePath);
                 	return;
             	}
+			}
         }
         if (!_autoindex) {
             _handleError(403);
@@ -297,9 +299,10 @@ void responseHandler::_handleDirRequest( std::string path )
     _handleError(404);
 }
 
+
 void responseHandler::_locationHandler(std::string path)
 {
-	str::string to_locate = path;
+	std::string to_locate = path;
 	while (prt->_config.locations.find(to_locate) == _ptr->_config.locations.end())
 	{
 		size_t pos = path.find_last_of("/");

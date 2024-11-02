@@ -6,6 +6,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include "client.hpp"
 
 #include "structs.hpp"
 
@@ -16,16 +17,17 @@ class responseHandler {
     private:
 
 
-		Client*			_ptr;
+		Client*			_client;
+		VirtualServer	_config;
 		std::string		_file;
 		std::string 	_content_type;
 		std::string 	_body;
 		std::string 	_root;
-		std::list<std::string> _cgi_ext;
+		std::vector<std::string> _cgi_ext;
 		std::string		_upload_dir;
 		std::string 	_response;
 		char**			_env;
-		std::list<std::string>		_index;
+		std::vector<std::string>		_index;
 		bool 			_autoindex;
 		
 		
