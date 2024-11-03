@@ -11,47 +11,51 @@
 #include <chrono>
 #include <iostream>
 #include <errno.h>
+
 #define MAX_TIME 60000
+#define MAX_EVENTS 32
 
 static void st_close_fd(int fd_1, int fd_2)
 {
-	close(fd_1);
-	close(fd_2);
+    close(fd_1);
+    close(fd_2);
 }
-
-CgiHandler::~CgiHandler(void){}
 
 CgiHandler::CgiHandler(const char *script, char * const *env, const char *body)
 {
-	
-	if (initialize_pipe() < 0)
-		return ;
-	
-	int pid = fork();
-	switch(pid) {
-		case -1:
-			_status_code = 500;
-			_status_mess = strerror(errno);
-			break ;
-		case 0:
-			child_exe(script, env);
-			break ;
-		default:
-			parent_exe(body, pid);
-	}
-
+    _status_code = 200;  // Initialize with success
+    _status_mess = "OK";
+    
+    if (initialize_pipe() < 0)
+        return;
+    
+    int pid = fork();
+    switch(pid) {
+        case -1:
+            _status_code = 500;
+            _status_mess = strerror(errno);
+            break;
+        case 0:
+            child_exe(script, env);
+            break;
+        default:
+            parent_exe(body, pid);
+    }
 }
+
+CgiHandler::~CgiHandler(void) {}
 
 void CgiHandler::parent_exe(const char *body, pid_t pid)
 {
-	int epoll_fd = epoll_create(1);
+    int epoll_fd = epoll_create(1);
     if (epoll_fd == -1) {
         _status_code = 500;
         _status_mess = "Failed to create epoll instance";
         return;
     }
 
-    struct epoll_event event, events[MAX_EVENTS];
+    struct epoll_event event;
+    struct epoll_event events[MAX_EVENTS];
     event.events = EPOLLOUT | EPOLLET;
     event.data.fd = _fd_in[1];
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, _fd_in[1], &event) == -1) {
@@ -77,11 +81,19 @@ void CgiHandler::parent_exe(const char *body, pid_t pid)
     const char* write_ptr = body;
     size_t remaining = strlen(body);
 
-	char buffer[200];
-	memset(buffer, '\0', 200);
-	while ((!read_finished || !write_finished))
-	{
-		 for (int i = 0; i < num_events; i++) 
+    char buffer[200];
+    std::memset(buffer, '\0', 200);
+    
+    while (!read_finished || !write_finished)
+    {
+        int num_events = epoll_wait(epoll_fd, events, MAX_EVENTS, 100);
+        if (num_events == -1) {
+            _status_code = 500;
+            _status_mess = "Epoll wait failed";
+            break;
+        }
+
+        for (int i = 0; i < num_events; i++) 
         { 
             if (events[i].data.fd == _fd_out[0] && !read_finished)
             {
@@ -127,96 +139,102 @@ void CgiHandler::parent_exe(const char *body, pid_t pid)
             }    
         }
 
-		auto corrent = std::chrono::high_resolution_clock::now();
-		std::chrono::milliseconds time_passed = std::chrono::duration_cast<std::chrono::milliseconds>(corrent - start);
-		if (time_passed.count() > MAX_TIME)
-		{
-			kill(pid, SIGKILL);
-			break ;
-		}
-	}
+        auto current = std::chrono::high_resolution_clock::now();
+        auto time_passed = std::chrono::duration_cast<std::chrono::milliseconds>(current - start);
+        if (time_passed.count() > MAX_TIME)
+        {
+            kill(pid, SIGKILL);
+            break;
+        }
+    }
 
     close(epoll_fd);
-    if (_fd_in[1])
+    if (_fd_in[1] != -1)
         close(_fd_in[1]);
     close(_fd_out[0]);
 
-	int status;
-	waitpid(pid, &status, 0);
-	switch(status) 
-	{
-		case 137:
-			_status_code = 504;
-			_status_mess = "Gateway Time-out";
-			break ;
-		case 3328:
-			_status_code = 403;
-			_status_mess = "Forbidden";
-			break ;
-		case 0:
-			_status_code = 200;
-			_status_mess = "OK";
-			break ;
-		default:
-			_status_code = 502;
-			_status_mess = "Bad Gateway";
-	}
+    int status;
+    waitpid(pid, &status, 0);
+    if (WIFEXITED(status)) {
+        status = WEXITSTATUS(status);
+    }
+    
+    switch(status) 
+    {
+        case 137:
+            _status_code = 504;
+            _status_mess = "Gateway Time-out";
+            break;
+        case 3328:
+            _status_code = 403;
+            _status_mess = "Forbidden";
+            break;
+        case 0:
+            _status_code = 200;
+            _status_mess = "OK";
+            break;
+        default:
+            _status_code = 502;
+            _status_mess = "Bad Gateway";
+    }
 }
 
 void CgiHandler::child_exe(const char *script, char * const *env)
 {
-	close(_fd_in[1]);
-	close(_fd_out[0]);
-	char* argv[]={(char*)script, (char*)script,  NULL};
-	
-	if (dup2(_fd_in[0], STDIN_FILENO) < 0)
-	{
-		st_close_fd(_fd_in[0], _fd_out[1]);
-		exit(errno);
-	}
-	close(_fd_in[0]);
-	if (dup2(_fd_out[1], STDOUT_FILENO) < 0)
-	{
-		st_close_fd(STDIN_FILENO, _fd_out[1]);
-		exit(errno);
-	}
-	close(_fd_out[1]);
+    close(_fd_in[1]);
+    close(_fd_out[0]);
+    char* argv[] = {(char*)script, (char*)script, NULL};
+    
+    if (dup2(_fd_in[0], STDIN_FILENO) < 0)
+    {
+        st_close_fd(_fd_in[0], _fd_out[1]);
+        exit(errno);
+    }
+    close(_fd_in[0]);
+    if (dup2(_fd_out[1], STDOUT_FILENO) < 0)
+    {
+        st_close_fd(STDIN_FILENO, _fd_out[1]);
+        exit(errno);
+    }
+    close(_fd_out[1]);
 
-	execve(script, argv, env);
-	int error = errno;
-	st_close_fd(STDIN_FILENO, STDOUT_FILENO);
-	exit (error);
+    execve(script, argv, env);
+    int error = errno;
+    st_close_fd(STDIN_FILENO, STDOUT_FILENO);
+    exit(error);
 }
 
-
-int CgiHandler::initialize_pipe( void )
+int CgiHandler::initialize_pipe(void)
 {
-	if (pipe(_fd_in) < 0)
-	{
-		_status_code = 500;
-		_status_mess = "Pipe failed: " + std::string(strerror(errno));
-		return -1;
-	}
-	if( pipe(_fd_outs) < 0)
-	{
-		st_close_fd(_fd_in[0], _fd_in[1]);
-		_status_code = 500;
-		_status_mess = "Pipe failed: " + std::string(strerror(errno));
-		return -1;
-	}
-	return 0;
+    _fd_in[0] = _fd_in[1] = _fd_out[0] = _fd_out[1] = -1;
+    
+    if (pipe(_fd_in) < 0)
+    {
+        _status_code = 500;
+        _status_mess = "Pipe failed: " + std::string(strerror(errno));
+        return -1;
+    }
+    if (pipe(_fd_out) < 0)  // Fixed _fd_outs to _fd_out
+    {
+        st_close_fd(_fd_in[0], _fd_in[1]);
+        _status_code = 500;
+        _status_mess = "Pipe failed: " + std::string(strerror(errno));
+        return -1;
+    }
+    return 0;
 }
 
-std::string  CgiHandler::get_status_mess ( void ) const
+std::string CgiHandler::get_status_mess(void) const
 {
-	return _status_mess;
+    return _status_mess;
 }
-int CgiHandler::get_status_code( void ) const
-{
-	return _status_code;
-} 
 
-std::string CgiHandler::get_response( void ) const
+int CgiHandler::get_status_code(void) const
 {
-	return _response;
+    return _status_code;
+}
+
+std::string CgiHandler::get_response(void) const
+{
+    return _response;
 }

@@ -9,11 +9,22 @@ class baseParser<T>::ConfigException : public std::exception {
 };
 
   template <typename T>
-void	baseParser<T>::parseCgiPass(std::vector<std::string> &args) {
-	if (args.size() != 1) {
-		throw std::runtime_error("Configuration error: CGI pass");
-	}
-	context.cgi_pass = args[0];
+void	baseParser<T>::parseCgiExt(std::vector<std::string> &args) {
+	if (args.empty()) {
+        throw std::runtime_error("Configuration error: CGI extensions cannot be empty");
+    }
+    
+    // Clear any existing extensions
+    context.cgi_ext.clear();
+    
+    // Add each extension to the list
+    for (std::vector<std::string>::iterator it = args.begin(); it != args.end(); ++it) {
+        // Optionally validate that each extension starts with a dot
+        if ((*it)[0] != '.') {
+            throw std::runtime_error("Configuration error: CGI extension must start with a dot (.)");
+        }
+        context.cgi_ext.push_back(*it);
+    }
 }
 
   template <typename T>
@@ -87,7 +98,6 @@ void	baseParser<T>::parseUploadDir(std::vector<std::string> &args) {
 		throw ConfigException();
 	}
 	context.upload_dir = args[0];
-
 }
 
   template <typename T>

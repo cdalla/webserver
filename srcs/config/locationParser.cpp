@@ -13,7 +13,6 @@
 locationParser::locationParser(void) : baseParser<Location>() {
 	context.path = "";
 	context.root = "";
-	context.cgi_pass = "";
 	context.upload_dir = "";
 	context.redirect_url = "";
 	context.max_body_size = "";
@@ -25,7 +24,7 @@ locationMap	locationParser::_initLocationFunctions() {
 
 	locationMap newMap;
 
-	newMap["cgi_pass"] = &locationParser::parseCgiPass;
+	newMap["cgi_ext"] = &locationParser::parseCgiExt;
 	newMap["upload_dir"] = &locationParser::parseUploadDir;
 	newMap["root"] = &locationParser::parseRoot;
 	newMap["allow_methods"] = &locationParser::parseMethods;
@@ -88,11 +87,15 @@ std::ostream&   operator<<(std::ostream& out, Location const &obj) {
 	out << "	path: " << obj.path << std::endl;
 	out << "	root: " << obj.root << std::endl;
 	out << "	methods: ";
-	for (size_t i = 0; i < obj.methods.size(); i++)
-		out << obj.methods[i] << " ";
+    for (std::list<std::string>::const_iterator it = obj.methods.begin(); it != obj.methods.end(); ++it) {
+        out << *it << " ";
+	}
 	out << "\n";
-	if (obj.cgi_pass != "")
-		out << "	cgi_pass: " << obj.cgi_pass << std::endl;
+	out << "    cgi_ext: ";
+    for (std::list<std::string>::const_iterator it = obj.cgi_ext.begin(); it != obj.cgi_ext.end(); ++it) {
+        out << *it << " ";
+    }
+    out << "\n";
 	if (obj.upload_dir != "")	
 		out << "	upload_dir: " << obj.upload_dir << std::endl;
 	if (obj.redirect_url != "")
@@ -103,8 +106,9 @@ std::ostream&   operator<<(std::ostream& out, Location const &obj) {
 	if (obj.index.size())
 	{
 		out << "	index: ";
-		for (size_t i = 0; i < obj.index.size(); i++)
-			out << "	" << obj.index[i] << " ";
+		for (std::list<std::string>::const_iterator it = obj.index.begin(); it != obj.index.end(); ++it) {
+        out << *it << " ";
+        }
 		out << "\n";
 	}
 	out << "	error_pages:" << std::endl;

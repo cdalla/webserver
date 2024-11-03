@@ -3,7 +3,7 @@
 #include "responseHandler.hpp"
 
 
-Client::Client(Server *server): _server(server) {
+Client::Client(Server *server): server(server) {
     _done = false;
     return ;
 }

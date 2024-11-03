@@ -10,8 +10,9 @@
 #include "CgiHandler.hpp"
 #include <dirent.h>
 #include <string.h>
+#include <algorithm>
 
-#define DEFAULT_ROOT="/var/www/html"
+#define DEFAULT_ROOT "/var/www/html"
 
 responseHandler::responseHandler(Client *ptr) : _client(ptr), _upload_dir(""), _config(ptr->server->get_config())
 {
@@ -21,6 +22,7 @@ responseHandler::responseHandler(Client *ptr) : _client(ptr), _upload_dir(""), _
 		_env[i] = NULL;
 	}
 	_env[32] = NULL;
+	_createResponse();
 };
 
 responseHandler::~responseHandler(void)
@@ -40,6 +42,7 @@ responseHandler::~responseHandler(void)
 
 std::string responseHandler::get(void)
 {
+	return _response;
 }
 
 void responseHandler::_determineType(std::string path)
@@ -60,7 +63,7 @@ void responseHandler::_determineType(std::string path)
 		_content_type = "image/png";
 	else if (extension == "gif")
 		_content_type = "image/x-icon";
-	else  
+	else
 		_content_type = "text/plain";
 }
 
@@ -111,6 +114,12 @@ std::string responseHandler::_getStatusMessage(int error)
 
 void responseHandler::_handlePage(std::string path)
 {
+
+	if (_client->request.method == "POST" || _client->request.method == "DELETE")
+	{
+		_handleError(405);
+		return;
+	}
 
 	int epoll_fd = epoll_create1(0);
 	if (epoll_fd == -1)
@@ -226,31 +235,31 @@ void responseHandler::_createEnv(void)
 {
 	_env[0] = joing_string("UPLOAD_DIR=", _upload_dir.c_str());
 	_env[1] = joing_string("DOCUMENT_ROOT=", _root.c_str());
-	_env[2] = joing_string("SCRIPT_FILENAME=", (_config->root + _client->zrequest.script_name).c_str());
-	_env[3] = joing_string("PATH_INFO=", _ptr->request.uri.c_str());
-	_env[4] = joing_string("PATH_TRANSLATED=", _ptr->request.uri.c_str());
-	_env[5] = joing_string("QUERY_STRING=", _ptr->request.query_string.c_str());
-	_env[6] = joing_string("REMOTE_ADDR=", _ptr->_client_ip.c_str());
+	_env[2] = joing_string("SCRIPT_FILENAME=", (_root + _client->request.script_name).c_str());
+	_env[3] = joing_string("PATH_INFO=", _client->request.uri.c_str());
+	_env[4] = joing_string("PATH_TRANSLATED=", _client->request.uri.c_str());
+	_env[5] = joing_string("QUERY_STRING=", _client->request.query_string.c_str());
+	_env[6] = joing_string("REMOTE_ADDR=", "");
 	_env[7] = joing_string("REMOTE_IDENT=", "");
 	_env[8] = joing_string("REMOTE_USER=", "");
-	_env[9] = joing_string("REQUEST_METHOD=", _ptr->request.method.c_str());
-	_env[10] = joing_string("REQUEST_URI=", _ptr->request.uri.c_str());
-	_env[11] = joing_string("SCRIPT_NAME=", _ptr->request.script_name);
-	_env[12] = joing_string("SERVER_NAME=", _ptr->_config.server_name.c_str());
-	_env[13] = joing_string("SERVER_PORT=", std::to_string(_ptr->_config.listen).c_str());
+	_env[9] = joing_string("REQUEST_METHOD=", _client->request.method.c_str());
+	_env[10] = joing_string("REQUEST_URI=", _client->request.uri.c_str());
+	_env[11] = joing_string("SCRIPT_NAME=", _client->request.script_name.c_str());
+	_env[12] = joing_string("SERVER_NAME=", _config.server_name.c_str());
+	_env[13] = joing_string("SERVER_PORT=", std::to_string(_config.listen).c_str());
 	_env[14] = joing_string("SERVER_PROTOCOL=", "HTTP/1.1");
 	_env[15] = joing_string("SERVER_SOFTWARE=", "webserv/1.0");
-	_env[16] = joing_string("CONTENT_LENGTH=", std::to_string(request.body.length()).c_str());
-	_env[17] = joing_string("CONTENT_TYPE=", _ptr->request.headers["Content-Type"].c_str());
-	_env[18] = joing_string("HTTP_ACCEPT=", _ptr->request.headers["Accept"].c_str());
-	_env[19] = joing_string("HTTP_ACCEPT_CHARSET=", _ptr->request.headers["Accept-Charset"].c_str());
-	_env[20] = joing_string("HTTP_ACCEPT_ENCODING=", _ptr->request.headers["Accept-Encoding"].c_str());
-	_env[21] = joing_string("HTTP_ACCEPT_LANGUAGE=", _ptr->request.headers["Accept-Language"].c_str());
-	_env[22] = joing_string("HTTP_CONNECTION=", _ptr->request.headers["Connection"].c_str());
-	_env[23] = joing_string("HTTP_HOST=", _ptr->request.headers["Host"].c_str());
-	_env[24] = joing_string("HTTP_REFERER=", _ptr->request.headers["Referer"].c_str());
-	_env[25] = joing_string("HTTP_USER_AGENT=", _ptr->request.headers["User-Agent"].c_str());
-	_env[26] = joing_string("REDIRECT_STATUS" =, "200");
+	_env[16] = joing_string("CONTENT_LENGTH=", std::to_string(_client->request.body.length()).c_str());
+	_env[17] = joing_string("CONTENT_TYPE=", _client->request.headers["Content-Type"].c_str());
+	_env[18] = joing_string("HTTP_ACCEPT=", _client->request.headers["Accept"].c_str());
+	_env[19] = joing_string("HTTP_ACCEPT_CHARSET=", _client->request.headers["Accept-Charset"].c_str());
+	_env[20] = joing_string("HTTP_ACCEPT_ENCODING=", _client->request.headers["Accept-Encoding"].c_str());
+	_env[21] = joing_string("HTTP_ACCEPT_LANGUAGE=", _client->request.headers["Accept-Language"].c_str());
+	_env[22] = joing_string("HTTP_CONNECTION=", _client->request.headers["Connection"].c_str());
+	_env[23] = joing_string("HTTP_HOST=", _client->request.headers["Host"].c_str());
+	_env[24] = joing_string("HTTP_REFERER=", _client->request.headers["Referer"].c_str());
+	_env[25] = joing_string("HTTP_USER_AGENT=", _client->request.headers["User-Agent"].c_str());
+	_env[26] = joing_string("REDIRECT_STATUS=", "200");
 	_env[27] = joing_string("REDIRECT_URL=", "");
 	_env[28] = joing_string("REDIRECT_URI=", "");
 	_env[29] = joing_string("GATEWAY_INTERFACE=", "CGI/1.1");
@@ -260,73 +269,74 @@ void responseHandler::_createEnv(void)
 
 void responseHandler::_createResponse(void)
 {
-	if (_ptr->request.error)
+	if (_client->request.error)
 	{
-		_handleError(_ptr->request.error);
+		_handleError(_client->request.error);
 		return;
 	}
-	_locationHandler(_ptr->request.uri);
+	_locationHandler(_client->request.uri);
 }
 
-void responseHandler::_handleDirRequest( std::string path )
+void responseHandler::_handleDirRequest(std::string path)
 {
-	  if (_index.empty()) {
-       for (std::list<std::string>::iterator it = _index.begin(); it != _index.end(); ++it) {
-            std::string filePath = _root + *it;
-            if (access(filePath.c_str(), F_OK) != -1) {
+	if (_index.empty())
+	{
+		for (std::vector<std::string>::iterator it = _index.begin(); it != _index.end(); ++it)
+		{
+			std::string filePath = _root + *it;
+			if (access(filePath.c_str(), F_OK) != -1)
+			{
 				if (filePath.find_last_of(".") != std::string::npos)
 				{
 					std::string extention = filePath.substr(filePath.find_last_of(".") + 1);
-					if (_cgi_ext.find(extention) != _cgi_ext.end())
+					if (std::find(_cgi_ext.begin(), _cgi_ext.end(), extention) != _cgi_ext.end())
 					{
 						_handleCGI(filePath);
 						return;
 					}
 					_handlePage(filePath);
-                	return;
-            	}
+					return;
+				}
 			}
-        }
-        if (!_autoindex) {
-            _handleError(403);
-            return;
-        }
-    }
-    if (_autoindex) {
-        _handleDirectory(_root + path);
-        return;
-    }
-    _handleError(404);
+		}
+		if (!_autoindex)
+		{
+			_handleError(403);
+			return;
+		}
+	}
+	if (_autoindex)
+	{
+		_handleDirectory(_root + path);
+		return;
+	}
+	_handleError(404);
 }
-
 
 void responseHandler::_locationHandler(std::string path)
 {
 	std::string to_locate = path;
-	while (prt->_config.locations.find(to_locate) == _ptr->_config.locations.end())
+	size_t pos;
+	Location *matched_location = nullptr;
+	for (std::vector<Location>::iterator it = _config.locations.begin(); it != _config.locations.end(); ++it)
 	{
-		size_t pos = path.find_last_of("/");
-		if (pos == std::string::npos)
-			break;
-		to_locate = path.substr(0, pos);
-	}
-	if (to_locate.empty())
-	{
-		std::string pos = path.find_last_of(".");
-		if (pos != std::string::npos)
-		{	
-			to_locate = path.substr(pos + 1);
+		if (path.find(it->path) == 0)
+		{ // Path starts with location path
+			if (!matched_location || it->path.length() > matched_location->path.length())
+			{
+				matched_location = &(*it);
+			}
 		}
 	}
-	Location location = _ptr->_config.locations.find(to_locate);
-	_cgi_ext = ptr->config.cgi_ext;
-	_root = _ptr->_config.root ? _ptr->_config.root : DEFAULT_ROOT;
-	_upload_dir = _ptr->_config.upload_dir ? _ptr->_config.upload_dir : "";
-	_autoindex = _ptr->_config.autoindex;
-	_index = _ptr->_config.index;
-	if (location == _ptr->_config.locations.end())
+	_cgi_ext = _config.cgi_ext;
+	_root = !_config.root.empty() ? _config.root : DEFAULT_ROOT;
+	_upload_dir = !_config.upload_dir.empty() ? _config.upload_dir : "";
+	_autoindex = _config.autoindex;
+	_index = _config.index;
+	if (!matched_location)
 	{
-		if (!_ptr->config.method.empty() && _prt->config.methods.find(_ptr->request.method) == _ptr->_config.methods.end())
+		if (!_config.methods.empty() && 
+            std::find(_config.methods.begin(), _config.methods.end(), _client->request.method) == _config.methods.end())
 		{
 			_handleError(405);
 			return;
@@ -339,38 +349,47 @@ void responseHandler::_locationHandler(std::string path)
 		_handleDirRequest(_root + path);
 		return;
 	}
-	if (!location.root.empty())
-		_root = location.root;
-	if (!location.upload_dir.empty())
-		_upload_dir = location.upload_dir;
-	if (!location.cgi_ext.empty())
-		_cgi_ext = location.cgi_ext;
-	if (!location.index.empty())
-		_index = location.index;
-	_autoindex = location.autoindex;
-	if (location.methods.empty())
+	if (!matched_location->root.empty())
+		_root = matched_location->root;
+	if (!matched_location->upload_dir.empty())
+		_upload_dir = matched_location->upload_dir;
+	if (!matched_location->cgi_ext.empty())
+		  _cgi_ext.assign(matched_location->cgi_ext.begin(), matched_location->cgi_ext.end());
+	if (!matched_location->index.empty())
+		 _index.assign(matched_location->index.begin(), matched_location->index.end());
+	_autoindex = matched_location->autoindex;
+
+	// Check method permissions
+	if (matched_location->methods.empty())
 	{
-		if ( !_ptr->_config.methods.empty() && _prt->config.methods.find(_ptr->request.method) == _ptr->_config.methods.end())
+		if (!_config.methods.empty() && 
+            std::find(_config.methods.begin(), _config.methods.end(), _client->request.method) == _config.methods.end())
 		{
 			_handleError(405);
 			return;
 		}
 	}
-	else if (_ptr->_config.methods.find(_ptr->request.method) == _ptr->_config.methods.end())
+	else if (std::find(_config.methods.begin(), _config.methods.end(), _client->request.method) == _config.methods.end())
 	{
-			_handleError(405);
-			return;
+		_handleError(405);
+		return;
 	}
+	// Handle the request
 	if (path == to_locate)
 	{
 		_handleDirRequest(path);
 		return;
 	}
-	std::string extention = filePath.substr(filePath.find_last_of(".") + 1);
-	if (_cgi_ext.find(extention) != _cgi_ext.end())
-	{
-		_handleCGI(_root + path.substr(to_locate.length()));
-		return;
-	}
-	_handlePage(_root + path.substr(to_locate.length()));
+    std::string request_path = _root + path.substr(to_locate.length());
+    std::string extension;
+    size_t ext_pos = request_path.find_last_of(".");
+    if (ext_pos != std::string::npos)
+    {
+        extension = request_path.substr(ext_pos + 1);
+        if (std::find(_cgi_ext.begin(), _cgi_ext.end(), extension) != _cgi_ext.end())
+        {
+            _handleCGI(request_path);
+            return;
+        }
+    }
 }

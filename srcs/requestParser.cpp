@@ -118,7 +118,6 @@ bool  RequestParser::set_MetAddProt(void)
 	// std::cout << "&uri " << finished_request.uri << std::endl;
 	_script_name = finished_request.uri;
 	_query_string = "";
-	finished_request.is_cgi = true;
 	if (finished_request.uri.find('?') != std::string::npos)
 	{
 		_query_string = finished_request.uri.substr(finished_request.uri.find('?'), finished_request.uri.length());

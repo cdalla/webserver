@@ -6,6 +6,8 @@
 #include <string>
 #include <list>
 
+class locationParser;
+
 /**
  * @param path string
  * @param root string
@@ -77,8 +79,9 @@ struct Request {
 	std::string		uri;
 	std::string		_path;
 	std::string		body;
+	std::string 	query_string;
 	std::map<std::string, std::string>	headers;
-	std::string			*script_name;
+	std::string			script_name;
 
 };
 
