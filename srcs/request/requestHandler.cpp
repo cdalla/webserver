@@ -40,7 +40,7 @@ Request	requestHandler::readRequest(void) {
 
 	char	buf[1024];
 
-    request.connect_fd = _ptr->get_socket();
+    request.connect_fd = _ptr->get_fd();
 	request.valRead = read(request.connect_fd, buf, 1023);
 	if (request.valRead < 0) {
 		perror("reading from connection socket failed");

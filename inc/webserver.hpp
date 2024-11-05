@@ -14,9 +14,9 @@
 # include "colours.hpp"
 # include "structs.hpp"
 # include "config.hpp"
-# include "server.hpp"
+//# include "server.hpp"
 // # include "client.hpp"
-# include "socket.hpp"
+# include "fd_handler.hpp"
 // # include "response.hpp"
 // # include "request.hpp"
 # include "utils.hpp"
@@ -25,7 +25,10 @@
 //# define MAX_EVENTS 100
 # define IN 0
 # define OUT 1
+# define CONN 2
+# define FILES 3
 # define MAX_SIZE 1024
+# define MAX_BUFF 10000
 //# define MAX_CONNECTIONS 10
 
 class Server;
@@ -36,14 +39,12 @@ class Webserver
     private:
 
         std::vector<Server>             _servers;
-        std::map<int, Socket*>          _fds;
-        int                             _epollFd;
+        std::map<int, Fd_handler*>      _fds;
+        int                             _epollConn;
+        int                             _epollFile;
 
         void    servers_init();
         void    create_Epoll();
-        void    addFdToPoll(int fd);
-        void    addClient(int fd, Server *server);
-        void    removeFd(int fd);
         void    change_event(int fd);
         void    check_timeouts();
 
@@ -52,6 +53,12 @@ class Webserver
         Webserver(std::string default_config);
         ~Webserver();
 
+        void    addFdToPoll(int fd, int epollFd, uint32_t events);
+        void    addFdToMap(int fd, Fd_handler *ptr);
+        void    removeFd(int fd, int type);
+        bool	is_in_map(int fd);
+        int     get_EpollFd(int type);
+        
         class Config		config;
         void    run();
 

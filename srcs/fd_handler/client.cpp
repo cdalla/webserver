@@ -2,8 +2,10 @@
 #include "requestHandler.hpp"
 #include "responseHandler.hpp"
 
-Client::Client(Server *server): _server(server) {
+Client::Client(Server *server, Webserver *main): server(server), main(main) 
+{
     _done = false;
+    file_content = "";
     reset_last_activity();
     return ;
 }
@@ -17,7 +19,7 @@ Client::~Client(void) {}
 */
 bool Client::consume(int event_type)
 {
-    std::cout << "handling event on fd: " << this->get_socket() << std::endl;
+    std::cout << "handling event on fd: " << this->get_fd() << std::endl;
     reset_last_activity();
 
     ssize_t bytes;
@@ -59,7 +61,7 @@ bool Client::consume(int event_type)
         _resp_string.append(response.contentLength);
         _resp_string.append(response.entityBody);
 
-        bytes = send(_socket, _resp_string.c_str(), _resp_string.size(), 0);
+        bytes = send(_fd, _resp_string.c_str(), _resp_string.size(), 0);
         if (bytes < 0)
         {
             //error
@@ -72,19 +74,4 @@ bool Client::consume(int event_type)
         std::cout << "EVENT PASSED TO CLIENT ERROR" << std::endl;
         return true;
     }
-}
-
-
-void Client::reset_last_activity()
-{
-    _last_activity = std::chrono::steady_clock::now();
-}
-
-bool Client::has_timeout()
-{
-    auto now = std::chrono::steady_clock::now();
-    auto difference = std::chrono::duration_cast<std::chrono::seconds>(now - _last_activity);
-    if (difference.count() > TIMEOUT)
-        return true;
-    return false; 
 }
