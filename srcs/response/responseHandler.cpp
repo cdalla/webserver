@@ -11,6 +11,7 @@
 #include <dirent.h>
 #include <string.h>
 #include <algorithm>
+#include "file.hpp"
 
 #define DEFAULT_ROOT "/var/www/html"
 
@@ -121,57 +122,23 @@ void responseHandler::_handlePage(std::string path)
 		return;
 	}
 
-	int epoll_fd = epoll_create1(0);
-	if (epoll_fd == -1)
-	{
-		_handleError(500); // Internal Server Error
-		return;
-	}
+	 if (_client->file_content.empty())
+    {
+	    int file_fd = open(path.c_str(), O_RDONLY);
+	    if (file_fd == -1)
+	    {
+		    if (errno == EACCES)
+			    _handleError(403); // Permission Denied
+		    else
+			    _handleError(404); // File Not Found
+		    return;
+	    }
+        File* file = new File(file_fd, _main);
+        return ;
+    }
+    _body.append(_client->file_content);
+    _main->removeFd(file_fd, FILES);
 
-	int file_fd = open(path.c_str(), O_RDONLY);
-	if (file_fd == -1)
-	{
-		if (errno == EACCES)
-			_handleError(403); // Permission Denied
-		else
-			_handleError(404); // File Not Found
-		close(epoll_fd);
-		return;
-	}
-
-	struct epoll_event event;
-	event.events = EPOLLIN;
-	event.data.fd = file_fd;
-
-	if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, file_fd, &event) == -1)
-	{
-		_handleError(500); // Internal Server Error
-		close(file_fd);
-		close(epoll_fd);
-		return;
-	}
-
-	struct epoll_event events[1];
-	int nfds = epoll_wait(epoll_fd, events, 1, -1);
-	if (nfds == -1)
-	{
-		_handleError(500); // Internal Server Error
-		close(file_fd);
-		close(epoll_fd);
-		return;
-	}
-
-	std::ifstream file(path);
-	std::string line;
-
-	while (std::getline(file, line))
-	{
-		_body.append(line);
-		_body.append("\n");
-	}
-	file.close();
-	close(file_fd);
-	close(epoll_fd);
 	_determineType(path);
 	_response = "200 OK\r\n";
 	_response.append("Content-Type: ");

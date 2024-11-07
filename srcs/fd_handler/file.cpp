@@ -40,22 +40,7 @@ void responseHandler::_handlePage(std::string path)
 
     //////////////////////////////////////////
     PART CHANGED BY CARLO
-    if (_client->file_content.empty())
-    {
-	    int file_fd = open(path.c_str(), O_RDONLY);
-	    if (file_fd == -1)
-	    {
-		    if (errno == EACCES)
-			    _handleError(403); // Permission Denied
-		    else
-			    _handleError(404); // File Not Found
-		    return;
-	    }
-        File* file = new File(file_fd, _main);
-        return ;
-    }
-    _body.append(_client->file_content);
-    main->removeFd(file_fd, FILES);
+   
     
     //////////////////////////////////////////
 
