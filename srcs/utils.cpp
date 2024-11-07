@@ -37,4 +37,5 @@ void print_error(std::string param)
 // 		throw std::runtime_error("Error extracting prefix from URI: no forward slash present"); // i don't see how we would ever even make it here
 
 // 	return (URI.substr(0, pos));
+
 // }

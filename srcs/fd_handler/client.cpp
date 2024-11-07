@@ -1,6 +1,8 @@
 #include "client.hpp"
-#include "requestHandler.hpp"
+#include "requestParser.hpp"
 #include "responseHandler.hpp"
+
+
 
 Client::Client(Server *server, Webserver *main): server(server), main(main) 
 {
@@ -10,7 +12,10 @@ Client::Client(Server *server, Webserver *main): server(server), main(main)
     return ;
 }
 
-Client::~Client(void) {}
+
+Client::~Client(void) {
+
+}
 
 /*
     DEPENDING ON EVENT TYPE:
@@ -19,33 +24,31 @@ Client::~Client(void) {}
 */
 bool Client::consume(int event_type)
 {
+    ssize_t bytes;
     std::cout << "handling event on fd: " << this->get_fd() << std::endl;
     reset_last_activity();
-
-    ssize_t bytes;
 
 
     if (event_type == IN)
     {
-        // std::cout << "IN EVENT" << std::endl;
-		requestHandler handler(this);
-		request = handler.readRequest();
-        // if (!_done)
-        // {
-        //     bytes = recv(_socket, _req_buff, 10, 0);
-        //     if (bytes < 0)
-        //     {
-        //         //error
-        //         return false;
-        //     }
-        //     _done = _req_handl->function(_req_buff);
-        //     std::memset(_req_buff, 0, MAX_SIZE);
-        // }
-        // return (_done);
-        // _req_handl.readRequest();
-        // std::cout << (_req_handl) << std::endl;
-       // std::cout << request << std::endl;
+        size_t  buffer_size = 1024;
+        char    buffer[buffer_size];
+        ssize_t bytes_read;
+        ssize_t total_bytes_read = 0;
+        RequestParser parser(server->get_config(), this->request);
 
+        std::memset(buffer, 0, buffer_size);
+        while ((bytes_read = read(_fd, buffer, buffer_size - 1)) > 0) {
+            total_bytes_read += bytes_read;
+            if (parser.feed(buffer))
+                break ;
+            std::memset(buffer, 0, buffer_size);
+        }
+        if (bytes_read == -1 || total_bytes_read == 0) {
+            std::cerr << "Read failed" << std::endl;
+            return false;
+        }
+        std::cout << "Read successful: " << total_bytes_read << " bytes" << std::endl;
         return true;
     }
     else if (event_type == OUT)
@@ -55,13 +58,9 @@ bool Client::consume(int event_type)
         // if (!_done)
         //     return false;
 		responseHandler handler(this);
-		response = handler.create(request);
-        _resp_string.append(response.statusLine);
-        _resp_string.append(response.contentType);
-        _resp_string.append(response.contentLength);
-        _resp_string.append(response.entityBody);
+        std::string response = handler.get();
 
-        bytes = send(_fd, _resp_string.c_str(), _resp_string.size(), 0);
+        bytes = send(_fd, response.c_str(), response.size(), 0);
         if (bytes < 0)
         {
             //error

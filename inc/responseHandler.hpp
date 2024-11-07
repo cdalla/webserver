@@ -6,6 +6,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include "client.hpp"
 
 #include "structs.hpp"
 
@@ -15,40 +16,41 @@ class responseHandler {
 
     private:
 
-		Client*			_ptr;
 
-		Response		_GET(Request &request);
-		Response		_POST(Request &request);
-		Response		_DELETE(Request &request);
-        void			_determineType(Request &request);
-		bool			_makeStatusLine(Request &r);
-		void			_fillBody(bool status);
-		Response		_debug(Request &request);
-		// Location		_getLocation(std::string const &path);
+		Client*			_client;
+		VirtualServer	_config;
+		std::string		_file;
+		std::string 	_content_type;
+		std::string 	_body;
+		std::string 	_root;
+		std::vector<std::string> _cgi_ext;
+		std::string		_upload_dir;
+		std::string 	_response;
+		char**			_env;
+		std::vector<std::string>		_index;
+		bool 			_autoindex;
 		
-		int				_statusCode;
-		bool			_binaryMode;
-		std::ifstream	_ifs;
-		Response		_response;
+		
 
-    public:
+		std::string 	_getStatusMessage(int error);
+		void			_determineType( std::string path );
+		void			_createErrorPage( int error );
+		void 			_handleError( int error );
+		void 			_handlePage( std::string path );
+		void 			_handleDirectory( std::string path );
+		void 			_handleCGI( std::string path );
+		void 			_createEnv( void );
+		void 			_createResponse( void );
+		void 			_locationHandler( std::string path );
+		void 			_handleDirRequest( std::string path );
+	public:
 
-        responseHandler(Client *ptr);
-		// responseHandler(const responseHandler &src);
-        ~responseHandler(void);
+        responseHandler( Client *ptr );
+        ~responseHandler( void );
 
-		// responseHandler& operator=(responseHandler &src);
+        std::string	get( void );
+		
 
-        Response	create(Request &request);
-		Client*		getClient(void) const;
-		int			getStatusCode(void) const;
-		bool		getBinaryMode(void) const;
-		Response	getResponse(void) const;
-
-		VirtualServer	config;
 };
-
-std::ostream&	operator<<(std::ostream& out, responseHandler const &obj);
-std::ostream&	operator<<(std::ostream& out, Response const &obj);
 
 #endif

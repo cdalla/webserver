@@ -26,7 +26,7 @@ class baseParser {
 		T context;
 	
 	protected:
-		void	parseCgiPass(std::vector<std::string> &args);
+		void	parseCgiExt(std::vector<std::string> &args);
 		void	parseRoot(std::vector<std::string> &args);
 		void	parseMethods(std::vector<std::string> &args);
 		void	parseAutoindex(std::vector<std::string> &args);

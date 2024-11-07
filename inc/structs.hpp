@@ -4,6 +4,9 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <list>
+
+class locationParser;
 
 /**
  * @param path string
@@ -20,13 +23,13 @@
 struct Location {
 	std::string					path;
 	std::string					root;
-	std::string					cgi_pass;
+	std::list<std::string>		cgi_ext;
 	std::string					upload_dir;
 	std::string					redirect_url;
 	std::string					max_body_size;
 	bool						autoindex;
-	std::vector<std::string>	index; //for if requested resource is directory
-	std::vector<std::string>	methods;
+	std::list<std::string>		index; //for if requested resource is directory
+	std::list<std::string>		methods;
 	std::map<unsigned int, std::string>	error_pages;
 };
 
@@ -50,7 +53,7 @@ struct VirtualServer
 	std::map<std::string, unsigned int>	listendirective;
 	unsigned int				listen; //port
 	std::string					root;
-	std::string					cgi_pass;
+	std::vector<std::string>	cgi_ext;
 	std::string					upload_dir;
 	std::string					redirect_url; //to do: implemnt defining HTTP redirection in config file
 	std::string					max_body_size;
@@ -67,19 +70,19 @@ struct VirtualServer
 
 struct Request {
 
-	int			valRead;
-	int			connect_fd;
 	bool		exists;
+	int			error; // if not error 0
 
 	std::string		method;
 	std::string		resource;
 	std::string		extension;
-	std::string		_statusLine;
-	std::string		_URL;
+	std::string		uri;
 	std::string		_path;
-	std::string		_body;
-	std::string		_rawRequest;
-	std::map<std::string, std::string>	_headers;
+	std::string		body;
+	std::string 	query_string;
+	std::map<std::string, std::string>	headers;
+	std::string			script_name;
+
 };
 
 struct Response {

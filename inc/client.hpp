@@ -19,9 +19,6 @@ class Client: public Fd_handler
 
     private:
 
-		Request         request;
-        Response        response;
-
 		char            _req_buff[MAX_BUFF];
         std::string     _resp_string;
         bool            _done;
@@ -34,6 +31,9 @@ class Client: public Fd_handler
         Webserver*      main;
         std::string     file_content;
         std::string     cgi_result;
+        Response        response;
+        std::string    response2;
+        Request        request;
 
 
 		virtual bool	consume(int event_type);
