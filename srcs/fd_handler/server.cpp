@@ -66,3 +66,7 @@ bool    Server::consume(int event_type)
 		delete client;
 	return false;
 }
+VirtualServer	Server::get_config() const
+{
+	return _config;
+}
