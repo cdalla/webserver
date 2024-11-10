@@ -34,14 +34,6 @@ responseHandler::responseHandler(Client *ptr) :
             _env[i] = nullptr;
         }
 
-        // Set default configuration values
-        _root = _config.root.empty() ? "/var/www/html" : _config.root;
-        
-        // Copy vectors instead of assigning to prevent potential buffer issues
-        _cgi_ext = std::vector<std::string>(_config.cgi_ext.begin(), _config.cgi_ext.end());
-        _index = std::vector<std::string>(_config.index.begin(), _config.index.end());
-        
-        _autoindex = _config.autoindex;
         _createResponse();
     }
     catch (const std::exception& e) {
@@ -106,20 +98,82 @@ void responseHandler::_determineType(std::string path)
     }
 }
 
-void responseHandler::_handleError(int error)
+void responseHandler::_handleErrorPage(int error, std::string error_page)
 {
-	
+    std::cout << "Reading error page for: " << error << std::endl;
+    std::string path = _root;
+    if (_root.empty())
+        path = _config.root;
+    if (path[path.length() - 1] != '/')
+        path += "/";
+    std::string error_path = path + error_page;
+        // Check file permissions and existence
+    if (access(error_path.c_str(), F_OK) == -1) {
+        std::cout << "File not found: " << path << std::endl;
+        _handleDefaultError(404);
+    }
+    if (access(error_path.c_str(), R_OK) == -1) {
+        std::cout << "Permission denied: " << error_path << std::endl;
+        _handleDefaultError(403);
+        return;
+    }
+            int file_fd = open(error_path.c_str(), O_RDONLY);
+    if (file_fd == -1)
+    {
+        std::cout << "Failed to open file: " << strerror(errno) << std::endl;
+        if (errno == EACCES)
+            _handleDefaultError(403);
+        else
+            _handleDefaultError(404);
+        return;
+    }
+
+    try {
+        // Create File handler which will read the entire file
+        File file(file_fd, _main, _client);
+        
+        // Determine content type and create response
+        _determineType(path);
+            _response = "HTTP/1.1 ";
+            _response += std::to_string(error);
+            _response += " ";
+            _response += _getStatusMessage(error);
+            _response += "Content-Type: " + _content_type + "\r\n";
+            _response += "Content-Length: " + std::to_string(_client->file_content.length()) + "\r\n";
+            _response += "\r\n" + _client->file_content;
+        
+            std::cout << "Successfully read file and created response" << std::endl;
+            std::cout << "Response: " << _response << std::endl;
+    }
+    catch (const std::exception& e) {
+        std::cerr << "Error handling file: " << e.what() << std::endl;
+        _handleDefaultError(500);
+    }
+
+}
+void responseHandler::_handleDefaultError(int error)
+{
+    std::cout << "Creating default error page for: " << error << std::endl;
     _createErrorPage(error);
     _response = "HTTP/1.1 ";
     _response += std::to_string(error);
     _response += " ";
     _response += _getStatusMessage(error);
-    _response += "\r\n";
     _response += "Content-Type: text/html\r\n";
-    _response += "Content-Length: ";
-    _response += std::to_string(_body.length());
-    _response += "\r\n\r\n";
-    _response += _body;
+    _response += "Content-Length: " + std::to_string(_body.length()) + "\r\n";
+    _response += "\r\n" + _body;
+}
+
+void responseHandler::_handleError(int error)
+{   
+    
+    std::string error_page = _error_pages[error];
+    if (error_page.empty()) {
+        std::cout << "No error page found for: " << error << std::endl;
+        _handleDefaultError(error);
+        return;
+    }
+    _handleErrorPage(error, error_page);
 }
 
 void responseHandler::_createErrorPage(int error)
@@ -411,6 +465,7 @@ void responseHandler::_locationHandler(std::string path)
     _upload_dir = _config.upload_dir;
     _autoindex = _config.autoindex;
     _index = _config.index;
+    _error_pages = _config.error_pages;
 
     // Find best matching location using a pointer to avoid copying
     const Location* matched_location = NULL;
@@ -500,6 +555,8 @@ void responseHandler::_locationHandler(std::string path)
             _index.assign(matched_location->index.begin(), 
                         matched_location->index.end());
         }
+        if (!matched_location->error_pages.empty())
+            _error_pages = matched_location->error_pages;
         _autoindex = matched_location->autoindex;
     }
 
@@ -507,8 +564,8 @@ void responseHandler::_locationHandler(std::string path)
     std::string adjusted_path = path;
     if (matched_location && path.find(location_prefix) == 0) {
         adjusted_path = path.substr(location_prefix.length());
-        if (adjusted_path.empty() || adjusted_path[0] != '/') {
-            adjusted_path = "/" + adjusted_path;
+        if (_root[_root.length() - 1] != '/') {
+            _root += "/";
         }
     }
 

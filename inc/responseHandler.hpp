@@ -26,6 +26,7 @@ class responseHandler {
 		std::string _response;
 		std::string _upload_dir;
 		char** _env;
+		std::map<unsigned int, std::string>	_error_pages;
 		std::vector<std::string> _cgi_ext;
 		std::vector<std::string> _index;
 		bool _autoindex;
@@ -35,7 +36,9 @@ class responseHandler {
 		std::string 	_getStatusMessage(int error);
 		void			_determineType( std::string path );
 		void			_createErrorPage( int error );
-		void 			_handleError( int error );
+		void 			_handleError(int error);
+		void			_handleErrorPage(int error, std::string error_page);
+		void 			_handleDefaultError(int error);
 		void 			_handlePage( std::string path );
 		void 			_handleDirectory( std::string path );
 		void 			_handleCGI( std::string path );
