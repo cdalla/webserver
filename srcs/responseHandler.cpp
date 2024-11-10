@@ -147,6 +147,12 @@ std::string responseHandler::_getStatusMessage(int error)
 		return "Method Not Allowed";
 	case 413:
 		return "Payload Too Large";
+    case 502:
+        return "Bad Gateway";
+    case 503:
+        return "Service Unavailable";
+    case 504:
+        return "Gateway Timeout";
 	case 505:
 		return "HTTP Version Not Supported";
 	default:
@@ -238,14 +244,33 @@ void responseHandler::_handleDirectory(std::string path)
 
 void responseHandler::_handleCGI(std::string path)
 {
-	_createEnv();
-	CgiHandler cgi(path.c_str(), _env, _client->request.body.c_str());
-	if (cgi.get_status_code() != 200)
-	{
-		_handleError(cgi.get_status_code());
-		return;
-	}
-	_response = cgi.get_response();
+	  // Add these checks
+    if (access(path.c_str(), F_OK) == -1) {
+        std::cerr << "CGI script not found: " << path << std::endl;
+        _handleError(404);
+        return;
+    }
+    if (access(path.c_str(), X_OK) == -1) {
+        std::cerr << "CGI script not executable: " << path << std::endl;
+        _handleError(403);
+        return;
+    }
+
+    _createEnv();
+    try {
+        // Create new Cgi instance instead of CgiHandler
+        Cgi* cgi = new Cgi(_main, path.c_str(), _env, _client->request.body.c_str(), _client);
+        
+        // The response will be set in client->cgi_result when CGI processing completes
+        // For now, we'll send a preliminary response
+        _response = "HTTP/1.1 200 OK\r\n";
+        _response += "Content-Type: text/html\r\n";
+        _response += "\r\n";
+    }
+    catch (const WebservException& e) {
+        std::cerr << "CGI initialization failed: " << e.what() << std::endl;
+        _handleError(500);
+    }
 }
 
 static char *joing_string(const char *str1, const char *str2)
@@ -385,17 +410,45 @@ void responseHandler::_locationHandler(std::string path)
     const Location* matched_location = NULL;
     size_t longest_match = 0;
 
-    // Safe iteration through locations
-    std::vector<Location>::const_iterator it;
-    for (it = _config.locations.begin(); it != _config.locations.end(); ++it) {
-        if (path.compare(0, it->path.length(), it->path) == 0) {
-            if (!matched_location || it->path.length() > longest_match) {
-                matched_location = &(*it);
-                longest_match = it->path.length();
+      // 1. First look for exact full path match
+    for (std::vector<Location>::const_iterator it = _config.locations.begin(); 
+         it != _config.locations.end(); ++it) {
+        if (path == it->path) {
+            matched_location = &(*it);
+            std::cout << "Found exact path match: " << it->path << std::endl;
+            break;
+        }
+    }
+
+    // 2. If no exact match, check for extension match
+    if (!matched_location) {
+        size_t ext_pos = path.find_last_of(".");
+        if (ext_pos != std::string::npos) {
+            std::string extension = path.substr(ext_pos);
+            for (std::vector<Location>::const_iterator it = _config.locations.begin(); 
+                 it != _config.locations.end(); ++it) {
+                if (it->path == extension) {
+                    matched_location = &(*it);
+                    std::cout << "Found extension match: " << it->path << std::endl;
+                    break;
+                }
             }
         }
     }
 
+    // 3. If still no match, try prefix matching (longest wins)
+    if (!matched_location) {
+        for (std::vector<Location>::const_iterator it = _config.locations.begin(); 
+             it != _config.locations.end(); ++it) {
+            if (path.compare(0, it->path.length(), it->path) == 0) {
+                if (!matched_location || it->path.length() > longest_match) {
+                    matched_location = &(*it);
+                    longest_match = it->path.length();
+                    std::cout << "Found prefix match: " << it->path << std::endl;
+                }
+            }
+        }
+    }
     if (!matched_location) {
 		std::cout << "No location found" << std::endl;
         if (!_config.methods.empty() && 

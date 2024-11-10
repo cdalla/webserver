@@ -1,6 +1,6 @@
 #include "cgi.hpp"
 
-Cgi::Cgi(Webserver *ptr, const char *script, char * const *env, const char *body) : _main(ptr), _pipeIn{-1,-1}, _pipeOut{-1,-1}, _env(env), _script(script), _body(body), _pos(0), _writeFinished(false)
+Cgi::Cgi(Webserver *ptr, const char *script, char *const *env, const char *body, Client *client) : _main(ptr), _pipeIn{-1, -1}, _pipeOut{-1, -1}, _env(env), _script(script), _body(body), _pos(0), _writeFinished(false), _client(client)
 {
     reset_last_activity();
     if (pipe(_pipeIn) == -1 || pipe(_pipeOut) == -1)
@@ -13,24 +13,23 @@ Cgi::Cgi(Webserver *ptr, const char *script, char * const *env, const char *body
         execute_child();
     }
     _main->addFdToPoll(_pipeIn[1], _main->get_EpollFd(FILES), EPOLLOUT);
-    _main->addFdToPoll(_pipeOut[0],_main->get_EpollFd(FILES), EPOLLIN); //add event in fd to poll
+    _main->addFdToPoll(_pipeOut[0], _main->get_EpollFd(FILES), EPOLLIN); // add event in fd to poll
     _main->addFdToMap(_pipeIn[1], this);
     _main->addFdToMap(_pipeOut[0], this);
     close(_pipeIn[0]);
     close(_pipeOut[1]);
-
 }
 
 Cgi::~Cgi()
 {
-    //check destructor
+    // check destructor
     int status;
     waitpid(_pid, &status, 0);
-    if (WIFEXITED(status)) {
+    if (WIFEXITED(status))
+    {
         status = WEXITSTATUS(status);
     }
 }
-
 
 bool Cgi::consume(int event_type)
 {
@@ -46,14 +45,14 @@ bool Cgi::consume(int event_type)
             _main->removeFd(_pipeOut[0], FILES);
             _main->removeFd(_pipeIn[1], FILES);
         }
-        else if(bytes < 0)
+        else if (bytes < 0)
             throw WebservException("Failed to read: " + std::string(strerror(errno)));
         else
             _cgi_result.append(buff, bytes);
     }
     else if (event_type == OUT)
     {
-        
+
         reset_last_activity();
         if (_writeFinished == true)
             return false;
@@ -78,11 +77,11 @@ void Cgi::execute_child()
 {
     close(_pipeIn[1]);
     close(_pipeOut[0]);
-    char* argv[] = {(char*)_script, (char*)_script, NULL};
-    
+    char *argv[] = {(char *)_script, (char *)_script, NULL};
+
     if (dup2(_pipeIn[0], STDIN_FILENO) < 0)
     {
-        close(_pipeIn[0]); 
+        close(_pipeIn[0]);
         close(_pipeOut[1]);
         exit(errno);
     }

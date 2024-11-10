@@ -32,7 +32,7 @@ class Cgi : public Fd_handler
 		
 	public:
 	
-    	Cgi(Webserver* ptr, const char *script, char * const *env, const char *body);
+    	Cgi(Webserver* ptr, const char *script, char * const *env, const char *body, Client *client);
 		~Cgi();
 
 		virtual bool    		consume(int event_type);

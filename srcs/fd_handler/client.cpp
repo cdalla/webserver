@@ -14,7 +14,6 @@ Client::Client(Server *server, Webserver *main): server(server), main(main)
 
 
 Client::~Client(void) {
-
 }
 
 /*
