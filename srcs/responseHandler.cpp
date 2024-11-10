@@ -7,7 +7,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <cctype>
-#include "CgiHandler.hpp"
 #include <dirent.h>
 #include <string.h>
 #include <algorithm>
@@ -363,7 +362,7 @@ void responseHandler::_handleDirRequest(std::string path)
             return;
         }
         std::cout << "No index files found, using autoindex" << std::endl;
-        _handleDirectory(_root + path);
+        _handleDirectory(path);
         return;
     }
 
@@ -371,8 +370,14 @@ void responseHandler::_handleDirRequest(std::string path)
     for (std::vector<std::string>::iterator it = _index.begin(); 
          it != _index.end(); ++it) 
     {
-        std::string full_path = _root + path + "/" + *it;
+        std::cout << "Checking for index file: " << *it << std::endl;
+        if (path.empty() || path[path.length() - 1] != '/') {
+            path += "/";
+        }
+        std::string full_path = path + *it;
+        std::cout << "Checking for index file: " << full_path << std::endl;
         if (access(full_path.c_str(), F_OK) != -1) {
+            std::cout << "Found index file: " << full_path << std::endl;
             // Check if it's a CGI file
             size_t ext_pos = it->find_last_of(".");
             if (ext_pos != std::string::npos) {
@@ -383,6 +388,7 @@ void responseHandler::_handleDirRequest(std::string path)
                     return;
                 }
             }
+            std::cout << "Serving index file" << std::endl;
             _handlePage(full_path);
             return;
         }
@@ -409,12 +415,14 @@ void responseHandler::_locationHandler(std::string path)
     // Find best matching location using a pointer to avoid copying
     const Location* matched_location = NULL;
     size_t longest_match = 0;
+    std::string location_prefix;
 
       // 1. First look for exact full path match
     for (std::vector<Location>::const_iterator it = _config.locations.begin(); 
          it != _config.locations.end(); ++it) {
         if (path == it->path) {
             matched_location = &(*it);
+            location_prefix = it->path;
             std::cout << "Found exact path match: " << it->path << std::endl;
             break;
         }
@@ -429,6 +437,7 @@ void responseHandler::_locationHandler(std::string path)
                  it != _config.locations.end(); ++it) {
                 if (it->path == extension) {
                     matched_location = &(*it);
+                    location_prefix = path.substr(0, ext_pos + extension.length());
                     std::cout << "Found extension match: " << it->path << std::endl;
                     break;
                 }
@@ -443,6 +452,7 @@ void responseHandler::_locationHandler(std::string path)
             if (path.compare(0, it->path.length(), it->path) == 0) {
                 if (!matched_location || it->path.length() > longest_match) {
                     matched_location = &(*it);
+                    location_prefix = it->path;
                     longest_match = it->path.length();
                     std::cout << "Found prefix match: " << it->path << std::endl;
                 }
@@ -486,14 +496,24 @@ void responseHandler::_locationHandler(std::string path)
         if (!matched_location->cgi_ext.empty())
             _cgi_ext.assign(matched_location->cgi_ext.begin(), 
                           matched_location->cgi_ext.end());
-        if (!matched_location->index.empty())
+        if (!matched_location->index.empty()){
             _index.assign(matched_location->index.begin(), 
                         matched_location->index.end());
+        }
         _autoindex = matched_location->autoindex;
     }
 
+     // Remove the location prefix from the path for proper file handling
+    std::string adjusted_path = path;
+    if (matched_location && path.find(location_prefix) == 0) {
+        adjusted_path = path.substr(location_prefix.length());
+        if (adjusted_path.empty() || adjusted_path[0] != '/') {
+            adjusted_path = "/" + adjusted_path;
+        }
+    }
+
     // Process the request
-    std::string full_path = _root + path;
+    std::string full_path = _root + adjusted_path;
     std::cout << "Full path: " << full_path << std::endl;
     // Check if it's a CGI request based on extension
     size_t ext_pos = full_path.find_last_of(".");
@@ -514,7 +534,7 @@ void responseHandler::_locationHandler(std::string path)
     if (dir != NULL) {
 		std::cout << "Directory request" << std::endl;
         closedir(dir);
-        _handleDirRequest(path);
+        _handleDirRequest(full_path);
         return;
     }
 	std::cout << "File request" << std::endl;
