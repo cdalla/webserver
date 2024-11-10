@@ -15,20 +15,20 @@ class Client;
 class responseHandler {
 
     private:
-
-
-		Client*			_client;
-		VirtualServer	_config;
-		std::string		_file;
-		std::string 	_content_type;
-		std::string 	_body;
-		std::string 	_root;
+		
+		Client* _client;
+		VirtualServer _config;
+		Webserver* _main;
+		std::string _file;
+		std::string _content_type;
+		std::string _body;
+		std::string _root;
+		std::string _response;
+		std::string _upload_dir;
+		char** _env;
 		std::vector<std::string> _cgi_ext;
-		std::string		_upload_dir;
-		std::string 	_response;
-		char**			_env;
-		std::vector<std::string>		_index;
-		bool 			_autoindex;
+		std::vector<std::string> _index;
+		bool _autoindex;
 		
 		
 

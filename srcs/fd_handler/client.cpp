@@ -24,26 +24,32 @@ Client::~Client(void) {
 */
 bool Client::consume(int event_type)
 {
-    ssize_t bytes;
+     ssize_t bytes;
     std::cout << "handling event on fd: " << this->get_fd() << std::endl;
     reset_last_activity();
 
-
     if (event_type == IN)
     {
-        size_t  buffer_size = 1024;
-        char    buffer[buffer_size];
+        size_t buffer_size = 1024;
+        char buffer[buffer_size];
         ssize_t bytes_read;
         ssize_t total_bytes_read = 0;
-        RequestParser parser(server->get_config(), this->request);
+        
+        // Create parser on heap
+        RequestParser* parser = new RequestParser(server->get_config(), this->request);
 
         std::memset(buffer, 0, buffer_size);
         while ((bytes_read = read(_fd, buffer, buffer_size - 1)) > 0) {
             total_bytes_read += bytes_read;
-            if (parser.feed(buffer))
-                break ;
+            if (parser->feed(buffer)) {
+                break;
+            }
             std::memset(buffer, 0, buffer_size);
         }
+        
+        // Clean up parser
+        delete parser;
+        
         if (bytes_read == -1 || total_bytes_read == 0) {
             std::cerr << "Read failed" << std::endl;
             return false;
@@ -53,24 +59,22 @@ bool Client::consume(int event_type)
     }
     else if (event_type == OUT)
     {
-        // std::cout << "OUT EVENT" << std::endl;
-
-        // if (!_done)
-        //     return false;
-		responseHandler handler(this);
-        std::string response = handler.get();
+        // Create response handler on heap
+        responseHandler* handler = new responseHandler(this);
+        std::string response = handler->get();
 
         bytes = send(_fd, response.c_str(), response.size(), 0);
+        
+        // Clean up handler
+        delete handler;
+        
         if (bytes < 0)
         {
-            //error
             return false;   
         }
-        return (true);
-    }
-    else
-    {
-        std::cout << "EVENT PASSED TO CLIENT ERROR" << std::endl;
         return true;
     }
+    
+    std::cout << "EVENT PASSED TO CLIENT ERROR" << std::endl;
+    return true;
 }
