@@ -297,6 +297,7 @@ void responseHandler::_handleDirectory(std::string path)
 
 void responseHandler::_handleCGI(std::string path)
 {
+    std::cout << "Handling CGI request: " << path << std::endl;
 	  // Add these checks
     if (access(path.c_str(), F_OK) == -1) {
         std::cerr << "CGI script not found: " << path << std::endl;
@@ -312,7 +313,8 @@ void responseHandler::_handleCGI(std::string path)
     _createEnv();
     try {
         // Create new Cgi instance instead of CgiHandler
-        Cgi* cgi = new Cgi(_main, path.c_str(), _env, _client->request.body.c_str(), _client);
+        Cgi* cgi = new Cgi(_main, path.c_str(), _env, 
+        _client->request.body.empty() ? "" :_client->request.body.c_str(), _client);
         
         // The response will be set in client->cgi_result when CGI processing completes
         // For now, we'll send a preliminary response
@@ -572,15 +574,18 @@ void responseHandler::_locationHandler(std::string path)
     // Process the request
     std::string full_path = _root + adjusted_path;
     std::cout << "Full path: " << full_path << std::endl;
+
     // Check if it's a CGI request based on extension
-    size_t ext_pos = full_path.find_last_of(".");
+    size_t ext_pos = path.find_last_of(".");
     if (ext_pos != std::string::npos) {
-        std::string extension = "." + full_path.substr(ext_pos + 1);
+        std::string extension = path.substr(ext_pos);
         std::vector<std::string>::const_iterator cgi_it;
         for (cgi_it = _cgi_ext.begin(); cgi_it != _cgi_ext.end(); ++cgi_it) {
             if (*cgi_it == extension) {
-				std::cout << "CGI request" << std::endl;
-                _handleCGI(full_path);
+                std::cout << "CGI request" << std::endl;
+                std::string script_name = path.substr(path.find_last_of("/") + 1);
+                std::string cgi_path = _root + "/" + script_name;
+                _handleCGI(cgi_path);
                 return;
             }
         }
@@ -589,12 +594,12 @@ void responseHandler::_locationHandler(std::string path)
     // Check if path is a directory using opendir
     DIR* dir = opendir(full_path.c_str());
     if (dir != NULL) {
-		std::cout << "Directory request" << std::endl;
+        std::cout << "Directory request" << std::endl;
         closedir(dir);
         _handleDirRequest(full_path);
         return;
     }
-	std::cout << "File request" << std::endl;
+    std::cout << "File request" << std::endl;
     // Handle as regular file
-    _handlePage(full_path);
+_handlePage(full_path);
 }
