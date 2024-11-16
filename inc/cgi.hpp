@@ -20,6 +20,8 @@ class Cgi : public Fd_handler
         Client*                 _client;
 		int						_pipeIn[2];
 		int						_pipeOut[2];
+		int						_outFd;
+		int						_inFd;
 		const char*				_script;
 		char* const*			_env;
 		std::string				_body;

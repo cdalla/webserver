@@ -118,8 +118,13 @@ void	Webserver::run()
 					_fds[eventFd]->consume(IN);
 				}
 				else if (events_queue[n].events & EPOLLOUT && _fds.find(eventFd) != _fds.end()) {
-					if (_fds[eventFd]->consume(OUT))
+					bool ret = _fds[eventFd]->consume(OUT);
+					std::cout << "return: " << ret << std::endl;
+					if (ret)
+					{
+						std::cout << "TRUE" << std::endl;
 						removeFd(eventFd, FILES);
+					}
 				}
 				else
 					removeFd(eventFd, FILES);

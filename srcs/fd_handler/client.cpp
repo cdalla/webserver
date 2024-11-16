@@ -59,7 +59,11 @@ bool Client::consume(int event_type)
     else if (event_type == OUT)
     {
         // Create response handler on heap
+		if (!status.empty())
+			return false;
         responseHandler* handler = new responseHandler(this);
+		std::cout << "PORCA DEBORA" << std::endl;
+		return false;
         std::string response = handler->get();
 
         bytes = send(_fd, response.c_str(), response.size(), 0);

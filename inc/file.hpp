@@ -16,11 +16,12 @@ class File : public Fd_handler
     
 		Webserver*				_main;
 		std::string 			_content;
+		int						_pipe[2];
         
 	public:
 		Client*                 _client;
 
-    	File(int fd, Webserver* ptr, Client* client);
+    	File(std::string filename, Webserver* ptr, Client* client);
 
 		virtual bool    		consume(int event_type);
 

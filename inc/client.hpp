@@ -29,6 +29,7 @@ class Client: public Fd_handler
         Response        response;
         std::string    response2;
         Request        request;
+		std::string		status;
 
 
 		virtual bool	consume(int event_type);

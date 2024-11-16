@@ -65,8 +65,8 @@ void    Webserver::removeFd(int fd, int type)
 	{
 		if (epoll_ctl(_epollFile, EPOLL_CTL_DEL, fd, NULL) == -1)
 			throw WebservException("Failed to remove socket from epoll: " + std::string(strerror(errno)));
-		if (_fds[fd])
-			delete(_fds[fd]);
+		//if (_fds[fd])
+			//delete(_fds[fd]);
 	}
 	_fds.erase(fd);
 	close (fd);

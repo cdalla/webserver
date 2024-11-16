@@ -117,38 +117,40 @@ void responseHandler::_handleErrorPage(int error, std::string error_page)
         _handleDefaultError(403);
         return;
     }
-            int file_fd = open(error_path.c_str(), O_RDONLY);
-    if (file_fd == -1)
-    {
-        std::cout << "Failed to open file: " << strerror(errno) << std::endl;
-        if (errno == EACCES)
-            _handleDefaultError(403);
-        else
-            _handleDefaultError(404);
-        return;
-    }
+	if (this->_client->file_content.empty()){
+		int file_fd = open(error_path.c_str(), O_RDONLY);
+		if (file_fd == -1)
+		{
+			std::cout << "Failed to open file: " << strerror(errno) << std::endl;
+			if (errno == EACCES)
+				_handleDefaultError(403);
+			else
+				_handleDefaultError(404);
+			return;
+		}
 
-    try {
-        // Create File handler which will read the entire file
-        File file(file_fd, _main, _client);
-        
-        // Determine content type and create response
-        _determineType(path);
-            _response = "HTTP/1.1 ";
-            _response += std::to_string(error);
-            _response += " ";
-            _response += _getStatusMessage(error);
-            _response += "Content-Type: " + _content_type + "\r\n";
-            _response += "Content-Length: " + std::to_string(_client->file_content.length()) + "\r\n";
-            _response += "\r\n" + _client->file_content;
-        
-            std::cout << "Successfully read file and created response" << std::endl;
-            std::cout << "Response: " << _response << std::endl;
-    }
-    catch (const std::exception& e) {
-        std::cerr << "Error handling file: " << e.what() << std::endl;
-        _handleDefaultError(500);
-    }
+		try {
+			// Create File handler which will read the entire file
+			//File file(file_fd, _main, _client);
+			
+			// Determine content type and create response
+			_determineType(path);
+				_response = "HTTP/1.1 ";
+				_response += std::to_string(error);
+				_response += " ";
+				_response += _getStatusMessage(error);
+				_response += "Content-Type: " + _content_type + "\r\n";
+				_response += "Content-Length: " + std::to_string(_client->file_content.length()) + "\r\n";
+				_response += "\r\n" + _client->file_content;
+			
+				std::cout << "Successfully read file and created response" << std::endl;
+				std::cout << "Response: " << _response << std::endl;
+		}
+		catch (const std::exception& e) {
+			std::cerr << "Error handling file: " << e.what() << std::endl;
+			_handleDefaultError(500);
+		}
+	}
 
 }
 void responseHandler::_handleDefaultError(int error)
@@ -234,36 +236,39 @@ void responseHandler::_handlePage(std::string path)
         _handleError(403);
         return;
     }
-
-    int file_fd = open(path.c_str(), O_RDONLY);
-    if (file_fd == -1)
-    {
-        std::cout << "Failed to open file: " << strerror(errno) << std::endl;
-        if (errno == EACCES)
-            _handleError(403);
-        else
-            _handleError(404);
-        return;
-    }
+	if (_client->file_content.empty())
+	{
+    // int file_fd = open(path.c_str(), O_RDONLY);
+    // if (file_fd == -1)
+    // {
+    //     std::cout << "Failed to open file: " << strerror(errno) << std::endl;
+    //     if (errno == EACCES)
+    //         _handleError(403);
+    //     else
+    //         _handleError(404);
+    //     return;
+    // }
 
     try {
         // Create File handler which will read the entire file
-        File file(file_fd, _main, _client);
+		std::cout << "creating new file handler" << std::endl;
+        File file(path, _main, _client);
         
         // Determine content type and create response
-        _determineType(path);
-        _response = "HTTP/1.1 200 OK\r\n";
-        _response += "Content-Type: " + _content_type + "\r\n";
-        _response += "Content-Length: " + std::to_string(_client->file_content.length()) + "\r\n";
-        _response += "\r\n" + _client->file_content;
+        // _determineType(path);
+        // _response = "HTTP/1.1 200 OK\r\n";
+        // _response += "Content-Type: " + _content_type + "\r\n";
+        // _response += "Content-Length: " + std::to_string(_client->file_content.length()) + "\r\n";
+        // _response += "\r\n" + _client->file_content;
         
-        std::cout << "Successfully read file and created response" << std::endl;
-         std::cout << "Response: " << _response << std::endl;
+        // std::cout << "Successfully read file and created response" << std::endl;
+        //  std::cout << "Response: " << _response << std::endl;
     }
     catch (const std::exception& e) {
         std::cerr << "Error handling file: " << e.what() << std::endl;
         _handleError(500);
     }
+	}
 }
 
 void responseHandler::_handleDirectory(std::string path)
@@ -297,6 +302,8 @@ void responseHandler::_handleDirectory(std::string path)
 
 void responseHandler::_handleCGI(std::string path)
 {
+	if (_client->cgi_result.empty())
+	{
     std::cout << "Handling CGI request: " << path << std::endl;
 	  // Add these checks
     if (access(path.c_str(), F_OK) == -1) {
@@ -326,6 +333,9 @@ void responseHandler::_handleCGI(std::string path)
         std::cerr << "CGI initialization failed: " << e.what() << std::endl;
         _handleError(500);
     }
+	}
+	else
+		_response = _client->cgi_result;
 }
 
 static char *joing_string(const char *str1, const char *str2)

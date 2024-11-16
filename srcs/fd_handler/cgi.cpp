@@ -12,10 +12,19 @@ Cgi::Cgi(Webserver *ptr, const char *script, char *const *env, const char *body,
     {
         execute_child();
     }
-    _main->addFdToPoll(_pipeIn[1], _main->get_EpollFd(FILES), EPOLLOUT);
-    _main->addFdToPoll(_pipeOut[0], _main->get_EpollFd(FILES), EPOLLIN); // add event in fd to poll
-    _main->addFdToMap(_pipeIn[1], this);
-    _main->addFdToMap(_pipeOut[0], this);
+	_outFd = dup(_pipeIn[1]);
+	_inFd = dup(_pipeOut[0]);
+	if (_outFd == -1 || _inFd == -1)
+		std::cout << "PORCA TROIA!!!!" << std::endl;
+	close(_pipeIn[1]);
+	close(_pipeOut[0]);
+	std::cout << "script: " << script << std::endl;
+	make_socket_non_blocking(_outFd);
+	make_socket_non_blocking(_inFd);
+    _main->addFdToPoll(_outFd, _main->get_EpollFd(FILES), EPOLLOUT);
+    _main->addFdToPoll(_inFd, _main->get_EpollFd(FILES), EPOLLIN); // add event in fd to poll
+    _main->addFdToMap(_outFd, this);
+    _main->addFdToMap(_inFd, this);
     close(_pipeIn[0]);
     close(_pipeOut[1]);
 }
@@ -28,6 +37,7 @@ Cgi::~Cgi()
     if (WIFEXITED(status))
     {
         status = WEXITSTATUS(status);
+		_client->request.error = status;
     }
 }
 
@@ -38,12 +48,12 @@ bool Cgi::consume(int event_type)
         reset_last_activity();
         char buff[MAX_BUFF];
         std::memset(buff, '\0', MAX_BUFF);
-        ssize_t bytes = read(_pipeOut[0], buff, MAX_BUFF);
+        ssize_t bytes = read(_inFd, buff, MAX_BUFF);
         if (bytes == 0)
         {
             _client->cgi_result = _cgi_result;
-            _main->removeFd(_pipeOut[0], FILES);
-            _main->removeFd(_pipeIn[1], FILES);
+            _main->removeFd(_inFd, FILES);
+            _main->removeFd(_outFd, FILES);
         }
         else if (bytes < 0)
             throw WebservException("Failed to read: " + std::string(strerror(errno)));
@@ -57,7 +67,7 @@ bool Cgi::consume(int event_type)
         if (_writeFinished == true)
             return false;
         std::string toSend = _body.substr(_pos, MAX_BUFF);
-        ssize_t bytes = write(_pipeIn[1], toSend.c_str(), MAX_BUFF);
+        ssize_t bytes = write(_outFd, toSend.c_str(), MAX_BUFF);
         if (bytes < 0)
             throw WebservException("Failed to write: " + std::string(strerror(errno)));
         else if (bytes == 0)
