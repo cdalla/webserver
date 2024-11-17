@@ -275,29 +275,49 @@ void responseHandler::_handleDirectory(std::string path)
 {
 
 	DIR *dir = opendir(path.c_str());
-	if (dir == NULL){
-        std::cout << "Error opening directory: " << strerror(errno) << std::endl;
+	if (dir == NULL) {
+		std::cout << "Error opening directory: " << strerror(errno) << std::endl;
 		_handleError(404);
-    } // File Not Found
-	else
-	{
-		struct dirent *entry;
-		while ((entry = readdir(dir)) != NULL)
-		{
-			if (entry->d_name[0] == '.')
-				continue;
-			_body.append(entry->d_name);
-			_body.append("\n");
-		}
-		closedir(dir);
-        _response = "HTTP/1.1 ";
-	    _response.append("200 OK\r\n");
-		_response.append("Content-Type: text/plain\r\n");
-		_response.append("Content-Length: ");
-		_response.append(std::to_string(_body.length()));
-		_response.append("\r\n\r\n");
-		_response.append(_body);
+		return;
 	}
+	
+	// Build HTML directory listing
+	_body = "<!DOCTYPE html>\n<html>\n<head>\n";
+	_body += "<title>Directory listing</title>\n";
+	_body += "<style>body{font-family:Arial,sans-serif;margin:20px;}\n";
+	_body += "a{text-decoration:none;color:#0066cc;display:block;padding:5px;}\n";
+	_body += "a:hover{background:#f0f0f0;}</style>\n";
+	_body += "</head>\n<body>\n";
+	_body += "<h1>Directory listing for " + _client->request.uri + "</h1>\n";
+	_body += "<div>\n";
+	
+	struct dirent *entry;
+	while ((entry = readdir(dir)) != NULL) {
+	if (entry->d_name[0] == '.' && entry->d_name[1] == '\0')
+	    continue;  // Skip current directory
+	
+	_body += "<a href=\"";
+	if (_client->request.uri.back() != '/') {
+	    _body += _client->request.uri + "/" + entry->d_name;
+	} else {
+	    _body += _client->request.uri + entry->d_name;
+	}
+	_body += "\">" + std::string(entry->d_name) + "</a>\n";
+	}
+	
+	_body += "</div>\n</body>\n</html>";
+	closedir(dir);
+	
+	// Create complete response with headers
+	_response = "HTTP/1.1 200 OK\r\n";
+	_response += "Content-Type: text/html\r\n";
+	_response += "Content-Length: " + std::to_string(_body.length()) + "\r\n";
+	_response += "Connection: keep-alive\r\n";
+	_response += "\r\n";  // Empty line between headers and body
+	_response += _body;  // Add the body
+	
+	// Set client status to indicate response is complete
+	_client->status = "done";
 }
 
 void responseHandler::_handleCGI(std::string path)
