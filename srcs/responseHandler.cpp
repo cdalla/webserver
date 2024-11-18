@@ -217,6 +217,7 @@ std::string responseHandler::_getStatusMessage(int error)
 
 void responseHandler::_handlePage(std::string path)
 {
+        std::cout << "path: " << path << std::endl;
  if (_client->request.method == "POST" || _client->request.method == "DELETE")
     {
         std::cout << "Method not allowed" << std::endl;
@@ -285,6 +286,7 @@ void responseHandler::_handlePage(std::string path)
 
 void responseHandler::_handleDirectory(std::string path)
 {
+        std::cout << "path: " << path << std::endl;
 
 	DIR *dir = opendir(path.c_str());
 	if (dir == NULL) {
@@ -503,6 +505,7 @@ void responseHandler::_handleDirRequest(std::string path)
 
 void responseHandler::_locationHandler(std::string path)
 {
+
      // Reset to server defaults
     _cgi_ext = _config.cgi_ext;
     _root = !_config.root.empty() ? _config.root : "/var/www/html";

@@ -21,7 +21,7 @@ SRCS		=	main.cpp webserver.cpp webserver_epoll.cpp utils.cpp client.cpp server.c
 OBJS		=	$(addprefix $(OBJ_DIR)/, $(SRCS:.cpp=.o))
 
 CC			:=	c++
-FLAGS		:= -std=c++11 -g -I$(INC_DIR) #-fsanitize=address
+FLAGS		:= -std=c++11 -g -I$(INC_DIR) -fsanitize=address
 
 all:		$(NAME)
 

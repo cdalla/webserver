@@ -82,6 +82,7 @@ bool Server::input()
 	}
 	if (!_main->is_in_map(client->get_fd()))
 	{
+		std::cout << "adding client fd: " << client->get_fd() << std::endl;
     	make_socket_non_blocking(client->get_fd());
 		_main->addFdToPoll(client->get_fd(), _main->get_EpollFd(CONN), EPOLLIN);
 		_main->addFdToMap(client->get_fd(), client);

@@ -85,7 +85,7 @@ bool Client::consume(int event_type)
 
 bool Client::input()
 {
-        std::cout << "handling event on fd: " << this->get_fd() << std::endl;
+        std::cout << "handling input event on fd: " << this->get_fd() << std::endl;
     reset_last_activity();
         size_t buffer_size = 1024;
         char buffer[buffer_size];
@@ -97,6 +97,7 @@ bool Client::input()
 
         std::memset(buffer, 0, buffer_size);
         while ((bytes_read = read(_fd, buffer, buffer_size - 1)) > 0) {
+            std::cout << buffer << std::endl;
             total_bytes_read += bytes_read;
             if (parser->feed(buffer)) {
                 break;
@@ -108,8 +109,9 @@ bool Client::input()
         delete parser;
         
         if (bytes_read == -1 || total_bytes_read == 0) {
-            std::cerr << "Read failed" << std::endl;
-            return false;
+            throw WebservException("Failed read in client: " + std::string(strerror(errno)));
+            // std::cerr << "Read failed" << std::endl;
+            // return false;
         }
         std::cout << "Read successful: " << total_bytes_read << " bytes" << std::endl;
         return true;
@@ -117,7 +119,7 @@ bool Client::input()
 
 bool Client::output()
 {
-        std::cout << "handling event on fd: " << this->get_fd() << std::endl;
+        std::cout << "handling output event on fd: " << this->get_fd() << std::endl;
     reset_last_activity();
         ssize_t bytes;
             // Create response handler on heap

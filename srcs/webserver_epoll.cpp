@@ -54,6 +54,7 @@ void	Webserver::change_event(int fd)
 */
 void    Webserver::removeFd(int fd, int type)
 {
+	std::cout << "deleting fd: " << fd << std::endl;
 	if (type == CONN)
 	{
 		if (epoll_ctl(_epollConn, EPOLL_CTL_DEL, fd, NULL) == -1)
