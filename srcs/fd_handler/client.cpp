@@ -130,6 +130,7 @@ bool Client::output()
 
         bytes = send(_fd, response.c_str(), response.size(), 0);
         
+        std::cout << "Response sent: \n" << response << std::endl;
         // Clean up handler
         delete handler;
         

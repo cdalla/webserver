@@ -255,7 +255,7 @@ void responseHandler::_handlePage(std::string path)
 		std::cout << "creating new file handler" << std::endl;
         File *file = new File(path, _main, _client);
         _client->status = "FILE";
-        // Determine content type and create response
+        //Determine content type and create response
         // _determineType(path);
         // _response = "HTTP/1.1 200 OK\r\n";
         // _response += "Content-Type: " + _content_type + "\r\n";
@@ -271,7 +271,16 @@ void responseHandler::_handlePage(std::string path)
     }
 	}
     else
+    {
         _client->status = "OK";
+        _determineType(path);
+        _response = "HTTP/1.1 200 OK\r\n";
+        _response += "Content-Type: " + _content_type + "\r\n";
+        _response += "Content-Length: " + std::to_string(_client->file_content.length()) + "\r\n";
+        _response += "\r\n" + _client->file_content;
+        
+        std::cout << "Successfully read file and created response" << std::endl;
+    }
 }
 
 void responseHandler::_handleDirectory(std::string path)
