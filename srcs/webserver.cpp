@@ -87,7 +87,7 @@ void	Webserver::run()
 	int readyFds = 0;
 	while (true)
 	{
-		check_timeouts();
+		//check_timeouts();
 		{
 			readyFds = epoll_wait(_epollConn, events_queue, MAX_EVENTS, 10);
 			if (readyFds == -1)
@@ -96,11 +96,11 @@ void	Webserver::run()
 			{
             	int eventFd = events_queue[n].data.fd;
 				if (events_queue[n].events & EPOLLIN && _fds.find(eventFd) != _fds.end()) {
-					if (_fds[eventFd]->consume(IN))
+					if (_fds[eventFd]->input())
 						change_event(eventFd);
 				}
 				else if (events_queue[n].events & EPOLLOUT && _fds.find(eventFd) != _fds.end()) {
-					if (_fds[eventFd]->consume(OUT))
+					if (_fds[eventFd]->output())
 						removeFd(eventFd, CONN);
 				}
 				else
@@ -114,11 +114,12 @@ void	Webserver::run()
 			for (int n = 0; n < readyFds; n++)
 			{
             	int eventFd = events_queue[n].data.fd;
+				std::cout << "event fd = " << eventFd << std::endl;
 				if (events_queue[n].events & EPOLLIN && _fds.find(eventFd) != _fds.end()) {
-					_fds[eventFd]->consume(IN);
+					_fds[eventFd]->input();
 				}
 				else if (events_queue[n].events & EPOLLOUT && _fds.find(eventFd) != _fds.end()) {
-					bool ret = _fds[eventFd]->consume(OUT);
+					bool ret = _fds[eventFd]->output();
 					std::cout << "return: " << ret << std::endl;
 					if (ret)
 					{

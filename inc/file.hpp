@@ -24,6 +24,8 @@ class File : public Fd_handler
     	File(std::string filename, Webserver* ptr, Client* client);
 
 		virtual bool    		consume(int event_type);
+		        virtual bool            input(void);
+        virtual bool            output(void);
 
 };
 

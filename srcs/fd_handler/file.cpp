@@ -21,6 +21,8 @@ File::File(std::string filename, Webserver* ptr, Client* client): _main(ptr), _c
     _main->addFdToMap(_pipe[0], this);
 	_main->addFdToPoll(_pipe[1], _main->get_EpollFd(FILES), EPOLLOUT);
     _main->addFdToMap(_pipe[1], this);
+	_client->status = "some";
+	std::cout<< "pipe in = " << _pipe[0] << " pipe out = " << _pipe[1] << std::endl;
 }
 bool File::consume(int event_type)
 {
@@ -34,7 +36,7 @@ bool File::consume(int event_type)
 		else if (bytes == 0)
 		{
 			close(_pipe[0]);
-			_client->status = "done";
+			_client->status = "";
 			return false;
 		} 
 		_client->file_content.append(buff);
@@ -52,9 +54,9 @@ bool File::consume(int event_type)
 				throw WebservException("Failed to read file in: " + std::string(strerror(errno)));
 			else if (bytes_r == 0)
 			{
-				return true;
 				std::cout << "read zero bytes" << std::endl;
 				close(_fd);
+				return true;
 				//_main->removeFd(_pipe[1], FILES);
 				//_pipe[1] = -1;
 				_fd = -1;
@@ -62,7 +64,7 @@ bool File::consume(int event_type)
 		}
 		if (_fd != -1)
 		{
-			ssize_t bytes_w = write(_pipe[1], buff, MAX_BUFF);
+			ssize_t bytes_w = write(_pipe[1], buff, sizeof(buff));
 			if (bytes_w < 0)
 				throw WebservException("Failed to write pipe out: " + std::string(strerror(errno)));
 			std::cout << "pipe: " << _pipe[1] << " OUT: "  << buff << std::endl;
@@ -71,6 +73,59 @@ bool File::consume(int event_type)
 	else
 		std::cout << "ERROR EVENT" << std::endl;
    return false;
+}
+
+bool File::input()
+{
+		std::cout << "IN PIPE" << std::endl;
+		char buff[MAX_BUFF];
+		ssize_t bytes = read(_pipe[0], buff, MAX_BUFF);
+		std::cout << "bytes_r = " << bytes << std::endl;
+		if (bytes < 0)
+			throw WebservException("Failed to read pipe in: " + std::string(strerror(errno)));
+		else if (bytes < MAX_BUFF)
+		{
+			close(_pipe[0]);
+			_client->status.clear();
+			_client->file_content.append(buff);
+			return false;
+		} 
+		_client->file_content.append(buff);
+    	std::cout << "file content in file_han: \n" << _client->file_content << std::endl;
+		
+		std::cout << "IN: " << buff << std::endl;
+		return false;
+}
+
+bool File::output()
+{
+	char buff[MAX_BUFF];
+	ssize_t bytes_r;
+		std::cout << "OUT PIPE" << std::endl;
+		if (_fd != -1)
+		{
+			bytes_r = read(_fd, buff, MAX_BUFF);
+			if (bytes_r < 0)
+				throw WebservException("Failed to read file in: " + std::string(strerror(errno)));
+			else if (bytes_r == 0)
+			{
+				std::cout << "read zero bytes" << std::endl;
+				close(_fd);
+				return true;
+				//_main->removeFd(_pipe[1], FILES);
+				//_pipe[1] = -1;
+				_fd = -1;
+			}
+		}
+		if (_fd != -1)
+		{
+			ssize_t bytes_w = write(_pipe[1], buff, bytes_r);
+			std::cout << "bytes_W = " << bytes_w << std::endl;
+			if (bytes_w < 0)
+				throw WebservException("Failed to write pipe out: " + std::string(strerror(errno)));
+			std::cout << "pipe: " << _pipe[1] << " OUT: "  << buff << std::endl;
+		}
+		return false;
 }
 
 // #include "file.hpp"

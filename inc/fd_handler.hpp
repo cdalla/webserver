@@ -35,6 +35,8 @@ class Fd_handler
         int 					get_fd() const {return this->_fd;}
         void                    set_fd(int fd) {this->_fd = fd;}
         virtual bool            consume(int event_type){(void)event_type;return false;}
+        virtual bool            input(void){return  false;}
+        virtual bool            output(void){return  false;}
         
         void                    reset_last_activity(){_last_activity = std::chrono::steady_clock::now();}
         bool                    has_timeout()

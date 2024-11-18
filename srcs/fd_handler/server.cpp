@@ -66,6 +66,35 @@ bool    Server::consume(int event_type)
 		delete client;
 	return false;
 }
+
+bool Server::input()
+{
+		Fd_handler *client = new Client(this, _main);
+	client->set_fd(accept(_fd, reinterpret_cast<sockaddr*>(&_address), &_addrLen));
+	if (client->get_fd() == -1) {
+		if (errno == EAGAIN || errno == EWOULDBLOCK) 
+		{
+			print_error("Cannot accept new connection");
+			delete client;
+			return false;
+		}
+		throw WebservException("Failed to accept new connection: " + std::string(strerror(errno)));
+	}
+	if (!_main->is_in_map(client->get_fd()))
+	{
+    	make_socket_non_blocking(client->get_fd());
+		_main->addFdToPoll(client->get_fd(), _main->get_EpollFd(CONN), EPOLLIN);
+		_main->addFdToMap(client->get_fd(), client);
+	}
+	else
+		delete client;
+	return false;
+}
+
+bool Server::output()
+{
+	return false;
+}
 VirtualServer	Server::get_config() const
 {
 	return _config;

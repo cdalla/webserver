@@ -236,6 +236,7 @@ void responseHandler::_handlePage(std::string path)
         _handleError(403);
         return;
     }
+    std::cout << "file content: \n" << _client->file_content << std::endl;
 	if (_client->file_content.empty())
 	{
     // int file_fd = open(path.c_str(), O_RDONLY);
@@ -252,7 +253,7 @@ void responseHandler::_handlePage(std::string path)
     try {
         // Create File handler which will read the entire file
 		std::cout << "creating new file handler" << std::endl;
-        File file(path, _main, _client);
+        File *file = new File(path, _main, _client);
         
         // Determine content type and create response
         // _determineType(path);

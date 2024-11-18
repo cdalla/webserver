@@ -33,6 +33,8 @@ class Client: public Fd_handler
 
 
 		virtual bool	consume(int event_type);
+        virtual bool            input(void);
+        virtual bool            output(void);
 
 };
 
