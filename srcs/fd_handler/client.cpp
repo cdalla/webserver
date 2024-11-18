@@ -121,12 +121,12 @@ bool Client::output()
     reset_last_activity();
         ssize_t bytes;
             // Create response handler on heap
-		if (!status.empty())
+		if (status == "FILE")
 			return false;
         responseHandler* handler = new responseHandler(this);
-		std::cout << "PORCA DEBORA" << std::endl;
-		return false;
         std::string response = handler->get();
+		if (status == "FILE")
+            return false;
 
         bytes = send(_fd, response.c_str(), response.size(), 0);
         

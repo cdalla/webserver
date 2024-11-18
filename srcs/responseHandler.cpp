@@ -254,7 +254,7 @@ void responseHandler::_handlePage(std::string path)
         // Create File handler which will read the entire file
 		std::cout << "creating new file handler" << std::endl;
         File *file = new File(path, _main, _client);
-        
+        _client->status = "FILE";
         // Determine content type and create response
         // _determineType(path);
         // _response = "HTTP/1.1 200 OK\r\n";
@@ -270,6 +270,8 @@ void responseHandler::_handlePage(std::string path)
         _handleError(500);
     }
 	}
+    else
+        _client->status = "OK";
 }
 
 void responseHandler::_handleDirectory(std::string path)
