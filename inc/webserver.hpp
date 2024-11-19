@@ -45,7 +45,6 @@ class Webserver
 
         void    servers_init();
         void    create_Epoll();
-        void    change_event(int fd);
         void    check_timeouts();
 
     public: 
@@ -55,7 +54,8 @@ class Webserver
 
         void    addFdToPoll(int fd, int epollFd, uint32_t events);
         void    addFdToMap(int fd, Fd_handler *ptr);
-        void    removeFd(int fd, int type);
+        void    change_event(int fd);
+        void    removeFd(int fd, int type, int del);
         bool	is_in_map(int fd);
         int     get_EpollFd(int type);
         

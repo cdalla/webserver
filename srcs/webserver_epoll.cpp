@@ -52,7 +52,7 @@ void	Webserver::change_event(int fd)
 	REMOVE FD FROM EPOLL INSTANCE
 	REMOVE FROM FDS MAP AND DELETE HIS DATA
 */
-void    Webserver::removeFd(int fd, int type)
+void    Webserver::removeFd(int fd, int type, int del)
 {
 	std::cout << "deleting fd: " << fd << std::endl;
 	if (type == CONN)
@@ -66,8 +66,8 @@ void    Webserver::removeFd(int fd, int type)
 	{
 		if (epoll_ctl(_epollFile, EPOLL_CTL_DEL, fd, NULL) == -1)
 			throw WebservException("Failed to remove socket from epoll: " + std::string(strerror(errno)));
-		//if (_fds[fd])
-			//delete(_fds[fd]);
+		if (del)
+			delete(_fds[fd]);
 	}
 	_fds.erase(fd);
 	close (fd);

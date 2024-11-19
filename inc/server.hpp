@@ -27,8 +27,8 @@ class Server : public Fd_handler
 		
         void 					createSocket();
 		virtual bool    		consume(int event_type);
-		        virtual bool            input(void);
-        virtual bool            output(void);
+		virtual void            input(void);
+        virtual void            output(void);
 		VirtualServer			get_config() const;
 
 

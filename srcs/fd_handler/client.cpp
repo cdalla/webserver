@@ -83,62 +83,51 @@ bool Client::consume(int event_type)
 }
 
 
-bool Client::input()
+void Client::input()
 {
-        std::cout << "handling input event on fd: " << this->get_fd() << std::endl;
+    //std::cout << "handling input event on fd: " << this->get_fd() << std::endl;
     reset_last_activity();
-        size_t buffer_size = 1024;
-        char buffer[buffer_size];
-        ssize_t bytes_read;
-        ssize_t total_bytes_read = 0;
-        
-        // Create parser on heap
-        RequestParser* parser = new RequestParser(server->get_config(), this->request);
-
+    size_t buffer_size = 1024;
+    char buffer[buffer_size];
+    ssize_t bytes_read;
+    ssize_t total_bytes_read = 0;
+    RequestParser* parser = new RequestParser(server->get_config(), this->request);
+    std::memset(buffer, 0, buffer_size);
+    while ((bytes_read = read(_fd, buffer, buffer_size - 1)) > 0) 
+    {
+        std::cout << buffer << std::endl;
+        total_bytes_read += bytes_read;
+        if (parser->feed(buffer))
+            break;
         std::memset(buffer, 0, buffer_size);
-        while ((bytes_read = read(_fd, buffer, buffer_size - 1)) > 0) {
-            std::cout << buffer << std::endl;
-            total_bytes_read += bytes_read;
-            if (parser->feed(buffer)) {
-                break;
-            }
-            std::memset(buffer, 0, buffer_size);
-        }
-        
-        // Clean up parser
-        delete parser;
-        
-        if (bytes_read == -1 || total_bytes_read == 0) {
-            throw WebservException("Failed read in client: " + std::string(strerror(errno)));
-            // std::cerr << "Read failed" << std::endl;
-            // return false;
-        }
-        std::cout << "Read successful: " << total_bytes_read << " bytes" << std::endl;
-        return true;
+    }
+    delete parser;
+    if (bytes_read == -1 || total_bytes_read == 0)
+        throw WebservException("Failed read in client: " + std::string(strerror(errno)));
+    std::cout << "Read successful: " << total_bytes_read << " bytes" << std::endl;
+    //change event
+    main->change_event(_fd);
 }
 
-bool Client::output()
+void Client::output()
 {
-        std::cout << "handling output event on fd: " << this->get_fd() << std::endl;
+    //std::cout << "handling output event on fd: " << this->get_fd() << std::endl;
     reset_last_activity();
-        ssize_t bytes;
-            // Create response handler on heap
-		if (status == "FILE")
-			return false;
-        responseHandler* handler = new responseHandler(this);
-        std::string response = handler->get();
-		if (status == "FILE")
-            return false;
-
-        bytes = send(_fd, response.c_str(), response.size(), 0);
-        
-        std::cout << "Response sent: \n" << response << std::endl;
-        // Clean up handler
+	if (status == "FILE")
+		return;
+    responseHandler* handler = new responseHandler(this);
+	if (status == "FILE")
+    {
         delete handler;
-        
-        if (bytes < 0)
-        {
-            return false;   
-        }
-        return true;
+        return;
+    }
+    std::string response = handler->get();
+    ssize_t bytes = send(_fd, response.c_str(), response.size(), 0);
+    //std::cout << "Response sent: \n" << response << std::endl;
+    delete handler;
+    if (bytes <= 0 || (size_t)bytes == response.size())
+    {
+        main->removeFd(_fd, CONN, 0);  
+    }
+    //what if chunked response
 }

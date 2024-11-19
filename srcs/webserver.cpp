@@ -15,9 +15,9 @@ Webserver::~Webserver()
 	for (; it != _fds.end(); ++it)
 	{
 		if (dynamic_cast<Client *>(it->second) || dynamic_cast<Server *>(it->second))
-			removeFd(it->first, CONN);
+			removeFd(it->first, CONN, 1);
 		else
-			removeFd(it->first, FILES);
+			removeFd(it->first, FILES, 1);
 	}
 }
 
@@ -44,7 +44,7 @@ void	Webserver::check_timeouts()
 		if (dynamic_cast<Client *>(it->second) && reinterpret_cast<Client *>(it->second)->has_timeout())
 		{
 			print_error("Removing fd for timeout");
-			removeFd(it->first, CONN);
+			removeFd(it->first, CONN, 0);
 		}
 		// else if((it->second)->has_timeout() && (dynamic_cast<Cgi *>(it->second) || dynamic_cast<File *>(it->second)))
 		// {
@@ -95,16 +95,12 @@ void	Webserver::run()
 			for (int n = 0; n < readyFds; n++)
 			{
             	int eventFd = events_queue[n].data.fd;
-				if (events_queue[n].events & EPOLLIN && _fds.find(eventFd) != _fds.end()) {
-					if (_fds[eventFd]->input())
-						change_event(eventFd);
-				}
-				else if (events_queue[n].events & EPOLLOUT && _fds.find(eventFd) != _fds.end()) {
-					if (_fds[eventFd]->output())
-						removeFd(eventFd, CONN);
-				}
+				if (events_queue[n].events & EPOLLIN && _fds.find(eventFd) != _fds.end())
+					_fds[eventFd]->input();
+				else if (events_queue[n].events & EPOLLOUT && _fds.find(eventFd) != _fds.end())
+					_fds[eventFd]->output();
 				else
-					removeFd(eventFd, CONN);
+					removeFd(eventFd, CONN, 0);
 			}
 		}
 		{
@@ -114,21 +110,13 @@ void	Webserver::run()
 			for (int n = 0; n < readyFds; n++)
 			{
             	int eventFd = events_queue[n].data.fd;
-				std::cout << "event fd = " << eventFd << std::endl;
-				if (events_queue[n].events & EPOLLIN && _fds.find(eventFd) != _fds.end()) {
+				//std::cout << "event fd = " << eventFd << std::endl;
+				if (events_queue[n].events & EPOLLIN && _fds.find(eventFd) != _fds.end())
 					_fds[eventFd]->input();
-				}
-				else if (events_queue[n].events & EPOLLOUT && _fds.find(eventFd) != _fds.end()) {
-					bool ret = _fds[eventFd]->output();
-					std::cout << "return: " << ret << std::endl;
-					if (ret)
-					{
-						std::cout << "TRUE" << std::endl;
-						removeFd(eventFd, FILES);
-					}
-				}
+				else if (events_queue[n].events & EPOLLOUT && _fds.find(eventFd) != _fds.end()) 
+					_fds[eventFd]->output();
 				else
-					removeFd(eventFd, FILES);
+					removeFd(eventFd, FILES, 1);
 			}
 		}
 	}

@@ -1,7 +1,7 @@
 #include "file.hpp"
 
 
-File::File(std::string filename, Webserver* ptr, Client* client): _main(ptr), _client(client)
+File::File(std::string filename, Webserver* ptr, Client* client): _main(ptr), _client(client), _buff(""), _file_size(0)
 {
 	std::cout << "FILEHANLDER!!!!!!!!!!!!!!!11"<<std::endl;
 	reset_last_activity();
@@ -67,7 +67,7 @@ bool File::consume(int event_type)
 			ssize_t bytes_w = write(_pipe[1], buff, sizeof(buff));
 			if (bytes_w < 0)
 				throw WebservException("Failed to write pipe out: " + std::string(strerror(errno)));
-			std::cout << "pipe: " << _pipe[1] << " OUT: "  << buff << std::endl;
+			//std::cout << "pipe: " << _pipe[1] << " OUT: "  << buff << std::endl;
 		}
 	}
 	else
@@ -75,57 +75,55 @@ bool File::consume(int event_type)
    return false;
 }
 
-bool File::input()
+void File::input()
 {
-		std::cout << "IN PIPE" << std::endl;
-		char buff[MAX_BUFF];
-		ssize_t bytes = read(_pipe[0], buff, MAX_BUFF);
-		std::cout << "bytes_r = " << bytes << std::endl;
-		if (bytes < 0)
-			throw WebservException("Failed to read pipe in: " + std::string(strerror(errno)));
-		else if (bytes < MAX_BUFF)
+	reset_last_activity();
+	//std::cout << "IN PIPE" << std::endl;
+	ssize_t bytes_r = read(_pipe[0], _buff, MAX_BUFF);
+	// std::cout << "bytes_r = " << bytes_r << std::endl;
+	if (bytes_r < 0)
+		throw WebservException("Failed to read pipe in: " + std::string(strerror(errno)));
+	else if (bytes_r == 0)
+	{
+		//close(_pipe[0]);
+		_client->status.clear();
+		_main->removeFd(_pipe[0], FILES, 1);
+	}
+	else
+	{
+		_client->file_content.append(_buff, bytes_r);
+		if (_client->file_content.size() == (size_t)_file_size)
 		{
-			close(_pipe[0]);
 			_client->status.clear();
-			_client->file_content.append(buff);
-			return false;
-		} 
-		_client->file_content.append(buff);
-    	std::cout << "file content in file_han: \n" << _client->file_content << std::endl;
-		
-		std::cout << "IN: " << buff << std::endl;
-		return false;
+			_main->removeFd(_pipe[0], FILES, 1);
+		}
+    	//std::cout << "file content in file_han: \n" << _client->file_content << std::endl;
+//		std::cout << "IN: " << _buff << std::endl;
+	}
 }
 
-bool File::output()
+void File::output()
 {
-	char buff[MAX_BUFF];
-	ssize_t bytes_r;
-		std::cout << "OUT PIPE" << std::endl;
-		if (_fd != -1)
-		{
-			bytes_r = read(_fd, buff, MAX_BUFF);
-			if (bytes_r < 0)
-				throw WebservException("Failed to read file in: " + std::string(strerror(errno)));
-			else if (bytes_r == 0)
-			{
-				std::cout << "read zero bytes" << std::endl;
-				close(_fd);
-				return true;
-				//_main->removeFd(_pipe[1], FILES);
-				//_pipe[1] = -1;
-				_fd = -1;
-			}
-		}
-		if (_fd != -1)
-		{
-			ssize_t bytes_w = write(_pipe[1], buff, bytes_r);
-			std::cout << "bytes_W = " << bytes_w << std::endl;
-			if (bytes_w < 0)
-				throw WebservException("Failed to write pipe out: " + std::string(strerror(errno)));
-			std::cout << "pipe: " << _pipe[1] << " OUT: "  << buff << std::endl;
-		}
-		return false;
+	reset_last_activity();
+	//std::cout << "OUT PIPE" << std::endl;
+	ssize_t bytes_r = read(_fd, _buff, MAX_BUFF);
+	if (bytes_r < 0)
+		throw WebservException("Failed to read file in: " + std::string(strerror(errno)));
+	else if (bytes_r == 0)
+	{
+		std::cout << "read zero bytes" << std::endl;
+		_main->removeFd(_pipe[1], FILES, 0); //remove the fd but not the handler
+	}
+	else
+	{
+		ssize_t bytes_w = write(_pipe[1], _buff, bytes_r);
+		//std::cout << "bytes_W = " << bytes_w << std::endl;
+		if (bytes_w < 0)
+			throw WebservException("Failed to write pipe out: " + std::string(strerror(errno)));
+		else
+			_file_size += bytes_w;
+		//std::cout << "pipe: " << _pipe[1] << " OUT: "  << _buff << std::endl;
+	}
 }
 
 // #include "file.hpp"

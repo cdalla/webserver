@@ -16,6 +16,8 @@ class File : public Fd_handler
     
 		Webserver*				_main;
 		std::string 			_content;
+		char					_buff[MAX_BUFF];
+		ssize_t					_file_size;
 		int						_pipe[2];
         
 	public:
@@ -24,8 +26,8 @@ class File : public Fd_handler
     	File(std::string filename, Webserver* ptr, Client* client);
 
 		virtual bool    		consume(int event_type);
-		        virtual bool            input(void);
-        virtual bool            output(void);
+		virtual void          	input(void);
+        virtual void            output(void);
 
 };
 

@@ -67,7 +67,7 @@ bool    Server::consume(int event_type)
 	return false;
 }
 
-bool Server::input()
+void Server::input()
 {
 		Fd_handler *client = new Client(this, _main);
 	client->set_fd(accept(_fd, reinterpret_cast<sockaddr*>(&_address), &_addrLen));
@@ -76,7 +76,7 @@ bool Server::input()
 		{
 			print_error("Cannot accept new connection");
 			delete client;
-			return false;
+			return;
 		}
 		throw WebservException("Failed to accept new connection: " + std::string(strerror(errno)));
 	}
@@ -89,12 +89,11 @@ bool Server::input()
 	}
 	else
 		delete client;
-	return false;
 }
 
-bool Server::output()
+void Server::output()
 {
-	return false;
+	return;
 }
 VirtualServer	Server::get_config() const
 {

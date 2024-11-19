@@ -52,8 +52,8 @@ bool Cgi::consume(int event_type)
         if (bytes == 0)
         {
             _client->cgi_result = _cgi_result;
-            _main->removeFd(_inFd, FILES);
-            _main->removeFd(_outFd, FILES);
+            _main->removeFd(_inFd, FILES, 0);
+            _main->removeFd(_outFd, FILES, 1);
         }
         else if (bytes < 0)
             throw WebservException("Failed to read: " + std::string(strerror(errno)));
@@ -83,7 +83,7 @@ bool Cgi::consume(int event_type)
     return false;
 }
 
-bool Cgi::input()
+void Cgi::input()
 {
            reset_last_activity();
         char buff[MAX_BUFF];
@@ -92,21 +92,20 @@ bool Cgi::input()
         if (bytes == 0)
         {
             _client->cgi_result = _cgi_result;
-            _main->removeFd(_inFd, FILES);
-            _main->removeFd(_outFd, FILES);
+            _main->removeFd(_inFd, FILES, 0);
+            _main->removeFd(_outFd, FILES, 1);
         }
         else if (bytes < 0)
             throw WebservException("Failed to read: " + std::string(strerror(errno)));
         else
             _cgi_result.append(buff, bytes);
-        return false;
 }
 
-bool Cgi::output()
+void Cgi::output()
 {
-            reset_last_activity();
+        reset_last_activity();
         if (_writeFinished == true)
-            return false;
+            return;
         std::string toSend = _body.substr(_pos, MAX_BUFF);
         ssize_t bytes = write(_outFd, toSend.c_str(), MAX_BUFF);
         if (bytes < 0)
@@ -119,7 +118,6 @@ bool Cgi::output()
         {
             _pos += bytes;
         }
-        return false;
 }
 
 void Cgi::execute_child()

@@ -237,7 +237,7 @@ void responseHandler::_handlePage(std::string path)
         _handleError(403);
         return;
     }
-    std::cout << "file content: \n" << _client->file_content << std::endl;
+    //std::cout << "file content: \n" << _client->file_content << std::endl;
 	if (_client->file_content.empty())
 	{
     // int file_fd = open(path.c_str(), O_RDONLY);
