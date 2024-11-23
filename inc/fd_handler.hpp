@@ -37,6 +37,7 @@ class Fd_handler
         virtual bool            consume(int event_type){(void)event_type;return false;}
         virtual void            input(void){return;}
         virtual void            output(void){return;}
+		virtual void			hangup(void){return;}
         
         void                    reset_last_activity(){_last_activity = std::chrono::steady_clock::now();}
         bool                    has_timeout()

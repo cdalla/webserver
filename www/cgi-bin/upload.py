@@ -1,15 +1,15 @@
 #!/usr/bin/python3
-
 import cgi
 import cgitb; cgitb.enable()
 import os
 import random
 import string
 import errno
+import sys
 
 print("Content-type:text/html\r\n\r\n")
 form = cgi.FieldStorage()
-files = os.listdir(form.getvalue('upload_dir'))
+files = os.listdir("/home/cdalla-s/Desktop/web/www/")
 
 base_begin = """
 <!DOCTYPE html>

@@ -6,7 +6,7 @@
 RequestParser::RequestParser(VirtualServer config, Request &request): _is_header_finish(0), _is_first_line(0),
     _is_chunked(false), _current_chunk_size(0), _is_reading_chunk_size(true), _config(config), finished_request(request) {
 	finished_request.error = 0;
-	_max_body_size = config.max_body_size.empty() ? 0 : std::stoi(config.max_body_size);
+	_max_body_size = 1874919424;
 }
 
 RequestParser::~RequestParser(void){

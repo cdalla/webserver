@@ -1,5 +1,6 @@
 #include "cgi.hpp"
 
+
 Cgi::Cgi(Webserver *ptr, const char *script, char *const *env, const char *body, Client *client) : _main(ptr), _pipeIn{-1, -1}, _pipeOut{-1, -1}, _env(env), _script(script), _body(body), _pos(0), _writeFinished(false), _client(client)
 {
     print_msg("cgi handler consttructor");
@@ -93,8 +94,10 @@ void Cgi::input()
         char buff[MAX_BUFF];
         std::memset(buff, '\0', MAX_BUFF);
         ssize_t bytes = read(_inFd, buff, MAX_BUFF);
+		std::cout << "bytes read: " << bytes << std::endl;
         if (bytes == 0)
         {
+			print_msg("read zero bytes in cgi");
             _client->file_content = _cgi_result;
             _client->status.clear();
             _main->removeFd(_inFd, FILES, 1);
@@ -102,7 +105,10 @@ void Cgi::input()
         else if (bytes < 0)
             throw WebservException("Failed to read: " + std::string(strerror(errno)));
         else
-            _cgi_result.append(buff, bytes);
+		{
+			std::cout << "cgi buff: \n:" << buff << std::endl;
+            _client->file_content.append(buff, bytes);
+		}
 }
 
 void Cgi::output()
@@ -133,23 +139,32 @@ void Cgi::output()
         }
 }
 
-// void CGI::hangup()
-// {
-//     int exitstatus;
-//     if (waitpid(_pid, &exitstatus, WNOHANG) == 0) //child has not changed state yet
-//         return;
+
+
+void Cgi::hangup()
+{
+    int exitstatus;
+    if (waitpid(_pid, &exitstatus, WNOHANG) == 0) //child has not changed state yet
+        return;
     
-//     if (WIFEXITED(exitstatus))
+	waitpid(_pid, &exitstatus, 0);
+	print_msg("clearing cgi");
+	_client->status.clear();
+	_main->removeFd(_inFd, FILES, 1);
+	
+
+	
+	
 
 
-// }
+}
 
 void Cgi::execute_child()
 {
     close(_pipeIn[1]);
     close(_pipeOut[0]);
+	_script = "/home/cdalla-s/Desktop/web/www/cgi-bin/upload.py";
     char *argv[] = {(char *)_script, (char *)_script, NULL};
-
     if (dup2(_pipeIn[0], STDIN_FILENO) < 0)
     {
         close(_pipeIn[0]);
@@ -164,9 +179,9 @@ void Cgi::execute_child()
         exit(errno);
     }
     close(_pipeOut[1]);
-
-    execve(_script, argv, _env);
-    int error = errno;
+	int error = execve(_script, argv, _env);
+	std::cerr << "after ex " << _script << std::endl;
+	std::cerr << "Error: " << error << std::endl;
     close(STDIN_FILENO);
     close(STDOUT_FILENO);
     exit(error);
