@@ -23,11 +23,13 @@ void make_socket_non_blocking(int socket_fd)
 void print_msg(std::string param)
 {
     std::cout << GRN << "Webserver: " << param << std::endl;
+    std::cout << RST;
 }
 
 void print_error(std::string param)
 {
      std::cerr << RED << "Webserver_error: " << param << std::endl;
+    std::cout << RST;
 }
 
 // std::string		get_URI_prefix(std::string const &URI) {

@@ -104,8 +104,7 @@ void Client::input()
     delete parser;
     if (bytes_read == -1 || total_bytes_read == 0)
         throw WebservException("Failed read in client: " + std::string(strerror(errno)));
-    std::cout << "Read successful: " << total_bytes_read << " bytes" << std::endl;
-    //change event
+    std::cout << "Read successful: " << total_bytes_read << " bytes" << std::endl; 
     main->change_event(_fd);
 }
 
@@ -113,10 +112,10 @@ void Client::output()
 {
     //std::cout << "handling output event on fd: " << this->get_fd() << std::endl;
     reset_last_activity();
-	if (status == "FILE")
+	if (status == "FILE" || status == "CGI")
 		return;
     responseHandler* handler = new responseHandler(this);
-	if (status == "FILE")
+	if (status == "FILE" || status == "CGI")
     {
         delete handler;
         return;
@@ -124,6 +123,7 @@ void Client::output()
     std::string response = handler->get();
     ssize_t bytes = send(_fd, response.c_str(), response.size(), 0);
     //std::cout << "Response sent: \n" << response << std::endl;
+    std::cout << "bytes sent: " << bytes << std::endl;
     delete handler;
     if (bytes <= 0 || (size_t)bytes == response.size())
     {

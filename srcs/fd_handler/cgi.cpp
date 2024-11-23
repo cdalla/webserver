@@ -2,13 +2,14 @@
 
 Cgi::Cgi(Webserver *ptr, const char *script, char *const *env, const char *body, Client *client) : _main(ptr), _pipeIn{-1, -1}, _pipeOut{-1, -1}, _env(env), _script(script), _body(body), _pos(0), _writeFinished(false), _client(client)
 {
+    print_msg("cgi handler consttructor");
     reset_last_activity();
     if (pipe(_pipeIn) == -1 || pipe(_pipeOut) == -1)
         throw WebservException("Failed to pipe: " + std::string(strerror(errno)));
     _pid = fork();
     if (_pid < 0)
         throw WebservException("Failed to fork: " + std::string(strerror(errno)));
-    else if (_pid == 1)
+    else if (_pid == 0)
     {
         execute_child();
     }
@@ -22,16 +23,18 @@ Cgi::Cgi(Webserver *ptr, const char *script, char *const *env, const char *body,
 	make_socket_non_blocking(_outFd);
 	make_socket_non_blocking(_inFd);
     _main->addFdToPoll(_outFd, _main->get_EpollFd(FILES), EPOLLOUT);
-    _main->addFdToPoll(_inFd, _main->get_EpollFd(FILES), EPOLLIN); // add event in fd to poll
+    _main->addFdToPoll(_inFd, _main->get_EpollFd(FILES), EPOLLIN | EPOLLHUP );
     _main->addFdToMap(_outFd, this);
     _main->addFdToMap(_inFd, this);
     close(_pipeIn[0]);
     close(_pipeOut[1]);
+    std::cout << "CGI inFd = " << _inFd << ", CGI outFd = " << _outFd << std::endl;
 }
 
 Cgi::~Cgi()
 {
     // check destructor
+    print_msg("CGI destructor");
     int status;
     waitpid(_pid, &status, 0);
     if (WIFEXITED(status))
@@ -85,15 +88,16 @@ bool Cgi::consume(int event_type)
 
 void Cgi::input()
 {
-           reset_last_activity();
+    print_msg("CGI input");
+        reset_last_activity();
         char buff[MAX_BUFF];
         std::memset(buff, '\0', MAX_BUFF);
         ssize_t bytes = read(_inFd, buff, MAX_BUFF);
         if (bytes == 0)
         {
-            _client->cgi_result = _cgi_result;
-            _main->removeFd(_inFd, FILES, 0);
-            _main->removeFd(_outFd, FILES, 1);
+            _client->file_content = _cgi_result;
+            _client->status.clear();
+            _main->removeFd(_inFd, FILES, 1);
         }
         else if (bytes < 0)
             throw WebservException("Failed to read: " + std::string(strerror(errno)));
@@ -103,9 +107,17 @@ void Cgi::input()
 
 void Cgi::output()
 {
+    print_msg("CGI output");
+
         reset_last_activity();
         if (_writeFinished == true)
             return;
+        if (_body.empty())
+        {
+            _writeFinished = true;
+            _main->removeFd(_outFd, FILES, 0);
+            return;
+        }
         std::string toSend = _body.substr(_pos, MAX_BUFF);
         ssize_t bytes = write(_outFd, toSend.c_str(), MAX_BUFF);
         if (bytes < 0)
@@ -113,12 +125,24 @@ void Cgi::output()
         else if (bytes == 0)
         {
             _writeFinished = true;
+            _main->removeFd(_outFd, FILES, 0);
         }
         else
         {
             _pos += bytes;
         }
 }
+
+// void CGI::hangup()
+// {
+//     int exitstatus;
+//     if (waitpid(_pid, &exitstatus, WNOHANG) == 0) //child has not changed state yet
+//         return;
+    
+//     if (WIFEXITED(exitstatus))
+
+
+// }
 
 void Cgi::execute_child()
 {

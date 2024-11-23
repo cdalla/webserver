@@ -32,6 +32,7 @@ void    Webserver::create_Epoll()
 */
 void    Webserver::addFdToPoll(int fd, int epollFd, uint32_t events) 
 {
+	std::cout << "adding fd: " << fd << std::endl;
 	epoll_event event{};
 	event.events = events;
 	event.data.fd = fd;

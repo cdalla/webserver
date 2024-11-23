@@ -21,7 +21,6 @@ File::File(std::string filename, Webserver* ptr, Client* client): _main(ptr), _c
     _main->addFdToMap(_pipe[0], this);
 	_main->addFdToPoll(_pipe[1], _main->get_EpollFd(FILES), EPOLLOUT);
     _main->addFdToMap(_pipe[1], this);
-	_client->status = "some";
 	std::cout<< "pipe in = " << _pipe[0] << " pipe out = " << _pipe[1] << std::endl;
 }
 bool File::consume(int event_type)
@@ -85,7 +84,6 @@ void File::input()
 		throw WebservException("Failed to read pipe in: " + std::string(strerror(errno)));
 	else if (bytes_r == 0)
 	{
-		//close(_pipe[0]);
 		_client->status.clear();
 		_main->removeFd(_pipe[0], FILES, 1);
 	}
@@ -94,6 +92,7 @@ void File::input()
 		_client->file_content.append(_buff, bytes_r);
 		if (_client->file_content.size() == (size_t)_file_size)
 		{
+			std::cout << "file size: " << _file_size << std::endl;
 			_client->status.clear();
 			_main->removeFd(_pipe[0], FILES, 1);
 		}

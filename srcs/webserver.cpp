@@ -115,6 +115,11 @@ void	Webserver::run()
 					_fds[eventFd]->input();
 				else if (events_queue[n].events & EPOLLOUT && _fds.find(eventFd) != _fds.end()) 
 					_fds[eventFd]->output();
+				else if (events_queue[n].events & EPOLLHUP && _fds.find(eventFd) != _fds.end())
+					{
+						print_error("CGI hangup");
+						removeFd(eventFd, FILES, 1);
+					}
 				else
 					removeFd(eventFd, FILES, 1);
 			}

@@ -279,8 +279,9 @@ void responseHandler::_handlePage(std::string path)
         _response += "Content-Type: " + _content_type + "\r\n";
         _response += "Content-Length: " + std::to_string(_client->file_content.length()) + "\r\n";
         _response += "\r\n" + _client->file_content;
-        
+        std::cout << "file content size: " << _client->file_content.size() << std::endl;
         std::cout << "Successfully read file and created response" << std::endl;
+        _client->file_content.clear();
     }
 }
 
@@ -352,24 +353,37 @@ void responseHandler::_handleCGI(std::string path)
     }
 
     _createEnv();
-    try {
+    if (_client->file_content.empty())
+    {
+   // try {
         // Create new Cgi instance instead of CgiHandler
-        Cgi* cgi = new Cgi(_main, path.c_str(), _env, 
-        _client->request.body.empty() ? "" :_client->request.body.c_str(), _client);
-        
+          std::cout << "BODY: \n" << _client->request.body << std::endl;
+        Cgi* cgi = new Cgi(_main, path.c_str(), _env, _client->request.body.empty() ? "" :_client->request.body.c_str(), _client);
+        _client->status = "CGI";
+
+        // // The response will be set in client->cgi_result when CGI processing completes
+        // // For now, we'll send a preliminary response
+        // _response = "HTTP/1.1 200 OK\r\n";
+        // _response += "Content-Type: text/html\r\n";
+        // _response += "\r\n";
+    //}
+    // catch (const WebservException& e) {
+    //     std::cerr << "CGI initialization failed: " << e.what() << std::endl;
+    //     _handleError(500);
+    // }
+	}
+	else
+    {
+
         // The response will be set in client->cgi_result when CGI processing completes
         // For now, we'll send a preliminary response
         _response = "HTTP/1.1 200 OK\r\n";
         _response += "Content-Type: text/html\r\n";
         _response += "\r\n";
+		_response = _client->file_content;
+        _client->file_content.clear();
     }
-    catch (const WebservException& e) {
-        std::cerr << "CGI initialization failed: " << e.what() << std::endl;
-        _handleError(500);
     }
-	}
-	else
-		_response = _client->cgi_result;
 }
 
 static char *joing_string(const char *str1, const char *str2)
