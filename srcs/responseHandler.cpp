@@ -521,9 +521,10 @@ void responseHandler::_handleDirRequest(std::string path)
 void responseHandler::_locationHandler(std::string path)
 {
 
-     // Reset to server defaults
+    
+    // Reset to server defaults
     _cgi_ext = _config.cgi_ext;
-    _root = !_config.root.empty() ? _config.root : "/var/www/html";
+    _root = !_config.root.empty() ? _config.root : "/var/www/html/";
     _upload_dir = _config.upload_dir;
     _autoindex = _config.autoindex;
     _index = _config.index;
@@ -585,7 +586,7 @@ void responseHandler::_locationHandler(std::string path)
             _handleError(405);
             return;
         }
-    } else {
+    }  else {
         std::cout << "Location found: " << matched_location->path << std::endl;    
 		std::list<std::string>::const_iterator method_it;
         bool method_found = false;
@@ -621,21 +622,22 @@ void responseHandler::_locationHandler(std::string path)
             _error_pages = matched_location->error_pages;
         _autoindex = matched_location->autoindex;
     }
-
+      
      // Remove the location prefix from the path for proper file handling
     std::string adjusted_path = path;
+    std::cout << "Adjusted path: " << adjusted_path << std::endl;
     if (matched_location && path.find(location_prefix) == 0) {
         adjusted_path = path.substr(location_prefix.length());
-        if (_root[_root.length() - 1] != '/') {
+        if (!_root.empty() && _root[_root.length() - 1] != '/') {
             _root += "/";
         }
     }
-
+    if (adjusted_path[0] == '/') {
+       adjusted_path.erase(0, 1);
+    }
     // Process the request
     std::string full_path = _root + adjusted_path;
     std::cout << "Full path: " << full_path << std::endl;
-
-    // Check if it's a CGI request based on extension
     size_t ext_pos = path.find_last_of(".");
     if (ext_pos != std::string::npos) {
         std::string extension = path.substr(ext_pos);
@@ -644,22 +646,28 @@ void responseHandler::_locationHandler(std::string path)
             if (*cgi_it == extension) {
                 std::cout << "CGI request" << std::endl;
                 std::string script_name = path.substr(path.find_last_of("/") + 1);
-                std::string cgi_path = _root + "/" + script_name;
+                std::string cgi_path = _root + script_name;
                 _handleCGI(cgi_path);
                 return;
             }
         }
     }
 
-    // Check if path is a directory using opendir
     DIR* dir = opendir(full_path.c_str());
     if (dir != NULL) {
-        std::cout << "Directory request" << std::endl;
         closedir(dir);
+        // Check if path ends with a slash, if not redirect
+        if (path[path.length() - 1] != '/') {
+            _response = "HTTP/1.1 301 Moved Permanently\r\n";
+            _response += "Location: " + path + "/\r\n";
+            _response += "Content-Length: 0\r\n\r\n";
+            return;
+        }
+        std::cout << "Directory request" << std::endl;
         _handleDirRequest(full_path);
         return;
     }
     std::cout << "File request" << std::endl;
     // Handle as regular file
-_handlePage(full_path);
+    _handlePage(full_path);
 }
