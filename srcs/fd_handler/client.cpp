@@ -95,7 +95,7 @@ void Client::input()
     std::memset(buffer, 0, buffer_size);
     while ((bytes_read = read(_fd, buffer, buffer_size - 1)) > 0) 
     {
-        std::cout << buffer << std::endl;
+        std::cout << "buffer read in client: \n" << buffer << std::endl;
         total_bytes_read += bytes_read;
         if (parser->feed(buffer))
             break;

@@ -114,7 +114,7 @@ void Cgi::input()
 void Cgi::output()
 {
     print_msg("CGI output");
-
+    std::cout << "_body in cgi output: \n" << _body << std::endl; 
         reset_last_activity();
         if (_writeFinished == true)
             return;
@@ -125,7 +125,7 @@ void Cgi::output()
             return;
         }
         std::string toSend = _body.substr(_pos, MAX_BUFF);
-        ssize_t bytes = write(_outFd, toSend.c_str(), MAX_BUFF);
+        ssize_t bytes = write(_outFd, toSend.c_str(), toSend.size());
         if (bytes < 0)
             throw WebservException("Failed to write: " + std::string(strerror(errno)));
         else if (bytes == 0)
@@ -163,7 +163,7 @@ void Cgi::execute_child()
 {
     close(_pipeIn[1]);
     close(_pipeOut[0]);
-	_script = "/home/cdalla-s/Desktop/web/www/cgi-bin/upload.py";
+	_script = "/home/cdalla/webserver/www/cgi-bin/upload.py";
     char *argv[] = {(char *)_script, (char *)_script, NULL};
     if (dup2(_pipeIn[0], STDIN_FILENO) < 0)
     {

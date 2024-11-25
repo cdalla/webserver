@@ -36,6 +36,7 @@ int RequestParser::set_body(void)
     _buffer.clear();
     if (finished_request.body.size() > _max_body_size)
         return (PAYLOAD_TO_LARGE);
+	std::cout << "finished_request.body : \n" << finished_request.body << std::endl;
     return 0;
 }
 
@@ -182,7 +183,7 @@ void RequestParser::set_map(void)
 bool RequestParser::feed(const char *chunk)
 {
 	_buffer.append(chunk);
-	// std::cout << "buffer " << _buffer << std::endl;
+	//std::cout << "buffer in feed: \n" << _buffer << std::endl;
 	if (!_is_first_line)
     {
 		int result = set_MetAddProt();
