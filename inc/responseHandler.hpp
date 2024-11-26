@@ -46,6 +46,8 @@ class responseHandler {
 		void 			_createResponse( void );
 		void 			_locationHandler( std::string path );
 		void 			_handleDirRequest( std::string path );
+		void			_handleRedirect(std::string path);
+
 	public:
 
         responseHandler( Client *ptr );

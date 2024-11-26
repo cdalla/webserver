@@ -148,16 +148,29 @@ void Cgi::hangup()
         return;
     
 	waitpid(_pid, &exitstatus, 0);
+
 	print_msg("clearing cgi");
 	_client->status.clear();
 	_main->removeFd(_inFd, FILES, 1);
-	
-
-	
-	
-
-
+	switch(exitstatus) 
+	{
+		case 137:
+			this->_client->request.error = 504;
+            this->_client->file_content.clear();
+			break ;
+		case 3328:
+			this->_client->request.error = 403;
+			this->_client->file_content.clear();
+			break ;
+		case 0:
+			break ;
+		default:
+			this->_client->request.error = 502;
+            this->_client->file_content.clear();
+	}
 }
+
+
 
 void Cgi::execute_child()
 {

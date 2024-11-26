@@ -25,7 +25,10 @@ responseHandler::responseHandler(Client *ptr) :
     _root(""),
     _response(""),
     _env(nullptr),
-    _autoindex(false)
+    _autoindex(false),
+    _index(),
+    _cgi_ext()
+
 {
     try {
         // Allocate environment variables array
@@ -467,7 +470,6 @@ void responseHandler::_createResponse(void)
     }
 }
 
-
 void responseHandler::_handleDirRequest(std::string path)
 {
 	 if (_index.empty()) {
@@ -518,6 +520,14 @@ void responseHandler::_handleDirRequest(std::string path)
     _handleError(404);
 }
 
+void responseHandler::_handleRedirect(std::string path)
+{
+    _response = "HTTP/1.1 301 Moved Permanently\r\n";
+    _response += "Location: " + path + "/\r\n";
+    _response += "Content-Length: 0\r\n\r\n";
+
+}
+
 void responseHandler::_locationHandler(std::string path)
 {
 
@@ -529,6 +539,13 @@ void responseHandler::_locationHandler(std::string path)
     _autoindex = _config.autoindex;
     _index = _config.index;
     _error_pages = _config.error_pages;
+    std::cout << "before redirect" << std::endl;
+    if (!_config.redirect_url.empty()) {
+        if (_config.redirect_url[_config.redirect_url.length() - 1] == '/') {
+            path.erase(0, 1);
+        }
+        _handlePage(_config.redirect_url + path);
+    }
 
     // Find best matching location using a pointer to avoid copying
     const Location* matched_location = NULL;
@@ -590,7 +607,14 @@ void responseHandler::_locationHandler(std::string path)
         std::cout << "Location found: " << matched_location->path << std::endl;    
 		std::list<std::string>::const_iterator method_it;
         bool method_found = false;
-        
+        if (!matched_location->redirect_url.empty())
+        { 
+            if (matched_location->redirect_url[matched_location->redirect_url.length() - 1] == '/') {
+                path.erase(0, 1);
+            }
+            _handleRedirect(matched_location->redirect_url + path);
+            return;
+        }
         if (!matched_location->methods.empty()) {
             for (method_it = matched_location->methods.begin(); 
                  method_it != matched_location->methods.end(); ++method_it) {
@@ -622,6 +646,8 @@ void responseHandler::_locationHandler(std::string path)
             _error_pages = matched_location->error_pages;
         _autoindex = matched_location->autoindex;
     }
+
+    
       
      // Remove the location prefix from the path for proper file handling
     std::string adjusted_path = path;
@@ -658,9 +684,7 @@ void responseHandler::_locationHandler(std::string path)
         closedir(dir);
         // Check if path ends with a slash, if not redirect
         if (path[path.length() - 1] != '/') {
-            _response = "HTTP/1.1 301 Moved Permanently\r\n";
-            _response += "Location: " + path + "/\r\n";
-            _response += "Content-Length: 0\r\n\r\n";
+            _handleRedirect(path);
             return;
         }
         std::cout << "Directory request" << std::endl;
