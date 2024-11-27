@@ -33,6 +33,7 @@ locationMap	locationParser::_initLocationFunctions() {
 	newMap["error_page"] = &locationParser::parseErrorPages;
 	newMap["max_body_size"] = &locationParser::parseMaxBodySize;
 
+
 	return newMap;
 }
 
@@ -47,6 +48,11 @@ Location	locationParser::parseLocation(std::vector<std::string> &tokens, std::ve
 	i++;
 	if (i == tokens.end() || *i == "{")
 		throw std::runtime_error("Invalid location configuration: missing location path");
+	if ((*i).at(0) != '/')
+	{
+		//std::cout << (*i) << std::endl;
+		throw std::runtime_error("Invalid location configuration: missing opening slash path");
+	}
 	context.path = *i;
 	
 	i++;

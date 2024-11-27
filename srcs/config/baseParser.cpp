@@ -28,6 +28,16 @@ void	baseParser<T>::parseCgiExt(std::vector<std::string> &args) {
 }
 
   template <typename T>
+void	baseParser<T>::parseUploadDir(std::vector<std::string> &args) {
+	if (args.size() != 1) {
+		std::cout << "parseUploadDir\n";
+		throw ConfigException();
+	}
+	context.upload_dir = args[0];
+}
+
+
+  template <typename T>
 void	baseParser<T>::parseRoot(std::vector<std::string> &args) {
 	if (args.size() != 1) {
 		std::cout << "parseRoot \n";
@@ -91,14 +101,14 @@ void	baseParser<T>::parseErrorPages(std::vector<std::string> &args) {
 	context.error_pages[code] = path;
 }
 
-  template <typename T>
-void	baseParser<T>::parseUploadDir(std::vector<std::string> &args) {
-	if (args.size() != 1) {
-		std::cout << "parseUploadDir ConfigException\n";
-		throw ConfigException();
-	}
-	context.upload_dir = args[0];
-}
+//  template <typename T>
+// void	baseParser<T>::parseUploadDir(std::vector<std::string> &args) {
+// 	if (args.size() != 1) {
+// 		std::cout << "parseUploadDir ConfigException\n";
+// 		throw ConfigException();
+// 	}
+// 	context.upload_dir = args[0];
+// }
 
   template <typename T>
 void	baseParser<T>::parseRedirectUrl(std::vector<std::string> &args) {

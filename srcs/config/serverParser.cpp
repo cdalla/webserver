@@ -18,6 +18,8 @@ serverMap	serverParser::_initServerFunctions() {
 	newMap["autoindex"] = &serverParser::parseAutoindex;
 	newMap["error_page"] = &serverParser::parseErrorPages;
 	newMap["max_body_size"] = &serverParser::parseMaxBodySize;
+	newMap["upload_dir"] = &serverParser::parseUploadDir;
+
 
 	return newMap;
 }

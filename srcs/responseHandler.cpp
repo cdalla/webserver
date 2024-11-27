@@ -534,7 +534,7 @@ void responseHandler::_locationHandler(std::string path)
     
     // Reset to server defaults
     _cgi_ext = _config.cgi_ext;
-    _root = !_config.root.empty() ? _config.root : "/var/www/html/";
+    _root = !_config.root.empty() ? _config.root : "/var/www/";
     _upload_dir = _config.upload_dir;
     _autoindex = _config.autoindex;
     _index = _config.index;
