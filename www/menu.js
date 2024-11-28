@@ -19,18 +19,18 @@ document.addEventListener("DOMContentLoaded", function () {
 	
 	footer.innerHTML = `
 			<li class="footer">
-				<a href="index.html">
+				<a href="html/index.html">
 					Yaaasss bitch
 				</a>
 			</li>
 			<li class="footer">
-				<a href="debug.debug">
+				<a href="html/debug.debug">
 					Debug info
 				</a>
 			</li>
 			<div id="shutup">
 				<li class="footer">
-					<a href="shutup.html">shut up
+					<a href="html/shutup.html">shut up
 					</a></li> </div>
 	`;
 
@@ -42,42 +42,42 @@ document.addEventListener("DOMContentLoaded", function () {
 		</div>
 		<li class="menu">
 				<a
-				href="denholm.html">
+				href="html/denholm.html">
 					Douglas
 			</a>
 		</li>
 		<li class="menu">
 			<a
 				class="menu"
-				href="dwight.html">
+				href="html/dwight.html">
 					Dwight
 			</a>
 		</li>
 		<li class="menu">
 			<a
 				class="menu"
-				href="lucille.html">
+				href="html/lucille.html">
 					Lucille
 			</a>
 		</li>
 		<li class="menu">
 			<a
 				class="menu"
-				href="roy.html">
+				href="html/roy.html">
 					Roy
 			</a>
 		</li>
 		<li class="menu">
 			<a
 				class="menu"
-				href="hall-of-fame.html">
+				href="html/hall-of-fame.html">
 					hall of fame
 			</a>
 		</li>
 		<li class="menu">
 			<a
 				class="menu"
-				href="upload.html">
+				href="html/upload.html">
 					upload
 			</a>
 		</li>

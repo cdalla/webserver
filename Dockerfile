@@ -13,6 +13,7 @@ WORKDIR /webserv
 # Copy source files to working directory
 COPY . .
 
+RUN chmod 777 www/cgi-bin/upload.py
 # Compile code
 RUN ["make"]
 

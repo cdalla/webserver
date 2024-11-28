@@ -128,6 +128,42 @@ void	baseParser<T>::parseMaxBodySize(std::vector<std::string> &args) {
 		std::cout << "parseMaxBodySize ConfigException\n";
 		throw ConfigException();
 	}
-	context.max_body_size = args[0];
+	//context.max_body_size = args[0];
+	std::string str = args[0];
+	
+	/*
+	- no letter bytes
+	-K kilo
+	-M meg
+	-G giga
+	-T tera
+	-Z ziliobyte
+	*/
+	size_t pos = str.find_first_not_of("0123456789");
+	if (pos == std::string::npos){
+		context.max_body_size = stoi(str);
+		return;
+	}
+	std::cout << "aaaaaaaaaaaaaaaaa: " << str[pos] <<std::endl;
+	if (pos != str.size() - 1 || (str[pos] != 'K' && str[pos] != 'M' && str[pos] != 'G' ))
+	{
+		std::cout << "SUCA" << std::endl;
+		return; //error
+	}
+	std::string res = str.substr(0, pos);
+	switch (str[pos])
+	{
+	case 'K':
+		res.append("000");
+		break;
+	case 'M':
+		res.append("000000");
+		break;
+	case 'G':
+		res.append("000000000");
+		break;
+	}
+	context.max_body_size = stoi(res);
+
 
 }

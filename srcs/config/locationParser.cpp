@@ -15,7 +15,7 @@ locationParser::locationParser(void) : baseParser<Location>() {
 	context.root = "";
 	context.upload_dir = "";
 	context.redirect_url = "";
-	context.max_body_size = "";
+	context.max_body_size = 0;
 }
 
 locationParser::~locationParser(void) {}
@@ -106,7 +106,7 @@ std::ostream&   operator<<(std::ostream& out, Location const &obj) {
 		out << "	upload_dir: " << obj.upload_dir << std::endl;
 	if (obj.redirect_url != "")
 		out << "	redirect_url: " << obj.redirect_url << std::endl;
-	if (obj.max_body_size != "")
+	if (obj.max_body_size)
 		out << "	max_body_size: " << obj.max_body_size << std::endl;
 	out << "	autoindex: " << (!obj.autoindex ? "off" : "on") << std::endl;
 	if (obj.index.size())

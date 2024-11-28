@@ -26,7 +26,7 @@ struct Location {
 	std::list<std::string>		cgi_ext;
 	std::string					upload_dir;
 	std::string					redirect_url;
-	std::string					max_body_size;
+	int							max_body_size;
 	bool						autoindex;
 	std::list<std::string>		index; //for if requested resource is directory
 	std::list<std::string>		methods;
@@ -56,7 +56,7 @@ struct VirtualServer
 	std::vector<std::string>	cgi_ext;
 	std::string					upload_dir;
 	std::string					redirect_url; //to do: implemnt defining HTTP redirection in config file
-	std::string					max_body_size;
+	int							max_body_size;
 	bool						autoindex;
 	std::vector<std::string>	index; //for if requested resource is directory
 	std::vector<std::string>	methods;

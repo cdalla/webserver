@@ -31,7 +31,7 @@ serverParser::serverParser(void) : baseParser<VirtualServer>() {
 	context.autoindex = false; // the default for nginx is also false
 	context.server_name = "";
 	context.root = "";
-	context.max_body_size = "";
+	context.max_body_size = 0;
 };
 
 serverParser::~serverParser(void) {};
