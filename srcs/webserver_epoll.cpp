@@ -32,7 +32,7 @@ void    Webserver::create_Epoll()
 */
 void    Webserver::addFdToPoll(int fd, int epollFd, uint32_t events) 
 {
-	std::cout << "adding fd: " << fd << std::endl;
+	//std::cout << "adding fd: " << fd << std::endl;
 	epoll_event event{};
 	event.events = events;
 	event.data.fd = fd;
@@ -55,7 +55,7 @@ void	Webserver::change_event(int fd)
 */
 void    Webserver::removeFd(int fd, int type, int del)
 {
-	std::cout << "deleting fd: " << fd << std::endl;
+	//std::cout << "deleting fd: " << fd << std::endl;
 	if (type == CONN)
 	{
 		if (epoll_ctl(_epollConn, EPOLL_CTL_DEL, fd, NULL) == -1)

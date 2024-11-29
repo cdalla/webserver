@@ -34,7 +34,6 @@ class Fd_handler
 
         int 					get_fd() const {return this->_fd;}
         void                    set_fd(int fd) {this->_fd = fd;}
-        virtual bool            consume(int event_type){(void)event_type;return false;}
         virtual void            input(void){return;}
         virtual void            output(void){return;}
 		virtual void			hangup(void){return;}

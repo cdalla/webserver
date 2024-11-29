@@ -103,7 +103,7 @@ void responseHandler::_determineType(std::string path)
 
 void responseHandler::_handleErrorPage(int error, std::string error_page)
 {
-    std::cout << "Reading error page for: " << error << std::endl;
+    //std::cout << "Reading error page for: " << error << std::endl;
     std::string path = _root;
     if (_root.empty())
         path = _config.root;
@@ -112,11 +112,11 @@ void responseHandler::_handleErrorPage(int error, std::string error_page)
     std::string error_path = path + error_page;
         // Check file permissions and existence
     if (access(error_path.c_str(), F_OK) == -1) {
-        std::cout << "File not found: " << path << std::endl;
+        //std::cout << "File not found: " << path << std::endl;
         _handleDefaultError(404);
     }
     if (access(error_path.c_str(), R_OK) == -1) {
-        std::cout << "Permission denied: " << error_path << std::endl;
+        //std::cout << "Permission denied: " << error_path << std::endl;
         _handleDefaultError(403);
         return;
     }
@@ -124,7 +124,7 @@ void responseHandler::_handleErrorPage(int error, std::string error_page)
 		int file_fd = open(error_path.c_str(), O_RDONLY);
 		if (file_fd == -1)
 		{
-			std::cout << "Failed to open file: " << strerror(errno) << std::endl;
+			//std::cout << "Failed to open file: " << strerror(errno) << std::endl;
 			if (errno == EACCES)
 				_handleDefaultError(403);
 			else
@@ -146,8 +146,8 @@ void responseHandler::_handleErrorPage(int error, std::string error_page)
 				_response += "Content-Length: " + std::to_string(_client->file_content.length()) + "\r\n";
 				_response += "\r\n" + _client->file_content;
 			
-				std::cout << "Successfully read file and created response" << std::endl;
-				std::cout << "Response: " << _response << std::endl;
+				//std::cout << "Successfully read file and created response" << std::endl;
+				//std::cout << "Response: " << _response << std::endl;
 		}
 		catch (const std::exception& e) {
 			std::cerr << "Error handling file: " << e.what() << std::endl;
@@ -158,7 +158,7 @@ void responseHandler::_handleErrorPage(int error, std::string error_page)
 }
 void responseHandler::_handleDefaultError(int error)
 {
-    std::cout << "Creating default error page for: " << error << std::endl;
+    //std::cout << "Creating default error page for: " << error << std::endl;
     _createErrorPage(error);
     _response = "HTTP/1.1 ";
     _response += std::to_string(error);
@@ -174,7 +174,7 @@ void responseHandler::_handleError(int error)
     
     std::string error_page = _error_pages[error];
     if (error_page.empty()) {
-        std::cout << "No error page found for: " << error << std::endl;
+        //std::cout << "No error page found for: " << error << std::endl;
         _handleDefaultError(error);
         return;
     }
@@ -220,23 +220,23 @@ std::string responseHandler::_getStatusMessage(int error)
 
 void responseHandler::_handlePage(std::string path)
 {
-        std::cout << "path: " << path << std::endl;
+        //std::cout << "path: " << path << std::endl;
  if (_client->request.method == "POST" || _client->request.method == "DELETE")
     {
-        std::cout << "Method not allowed" << std::endl;
+        // << "Method not allowed" << std::endl;
         _handleError(405);
         return;
     }
 
     // Check file permissions and existence
     if (access(path.c_str(), F_OK) == -1) {
-        std::cout << "File not found: " << path << std::endl;
+        //std::cout << "File not found: " << path << std::endl;
         _handleError(404);
         return;
     }
     
     if (access(path.c_str(), R_OK) == -1) {
-        std::cout << "Permission denied: " << path << std::endl;
+        //std::cout << "Permission denied: " << path << std::endl;
         _handleError(403);
         return;
     }
@@ -256,7 +256,7 @@ void responseHandler::_handlePage(std::string path)
 
     try {
         // Create File handler which will read the entire file
-		std::cout << "creating new file handler" << std::endl;
+		//std::cout << "creating new file handler" << std::endl;
         File *file = new File(path, _main, _client);
         _client->status = "FILE";
         //Determine content type and create response
@@ -282,19 +282,19 @@ void responseHandler::_handlePage(std::string path)
         _response += "Content-Type: " + _content_type + "\r\n";
         _response += "Content-Length: " + std::to_string(_client->file_content.length()) + "\r\n";
         _response += "\r\n" + _client->file_content;
-        std::cout << "file content size: " << _client->file_content.size() << std::endl;
-        std::cout << "Successfully read file and created response" << std::endl;
+        //std::cout << "file content size: " << _client->file_content.size() << std::endl;
+        //std::cout << "Successfully read file and created response" << std::endl;
         _client->file_content.clear();
     }
 }
 
 void responseHandler::_handleDirectory(std::string path)
 {
-        std::cout << "path: " << path << std::endl;
+        //std::cout << "path: " << path << std::endl;
 
 	DIR *dir = opendir(path.c_str());
 	if (dir == NULL) {
-		std::cout << "Error opening directory: " << strerror(errno) << std::endl;
+		//std::cout << "Error opening directory: " << strerror(errno) << std::endl;
 		_handleError(404);
 		return;
 	}
@@ -342,7 +342,7 @@ void responseHandler::_handleCGI(std::string path)
 {
 	if (_client->cgi_result.empty())
 	{
-    std::cout << "Handling CGI request: " << path << std::endl;
+    //std::cout << "Handling CGI request: " << path << std::endl;
 	  // Add these checks
     if (access(path.c_str(), F_OK) == -1) {
         std::cerr << "CGI script not found: " << path << std::endl;
@@ -360,7 +360,7 @@ void responseHandler::_handleCGI(std::string path)
     {
    		try {
         // Create new Cgi instance instead of CgiHandler
-          std::cout << "BODY: \n" << _client->request.body << std::endl;
+          //std::cout << "BODY: \n" << _client->request.body << std::endl;
         Cgi* cgi = new Cgi(_main, path.c_str(), _env, _client->request.body.empty() ? "" :_client->request.body.c_str(), _client);
         _client->status = "CGI";
 
@@ -385,7 +385,7 @@ void responseHandler::_handleCGI(std::string path)
         _response += "\r\n";
 		_response += _client->file_content;
         _client->file_content.clear();
-		std::cout << "Successfully read CGI and created response" << std::endl;
+		//std::cout << "Successfully read CGI and created response" << std::endl;
     }
     }
 }
@@ -462,7 +462,7 @@ void responseHandler::_createResponse(void)
             return;
         }
 
-        std::cout << "Created response of size: " << _response.size() << std::endl;
+        //std::cout << "Created response of size: " << _response.size() << std::endl;
     }
     catch (const std::exception& e) {
         std::cerr << "Error creating response: " << e.what() << std::endl;
@@ -474,11 +474,11 @@ void responseHandler::_handleDirRequest(std::string path)
 {
 	 if (_index.empty()) {
         if (!_autoindex) {
-            std::cout << "No index files found and autoindex disabled" << std::endl;
+            //std::cout << "No index files found and autoindex disabled" << std::endl;
             _handleError(403);
             return;
         }
-        std::cout << "No index files found, using autoindex" << std::endl;
+        //std::cout << "No index files found, using autoindex" << std::endl;
         _handleDirectory(path);
         return;
     }
@@ -487,25 +487,25 @@ void responseHandler::_handleDirRequest(std::string path)
     for (std::vector<std::string>::iterator it = _index.begin(); 
          it != _index.end(); ++it) 
     {
-        std::cout << "Checking for index file: " << *it << std::endl;
+        //std::cout << "Checking for index file: " << *it << std::endl;
         if (path.empty() || path[path.length() - 1] != '/') {
             path += "/";
         }
         std::string full_path = path + *it;
-        std::cout << "Checking for index file: " << full_path << std::endl;
+        //std::cout << "Checking for index file: " << full_path << std::endl;
         if (access(full_path.c_str(), F_OK) != -1) {
-            std::cout << "Found index file: " << full_path << std::endl;
+           // std::cout << "Found index file: " << full_path << std::endl;
             // Check if it's a CGI file
             size_t ext_pos = it->find_last_of(".");
             if (ext_pos != std::string::npos) {
                 std::string ext = it->substr(ext_pos);
                 if (std::find(_cgi_ext.begin(), _cgi_ext.end(), ext) != _cgi_ext.end()) {
-                    std::cout << "Found CGI index file" << std::endl;
+                    //std::cout << "Found CGI index file" << std::endl;
                     _handleCGI(full_path);
                     return;
                 }
             }
-            std::cout << "Serving index file" << std::endl;
+            //std::cout << "Serving index file" << std::endl;
             _handlePage(full_path);
             return;
         }
@@ -539,7 +539,7 @@ void responseHandler::_locationHandler(std::string path)
     _autoindex = _config.autoindex;
     _index = _config.index;
     _error_pages = _config.error_pages;
-    std::cout << "before redirect" << std::endl;
+    //std::cout << "before redirect" << std::endl;
     if (!_config.redirect_url.empty()) {
         if (_config.redirect_url[_config.redirect_url.length() - 1] == '/') {
             path.erase(0, 1);
@@ -558,7 +558,7 @@ void responseHandler::_locationHandler(std::string path)
         if (path == it->path) {
             matched_location = &(*it);
             location_prefix = it->path;
-            std::cout << "Found exact path match: " << it->path << std::endl;
+           // std::cout << "Found exact path match: " << it->path << std::endl;
             break;
         }
     }
@@ -573,7 +573,7 @@ void responseHandler::_locationHandler(std::string path)
                 if (it->path == extension) {
                     matched_location = &(*it);
                     location_prefix = path.substr(0, ext_pos + extension.length());
-                    std::cout << "Found extension match: " << it->path << std::endl;
+                   // std::cout << "Found extension match: " << it->path << std::endl;
                     break;
                 }
             }
@@ -589,22 +589,22 @@ void responseHandler::_locationHandler(std::string path)
                     matched_location = &(*it);
                     location_prefix = it->path;
                     longest_match = it->path.length();
-                    std::cout << "Found prefix match: " << it->path << std::endl;
+                  //  std::cout << "Found prefix match: " << it->path << std::endl;
                 }
             }
         }
     }
     if (!matched_location) {
-		std::cout << "No location found" << std::endl;
+	//	std::cout << "No location found" << std::endl;
         if (!_config.methods.empty() && 
             std::find(_config.methods.begin(), _config.methods.end(), 
                      _client->request.method) == _config.methods.end()) {
-			std::cout << "Method not allowed" << std::endl;
+	//		std::cout << "Method not allowed" << std::endl;
             _handleError(405);
             return;
         }
     }  else {
-        std::cout << "Location found: " << matched_location->path << std::endl;    
+    //    std::cout << "Location found: " << matched_location->path << std::endl;    
 		std::list<std::string>::const_iterator method_it;
         bool method_found = false;
         if (!matched_location->redirect_url.empty())
@@ -624,7 +624,7 @@ void responseHandler::_locationHandler(std::string path)
                 }
             }
             if (!method_found) {
-				std::cout << "Method not allowed" << std::endl;
+			//	std::cout << "Method not allowed" << std::endl;
                 _handleError(405);
                 return;
             }
@@ -651,7 +651,7 @@ void responseHandler::_locationHandler(std::string path)
       
      // Remove the location prefix from the path for proper file handling
     std::string adjusted_path = path;
-    std::cout << "Adjusted path: " << adjusted_path << std::endl;
+ //   std::cout << "Adjusted path: " << adjusted_path << std::endl;
     if (matched_location && path.find(location_prefix) == 0) {
         adjusted_path = path.substr(location_prefix.length());
         if (!_root.empty() && _root[_root.length() - 1] != '/') {
@@ -663,14 +663,14 @@ void responseHandler::_locationHandler(std::string path)
     }
     // Process the request
     std::string full_path = _root + adjusted_path;
-    std::cout << "Full path: " << full_path << std::endl;
+ //   std::cout << "Full path: " << full_path << std::endl;
     size_t ext_pos = path.find_last_of(".");
     if (ext_pos != std::string::npos) {
         std::string extension = path.substr(ext_pos);
         std::vector<std::string>::const_iterator cgi_it;
         for (cgi_it = _cgi_ext.begin(); cgi_it != _cgi_ext.end(); ++cgi_it) {
             if (*cgi_it == extension) {
-                std::cout << "CGI request" << std::endl;
+   //             std::cout << "CGI request" << std::endl;
                 std::string script_name = path.substr(path.find_last_of("/") + 1);
                 std::string cgi_path = _root + script_name;
                 _handleCGI(cgi_path);
@@ -687,11 +687,11 @@ void responseHandler::_locationHandler(std::string path)
             _handleRedirect(path);
             return;
         }
-        std::cout << "Directory request" << std::endl;
+     //   std::cout << "Directory request" << std::endl;
         _handleDirRequest(full_path);
         return;
     }
-    std::cout << "File request" << std::endl;
+ //   std::cout << "File request" << std::endl;
     // Handle as regular file
     _handlePage(full_path);
 }

@@ -17,10 +17,10 @@ Cgi::Cgi(Webserver *ptr, const char *script, char *const *env, const char *body,
 	_outFd = dup(_pipeIn[1]);
 	_inFd = dup(_pipeOut[0]);
 	if (_outFd == -1 || _inFd == -1)
-		std::cout << "PORCA TROIA!!!!" << std::endl;
+		//std::cout << "PORCA TROIA!!!!" << std::endl;
 	close(_pipeIn[1]);
 	close(_pipeOut[0]);
-	std::cout << "script: " << script << std::endl;
+	//std::cout << "script: " << script << std::endl;
 	make_socket_non_blocking(_outFd);
 	make_socket_non_blocking(_inFd);
     _main->addFdToPoll(_outFd, _main->get_EpollFd(FILES), EPOLLOUT);
@@ -29,7 +29,7 @@ Cgi::Cgi(Webserver *ptr, const char *script, char *const *env, const char *body,
     _main->addFdToMap(_inFd, this);
     close(_pipeIn[0]);
     close(_pipeOut[1]);
-    std::cout << "CGI inFd = " << _inFd << ", CGI outFd = " << _outFd << std::endl;
+    //std::cout << "CGI inFd = " << _inFd << ", CGI outFd = " << _outFd << std::endl;
 }
 
 Cgi::~Cgi()
@@ -45,47 +45,6 @@ Cgi::~Cgi()
     }
 }
 
-bool Cgi::consume(int event_type)
-{
-    if (event_type == IN)
-    {
-        reset_last_activity();
-        char buff[MAX_BUFF];
-        std::memset(buff, '\0', MAX_BUFF);
-        ssize_t bytes = read(_inFd, buff, MAX_BUFF);
-        if (bytes == 0)
-        {
-            _client->cgi_result = _cgi_result;
-            _main->removeFd(_inFd, FILES, 0);
-            _main->removeFd(_outFd, FILES, 1);
-        }
-        else if (bytes < 0)
-            throw WebservException("Failed to read: " + std::string(strerror(errno)));
-        else
-            _cgi_result.append(buff, bytes);
-    }
-    else if (event_type == OUT)
-    {
-
-        reset_last_activity();
-        if (_writeFinished == true)
-            return false;
-        std::string toSend = _body.substr(_pos, MAX_BUFF);
-        ssize_t bytes = write(_outFd, toSend.c_str(), MAX_BUFF);
-        if (bytes < 0)
-            throw WebservException("Failed to write: " + std::string(strerror(errno)));
-        else if (bytes == 0)
-        {
-            _writeFinished = true;
-        }
-        else
-        {
-            _pos += bytes;
-        }
-    }
-
-    return false;
-}
 
 void Cgi::input()
 {
@@ -94,7 +53,7 @@ void Cgi::input()
         char buff[MAX_BUFF];
         std::memset(buff, '\0', MAX_BUFF);
         ssize_t bytes = read(_inFd, buff, MAX_BUFF);
-		std::cout << "bytes read: " << bytes << std::endl;
+		//std::cout << "bytes read: " << bytes << std::endl;
         if (bytes == 0)
         {
 			print_msg("read zero bytes in cgi");
@@ -106,7 +65,7 @@ void Cgi::input()
             throw WebservException("Failed to read: " + std::string(strerror(errno)));
         else
 		{
-			std::cout << "cgi buff: \n:" << buff << std::endl;
+			//std::cout << "cgi buff: \n:" << buff << std::endl;
             _client->file_content.append(buff, bytes);
 		}
 }
@@ -114,7 +73,7 @@ void Cgi::input()
 void Cgi::output()
 {
     print_msg("CGI output");
-    std::cout << "_body in cgi output: \n" << _body << std::endl; 
+    //std::cout << "_body in cgi output: \n" << _body << std::endl; 
         reset_last_activity();
         if (_writeFinished == true)
             return;

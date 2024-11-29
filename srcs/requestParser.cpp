@@ -36,7 +36,7 @@ int RequestParser::set_body(void)
     _buffer.clear();
     if (finished_request.body.size() > _max_body_size)
         return (PAYLOAD_TO_LARGE);
-	std::cout << "finished_request.body : \n" << finished_request.body << std::endl;
+	//std::cout << "finished_request.body : \n" << finished_request.body << std::endl;
     return 0;
 }
 
@@ -209,7 +209,7 @@ bool RequestParser::feed(const char *chunk)
     }
 	if (_is_first_line && _is_header_finish)
     {	
-		std::cout << "working on the body" << std::endl;
+		//std::cout << "working on the body" << std::endl;
         int body_result = set_body();
         if (body_result != 0)
 			finished_request.error = body_result;

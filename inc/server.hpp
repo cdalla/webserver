@@ -26,7 +26,6 @@ class Server : public Fd_handler
 		~Server() = default;
 		
         void 					createSocket();
-		virtual bool    		consume(int event_type);
 		virtual void            input(void);
         virtual void            output(void);
 		virtual void			hangup(void){return;}

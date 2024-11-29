@@ -37,7 +37,6 @@ class Cgi : public Fd_handler
     	Cgi(Webserver* ptr, const char *script, char * const *env, const char *body, Client *client);
 		~Cgi();
 
-		virtual bool    		consume(int event_type);
 		virtual void            input(void);
         virtual void            output(void);
 		virtual void			hangup(void);

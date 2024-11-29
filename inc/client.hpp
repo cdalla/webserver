@@ -32,7 +32,6 @@ class Client: public Fd_handler
 		std::string		status;
 
 
-		virtual bool	consume(int event_type);
         virtual void            input(void);
         virtual void            output(void);
 		virtual void			hangup(void){return;}

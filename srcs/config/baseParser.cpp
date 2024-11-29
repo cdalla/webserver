@@ -144,10 +144,10 @@ void	baseParser<T>::parseMaxBodySize(std::vector<std::string> &args) {
 		context.max_body_size = stoi(str);
 		return;
 	}
-	std::cout << "aaaaaaaaaaaaaaaaa: " << str[pos] <<std::endl;
+	//std::cout << "aaaaaaaaaaaaaaaaa: " << str[pos] <<std::endl;
 	if (pos != str.size() - 1 || (str[pos] != 'K' && str[pos] != 'M' && str[pos] != 'G' ))
 	{
-		std::cout << "SUCA" << std::endl;
+		//std::cout << "SUCA" << std::endl;
 		return; //error
 	}
 	std::string res = str.substr(0, pos);
