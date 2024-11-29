@@ -3,4 +3,4 @@
 .o
 webserver
 objs
-configuration/sample.conf
+configurations/sample.conf

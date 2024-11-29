@@ -135,7 +135,7 @@ void Cgi::execute_child()
 {
     close(_pipeIn[1]);
     close(_pipeOut[0]);
-	_script = "/webserv/www/cgi-bin/upload.py";
+	_script = "/home/cdalla/webserver/www/cgi-bin/upload.py";
     char *argv[] = {(char *)_script, (char *)_script, NULL};
     if (dup2(_pipeIn[0], STDIN_FILENO) < 0)
     {

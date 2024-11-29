@@ -220,10 +220,10 @@ std::string responseHandler::_getStatusMessage(int error)
 
 void responseHandler::_handlePage(std::string path)
 {
-        //std::cout << "path: " << path << std::endl;
- if (_client->request.method == "POST" || _client->request.method == "DELETE")
+    //std::cout << "path: " << path << std::endl;
+    if (_client->request.method == "POST" || _client->request.method == "DELETE")
     {
-        // << "Method not allowed" << std::endl;
+       std::cout << "Method not allowed" << std::endl;
         _handleError(405);
         return;
     }
@@ -506,6 +506,7 @@ void responseHandler::_handleDirRequest(std::string path)
                 }
             }
             //std::cout << "Serving index file" << std::endl;
+            print_msg("1");
             _handlePage(full_path);
             return;
         }
@@ -544,6 +545,8 @@ void responseHandler::_locationHandler(std::string path)
         if (_config.redirect_url[_config.redirect_url.length() - 1] == '/') {
             path.erase(0, 1);
         }
+            print_msg("2");
+
         _handlePage(_config.redirect_url + path);
     }
 
@@ -693,5 +696,7 @@ void responseHandler::_locationHandler(std::string path)
     }
  //   std::cout << "File request" << std::endl;
     // Handle as regular file
+            print_msg("3");
+
     _handlePage(full_path);
 }

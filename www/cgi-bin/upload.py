@@ -9,8 +9,8 @@ import sys
 
 print("Content-type:text/html\r\n\r\n")
 form = cgi.FieldStorage()
-files = os.listdir("/webserv/www")
-dir_path = "/webserv/www"
+files = os.listdir("/home/cdalla/webserver/www")
+dir_path = "/home/cdalla/webserver/www"
 
 base_begin = """
 <!DOCTYPE html>

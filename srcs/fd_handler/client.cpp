@@ -35,16 +35,18 @@ void Client::input()
     std::memset(buffer, 0, buffer_size);
     while ((bytes_read = read(_fd, buffer, buffer_size - 1)) > 0) 
     {
-        //std::cout << "buffer read in client: \n" << buffer << std::endl;
+        std::cout << "buffer read in client: \n" << buffer << std::endl;
         total_bytes_read += bytes_read;
-        if (parser->feed(buffer))
+        bool ret = parser->feed(buffer);
+        std::cout << "feed() return: " << ret << std::endl;
+        if (ret)
             break;
         std::memset(buffer, 0, buffer_size);
     }
     delete parser;
+    std::cout << "Read successful: " << total_bytes_read << " bytes" << std::endl; 
     if (bytes_read == -1 || total_bytes_read == 0)
         throw WebservException("Failed read in client: " + std::string(strerror(errno)));
-    //std::cout << "Read successful: " << total_bytes_read << " bytes" << std::endl; 
     main->change_event(_fd);
 }
 
