@@ -27,31 +27,36 @@ void Client::input()
 {
     //std::cout << "handling input event on fd: " << this->get_fd() << std::endl;
     reset_last_activity();
-    size_t buffer_size = 1024;
+    size_t buffer_size = 1000024;
     char buffer[buffer_size];
     ssize_t bytes_read;
     ssize_t total_bytes_read = 0;
     RequestParser* parser = new RequestParser(server->get_config(), this->request);
     std::memset(buffer, 0, buffer_size);
-    while ((bytes_read = read(_fd, buffer, buffer_size - 1)) > 0) 
+    bytes_read = read(_fd, buffer, buffer_size - 1);
+    total_bytes_read += bytes_read;
+    while (!parser->feed(buffer, bytes_read)) 
     {
-        std::cout << "buffer read in client: \n" << buffer << std::endl;
-        total_bytes_read += bytes_read;
-        bool ret = parser->feed(buffer);
-        std::cout << "feed() return: " << ret << std::endl;
-        if (ret)
-            break;
+        
+        
+
         std::memset(buffer, 0, buffer_size);
+        bytes_read = read(_fd, buffer, buffer_size - 1);
+        total_bytes_read += bytes_read;
+        std::cout << "buffer read in client: \n" << buffer << std::endl;
+        if (bytes_read == -1)
+            throw WebservException("Failed read in client: " + std::string(strerror(errno)));
     }
     delete parser;
     std::cout << "Read successful: " << total_bytes_read << " bytes" << std::endl; 
-    if (bytes_read == -1 || total_bytes_read == 0)
-        throw WebservException("Failed read in client: " + std::string(strerror(errno)));
+    std::cout << "Read body: " << this-> request.body.size() << std::endl; 
+
     main->change_event(_fd);
 }
 
 void Client::output()
 {
+
     //std::cout << "handling output event on fd: " << this->get_fd() << std::endl;
     reset_last_activity();
 	if (status == "FILE" || status == "CGI")

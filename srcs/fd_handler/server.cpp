@@ -2,7 +2,7 @@
 #include "WebservException.hpp"
 #include "client.hpp"
 
-Server::Server(VirtualServer configStruct, Webserver* ptr) : _config(configStruct), _main(ptr)
+Server::Server(VirtualServer &configStruct, Webserver* ptr) : _config(configStruct), _main(ptr)
 {
 	_port = _config.listen;
 }
@@ -67,7 +67,7 @@ void Server::output()
 {
 	return;
 }
-VirtualServer	Server::get_config() const
+VirtualServer&	Server::get_config() const
 {
 	return _config;
 }

@@ -13,13 +13,12 @@ private:
     bool _is_first_line;
     std::string _buffer;
     std::string _last_key;
-    VirtualServer _config;
+    VirtualServer &_config;
 
     std::string _query_string;
     unsigned int _max_body_size;
     std::string _script_name;
     std::string _protocol;
-    std::string _body;
     Request &finished_request;
 
     bool _is_chunked;
@@ -34,10 +33,11 @@ private:
     bool handle_chunked_data(void);
 
 public:
-    RequestParser(VirtualServer config, Request &request);
+    RequestParser(VirtualServer &config, Request &request);
     ~RequestParser(void);
 
-    bool feed(const char *chunk);
+    bool feed(const char *chunk, ssize_t byte);
+    std::string _body;
 };
 
 typedef enum e_request_type

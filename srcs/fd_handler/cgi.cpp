@@ -91,6 +91,7 @@ void Cgi::output()
         {
             _writeFinished = true;
             _main->removeFd(_outFd, FILES, 0);
+            print_msg("finish writing body");
         }
         else
         {
@@ -105,12 +106,11 @@ void Cgi::hangup()
     int exitstatus;
     if (waitpid(_pid, &exitstatus, WNOHANG) == 0) //child has not changed state yet
         return;
-    
 	waitpid(_pid, &exitstatus, 0);
 
 	print_msg("clearing cgi");
 	_client->status.clear();
-	_main->removeFd(_inFd, FILES, 1);
+    //std::cout << exitstatus << std::endl;
 	switch(exitstatus) 
 	{
 		case 137:
@@ -127,6 +127,7 @@ void Cgi::hangup()
 			this->_client->request.error = 502;
             this->_client->file_content.clear();
 	}
+	_main->removeFd(_inFd, FILES, 1);
 }
 
 
@@ -135,7 +136,7 @@ void Cgi::execute_child()
 {
     close(_pipeIn[1]);
     close(_pipeOut[0]);
-	_script = "/home/cdalla/webserver/www/cgi-bin/upload.py";
+	//_script = "/home/cdalla/webserver/www/cgi-bin/upload.py";
     char *argv[] = {(char *)_script, (char *)_script, NULL};
     if (dup2(_pipeIn[0], STDIN_FILENO) < 0)
     {

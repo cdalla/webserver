@@ -2,11 +2,14 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sstream> 
+#include "colours.hpp"
 
-RequestParser::RequestParser(VirtualServer config, Request &request): _is_header_finish(0), _is_first_line(0),
+RequestParser::RequestParser(VirtualServer &config, Request &request): _is_header_finish(0), _is_first_line(0),
     _is_chunked(false), _current_chunk_size(0), _is_reading_chunk_size(true), _config(config), finished_request(request) {
 	finished_request.error = 0;
-	_max_body_size = 1874919424;
+	_max_body_size = config.max_body_size;
+	if (_max_body_size < 0)
+		_max_body_size = 1000000;
 }
 
 RequestParser::~RequestParser(void){
@@ -31,12 +34,13 @@ int RequestParser::set_body(void)
     
     if (_is_chunked)
         return handle_chunked_data();
-    
+    std::cout << "inside parser " << _buffer << "  \nbuffer size " << _buffer.size() << std::endl; 
     finished_request.body.append(_buffer);
+
     _buffer.clear();
     if (finished_request.body.size() > _max_body_size)
         return (PAYLOAD_TO_LARGE);
-	//std::cout << "finished_request.body : \n" << finished_request.body << std::endl;
+	std::cout << "finished_request.body : \n" << finished_request.body << std::endl;
     return 0;
 }
 
@@ -180,10 +184,12 @@ void RequestParser::set_map(void)
     }
 }
 
-bool RequestParser::feed(const char *chunk)
+bool RequestParser::feed(const char *chunk, ssize_t size)
 {
-	_buffer.append(chunk);
-	//std::cout << "buffer in feed: \n" << _buffer << std::endl;
+	std::cout << "chunkkkkk: " << chunk << std::endl;
+
+	_buffer.append(chunk, size);
+	std::cout << GRN<<"buffer in feed: \n" << _buffer << RST <<std::endl;
 	if (!_is_first_line)
     {
 		int result = set_MetAddProt();

@@ -360,7 +360,8 @@ void responseHandler::_handleCGI(std::string path)
     {
    		try {
         // Create new Cgi instance instead of CgiHandler
-          //std::cout << "BODY: \n" << _client->request.body << std::endl;
+        std::cout << "BODY: \n" << _client->request.body << std::endl;
+        std::cout << "BODY sixe: \n" << _client->request.body.size() << std::endl;
         Cgi* cgi = new Cgi(_main, path.c_str(), _env, _client->request.body.empty() ? "" :_client->request.body.c_str(), _client);
         _client->status = "CGI";
 

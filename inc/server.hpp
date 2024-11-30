@@ -13,7 +13,7 @@ class Server : public Fd_handler
 	private:    
     
 	    unsigned int 			_port;
-		VirtualServer			_config;
+		VirtualServer			&_config;
 		Webserver*				_main;
 
         socklen_t               _addrLen;
@@ -22,14 +22,14 @@ class Server : public Fd_handler
 	
 	public:
 	
-    	Server(VirtualServer configStruct, Webserver* ptr);
+    	Server(VirtualServer &configStruct, Webserver* ptr);
 		~Server() = default;
 		
         void 					createSocket();
 		virtual void            input(void);
         virtual void            output(void);
 		virtual void			hangup(void){return;}
-		VirtualServer			get_config() const;
+		VirtualServer&			get_config() const;
 
 
 };
