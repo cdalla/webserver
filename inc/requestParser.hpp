@@ -26,8 +26,8 @@ private:
     unsigned long _current_chunk_size;
     bool _is_reading_chunk_size;
 
-    void set_MetAddProt(void);
-    void parse_protocol(void);
+    bool set_MetAddProt(void);
+    bool parse_protocol(void);
     void set_map(void);
     int set_body(void);
     bool handle_chunked_data(void);

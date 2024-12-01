@@ -91,19 +91,20 @@ bool RequestParser::handle_chunked_data(void)
     return false;
 }
 
-void  RequestParser::parse_protocol(void)
+bool  RequestParser::parse_protocol(void)
 {
-	if (_buffer.find_first_of("HTTP/1.1")  == std::string::npos)
+	if (_buffer.find_first_of("HTTP/1.1")  == std::string::npos){
 		finished_request.error = WRONG_PROTOCOL;
-
+		return true;
+	}
 	_protocol = "HTTP/1.1";
 	// std::cout << "&protocol " << _protocol << std::endl;
 	_buffer.erase(0, _buffer.find_first_of('\n') + 1);
+	return false;
 }
 
-void  RequestParser::set_MetAddProt(void)
+bool  RequestParser::set_MetAddProt(void)
 {
-
 	finished_request.method  = _buffer.substr(0, _buffer.find_first_of(' '));
 	// std::cout << "&method " << finished_request.method << std::endl;
 	if (st_check_method(finished_request.method) == METHOD_NOT_ALLOW){
@@ -122,7 +123,7 @@ void  RequestParser::set_MetAddProt(void)
 	finished_request.script_name = _script_name;
 
 	_buffer.erase(0, _buffer.find_first_of(' ') + 1);
-	parse_protocol();
+	return(parse_protocol());
 }
 
 void RequestParser::set_map(void)
@@ -134,6 +135,16 @@ void RequestParser::set_map(void)
 			break;
 		}
 
+		//checking if part of previus key
+		while (_buffer.find_first_of(':') == std::string::npos || _buffer.find_first_of(':') > _buffer.find_first_of('\n'))
+		{
+			value = _buffer.substr(_buffer.find_first_not_of(" \t"), _buffer.find_first_of("\r\n"));
+			// std::cout << "1value " << value << std::endl;
+			_buffer.erase(0 ,_buffer.find_first_of('\n') + 1);
+			if((finished_request.headers[ _last_key]).find_last_of(',') != (finished_request.headers[ _last_key]).length())
+				finished_request.headers[ _last_key].append(", ");
+			finished_request.headers[ _last_key].append(value);
+		}
 		_last_key = _buffer.substr(0, _buffer.find_first_of(':'));
 		_buffer.erase(0,_buffer.find_first_of(':') + 2);
 		if (_buffer.find_first_of("\r\n") != std::string::npos)
@@ -162,7 +173,8 @@ bool RequestParser::feed(const char *chunk, ssize_t size)
         if (_buffer.find("\r\n\r\n") == std::string::npos) {
             return false;
         }
-		set_MetAddProt();
+		if (set_MetAddProt())
+			return true;
 		set_map();
 		if (finished_request.headers.find("Content-Length") != finished_request.headers.end()){
 			if (stoi(finished_request.headers["Content-Length"]) == 0 )
