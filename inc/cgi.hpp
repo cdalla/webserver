@@ -40,6 +40,8 @@ class Cgi : public Fd_handler
 		virtual void            input(void);
         virtual void            output(void);
 		virtual void			hangup(void);
+		int 					get_inFd();
+		int 					get_outFd();
 
 };
 

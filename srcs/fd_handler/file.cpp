@@ -11,16 +11,22 @@ File::File(std::string filename, Webserver* ptr, Client* client): _main(ptr), _c
 	if (pipe(_pipe) == -1)
 		throw WebservException("Failed to pipe: " + std::string(strerror(errno)));
     make_socket_non_blocking(_fd);
+	_inFd = dup(_pipe[0]);
+	_outFd = dup(_pipe[1]);
+	if (_outFd == -1 || _inFd == -1)
+        	throw WebservException("Failed to dup: " + std::string(strerror(errno)));
+	close(_pipe[1]);
+	close(_pipe[0]);
 	int flags;
 	flags |= O_NONBLOCK;
-    if (fcntl(_pipe[0], F_SETFL, flags) == -1) 
+    if (fcntl(_inFd, F_SETFL, flags) == -1) 
 		throw WebservException("Failed to fcntl set_flag: " + std::string(strerror(errno)));
-	if (fcntl(_pipe[1], F_SETFL, flags) == -1) 
+	if (fcntl(_outFd, F_SETFL, flags) == -1) 
 		throw WebservException("Failed to fcntl set_flag: " + std::string(strerror(errno)));
-    _main->addFdToPoll(_pipe[0], _main->get_EpollFd(FILES), EPOLLIN);
-    _main->addFdToMap(_pipe[0], this);
-	_main->addFdToPoll(_pipe[1], _main->get_EpollFd(FILES), EPOLLOUT);
-    _main->addFdToMap(_pipe[1], this);
+    _main->addFdToPoll(_inFd, _main->get_EpollFd(FILES), EPOLLIN);
+    _main->addFdToMap(_inFd, this);
+	_main->addFdToPoll(_outFd, _main->get_EpollFd(FILES), EPOLLOUT);
+    _main->addFdToMap(_outFd, this);
 	//std::cout<< "pipe in = " << _pipe[0] << " pipe out = " << _pipe[1] << std::endl;
 }
 
@@ -28,14 +34,14 @@ void File::input()
 {
 	reset_last_activity();
 	//std::cout << "IN PIPE" << std::endl;
-	ssize_t bytes_r = read(_pipe[0], _buff, MAX_BUFF);
+	ssize_t bytes_r = read(_inFd, _buff, MAX_BUFF);
 	// std::cout << "bytes_r = " << bytes_r << std::endl;
 	if (bytes_r < 0)
 		throw WebservException("Failed to read pipe in: " + std::string(strerror(errno)));
 	else if (bytes_r == 0)
 	{
 		_client->status.clear();
-		_main->removeFd(_pipe[0], FILES, 1);
+		_main->removeFd(_inFd, FILES, 1);
 	}
 	else
 	{
@@ -44,7 +50,7 @@ void File::input()
 		{
 			//std::cout << "file size: " << _file_size << std::endl;
 			_client->status.clear();
-			_main->removeFd(_pipe[0], FILES, 1);
+			_main->removeFd(_inFd, FILES, 1);
 		}
     	//std::cout << "file content in file_han: \n" << _client->file_content << std::endl;
 //		std::cout << "IN: " << _buff << std::endl;
@@ -61,11 +67,11 @@ void File::output()
 	else if (bytes_r == 0)
 	{
 		//std::cout << "read zero bytes" << std::endl;
-		_main->removeFd(_pipe[1], FILES, 0); //remove the fd but not the handler
+		_main->removeFd(_outFd, FILES, 0); //remove the fd but not the handler
 	}
 	else
 	{
-		ssize_t bytes_w = write(_pipe[1], _buff, bytes_r);
+		ssize_t bytes_w = write(_outFd, _buff, bytes_r);
 		//std::cout << "bytes_W = " << bytes_w << std::endl;
 		if (bytes_w < 0)
 			throw WebservException("Failed to write pipe out: " + std::string(strerror(errno)));
@@ -75,127 +81,12 @@ void File::output()
 	}
 }
 
-// #include "file.hpp"
-// #include <sys/stat.h>
+int File::get_inFd()
+{
+    return this->_inFd;
+}
 
-// File::File(int fd, Webserver* ptr, Client * client): _main(ptr), _client(client)
-// {
-//    this->set_fd(fd);
-    
-//     try {
-//         // Read the entire file content immediately instead of using epoll
-//         struct stat st;
-//         if (fstat(fd, &st) == -1) {
-//             throw WebservException("Failed to get file stats: " + std::string(strerror(errno)));
-//         }
-        
-//         std::cout << "File size: " << st.st_size << " bytes" << std::endl;
-
-//         // Allocate a buffer for the entire file
-//         std::string content;
-//         content.reserve(st.st_size);
-//         char buffer[4096];
-//         ssize_t bytes_read;
-//         size_t total_bytes = 0;
-        
-//         while ((bytes_read = read(fd, buffer, sizeof(buffer))) > 0) {
-//             content.append(buffer, bytes_read);
-//             total_bytes += bytes_read;
-//         }
-        
-//         if (bytes_read == -1) {
-//             throw WebservException("Failed to read file: " + std::string(strerror(errno)));
-//         }
-        
-//         // Debug content
-//         std::cout << "Read " << total_bytes << " bytes from file" << std::endl;
-//         std::cout << "Content: [" << content << "]" << std::endl;
-        
-//         // Store the content in the client
-//         if (_client) {
-//             std::cout << "Setting file content in client" << std::endl;
-//             _client->file_content = content;
-//         }
-        
-//         // Close the file descriptor since we've read everything
-//         close(fd);
-//     }
-//     catch (const std::exception& e) {
-//         close(fd);
-//         throw;
-//     }
-// }
-
-// bool File::consume(int event_type)
-// {
-//  if (!_client) {
-//         _main->removeFd(_fd, FILES);
-//         return true;
-//     }
-
-//     if (event_type != IN) {
-//         return false;
-//     }
-
-//     reset_last_activity();
-//     char buff[MAX_BUFF];
-//     std::string content;
-//     ssize_t total_bytes = 0;
-    
-//     while (true) {
-//         ssize_t bytes_read = read(_fd, buff, MAX_BUFF - 1);
-        
-//         if (bytes_read > 0) {
-//             buff[bytes_read] = '\0';
-//             content.append(buff, bytes_read);
-//             total_bytes += bytes_read;
-//         }
-//         else if (bytes_read == 0) {
-//             // End of file reached
-//             _client->file_content = content;
-//             _main->removeFd(_fd, FILES);
-//             return true;
-//         }
-//         else if (errno == EAGAIN || errno == EWOULDBLOCK) {
-//             // No more data available right now
-//             if (total_bytes > 0) {
-//                 _client->file_content = content;
-//             }
-//             return false;
-//         }
-//         else {
-//             // Error occurred
-//             _main->removeFd(_fd, FILES);
-//             return true;
-//         }
-//     }
-// }
-
-
-// /*
-// void responseHandler::_handlePage(std::string path)
-// {
-
-//     if (_client->request.method == "POST" || _client->request.method == "DELETE")
-// 	{
-// 		_handleError(405);
-// 		return;
-// 	}
-
-//     //////////////////////////////////////////
-//     PART CHANGED BY CARLO
-   
-    
-//     //////////////////////////////////////////
-
-// 	_determineType(path);//idk if u need this
-// 	_response = "200 OK\r\n";
-// 	_response.append("Content-Type: ");
-// 	_response.append(_content_type);
-// 	_response.append("\r\n");
-// 	_response.append("Content-Length: ");
-// 	_response.append(std::to_string(_body.length()));
-// 	_response.append("\r\n\r\n");
-// 	_response.append(_body);
-// }
-// */
+int File::get_outFd()
+{
+    return this->_outFd;
+}

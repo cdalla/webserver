@@ -1,6 +1,6 @@
 #include "client.hpp"
-
 #include "responseHandler.hpp"
+# include "webserver.hpp"
 
 
 
@@ -46,7 +46,7 @@ void Client::input()
         std::memset(_req_buff, 0, MAX_BUFF);
         return ;
     }
-    delete parser; 
+    delete parser;
     main->change_event(_fd);
     //std::cout << "Read successful: " << total_bytes_read << " bytes" << std::endl;
     //std::cout << "Read body: " << this-> request.body.size() << std::endl; 

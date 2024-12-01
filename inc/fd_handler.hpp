@@ -45,7 +45,7 @@ class Fd_handler
             auto difference = std::chrono::duration_cast<std::chrono::seconds>(now - _last_activity);
             if (difference.count() > TIMEOUT)
                 return true;
-            return false; 
+            return false;
         }
 
 

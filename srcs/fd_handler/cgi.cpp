@@ -1,6 +1,5 @@
 #include "cgi.hpp"
 
-
 Cgi::Cgi(Webserver *ptr, const char *script, char *const *env, const char *body, Client *client) : _main(ptr), _pipeIn{-1, -1}, _pipeOut{-1, -1}, _env(env), _script(script), _body(body), _pos(0), _writeFinished(false), _client(client)
 {
     print_msg("cgi handler consttructor");
@@ -17,10 +16,9 @@ Cgi::Cgi(Webserver *ptr, const char *script, char *const *env, const char *body,
 	_outFd = dup(_pipeIn[1]);
 	_inFd = dup(_pipeOut[0]);
 	if (_outFd == -1 || _inFd == -1)
-		//std::cout << "PORCA TROIA!!!!" << std::endl;
+        	throw WebservException("Failed to dup: " + std::string(strerror(errno)));
 	close(_pipeIn[1]);
 	close(_pipeOut[0]);
-	//std::cout << "script: " << script << std::endl;
 	make_socket_non_blocking(_outFd);
 	make_socket_non_blocking(_inFd);
     _main->addFdToPoll(_outFd, _main->get_EpollFd(FILES), EPOLLOUT);
@@ -34,17 +32,21 @@ Cgi::Cgi(Webserver *ptr, const char *script, char *const *env, const char *body,
 
 Cgi::~Cgi()
 {
-    // check destructor
     print_msg("CGI destructor");
-    int status;
-    waitpid(_pid, &status, 0);
-    if (WIFEXITED(status))
-    {
-        status = WEXITSTATUS(status);
-		_client->request.error = status;
-    }
+    //child still running
+    int exitstatus;
+    if (waitpid(_pid, &exitstatus, WNOHANG) == 0)
+        kill(_pid, SIGQUIT);
+    // check destructor
+    // int status;
+    
+    // waitpid(_pid, &status, 0);
+    // if (WIFEXITED(status))
+    // {
+    //     status = WEXITSTATUS(status);
+	// 	_client->request.error = status;
+    // }
 }
-
 
 void Cgi::input()
 {
@@ -60,6 +62,7 @@ void Cgi::input()
             _client->file_content = _cgi_result;
             _client->status.clear();
             _main->removeFd(_inFd, FILES, 1);
+            _inFd = -1;
         }
         else if (bytes < 0)
             throw WebservException("Failed to read: " + std::string(strerror(errno)));
@@ -81,6 +84,7 @@ void Cgi::output()
         {
             _writeFinished = true;
             _main->removeFd(_outFd, FILES, 0);
+            _outFd = -1;
             return;
         }
         std::string toSend = _body.substr(_pos, MAX_BUFF);
@@ -91,6 +95,7 @@ void Cgi::output()
         {
             _writeFinished = true;
             _main->removeFd(_outFd, FILES, 0);
+            _outFd = -1;
             print_msg("finish writing body");
         }
         else
@@ -98,8 +103,6 @@ void Cgi::output()
             _pos += bytes;
         }
 }
-
-
 
 void Cgi::hangup()
 {
@@ -128,9 +131,8 @@ void Cgi::hangup()
             this->_client->file_content.clear();
 	}
 	_main->removeFd(_inFd, FILES, 1);
+    _inFd = -1;
 }
-
-
 
 void Cgi::execute_child()
 {
@@ -158,4 +160,14 @@ void Cgi::execute_child()
     close(STDIN_FILENO);
     close(STDOUT_FILENO);
     exit(error);
+}
+
+int Cgi::get_inFd()
+{
+    return this->_inFd;
+}
+
+int Cgi::get_outFd()
+{
+    return this->_outFd;
 }

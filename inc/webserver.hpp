@@ -21,17 +21,13 @@
 // # include "request.hpp"
 # include "utils.hpp"
 # include "WebservException.hpp"
-
-//# define MAX_EVENTS 100
-# define IN 0
-# define OUT 1
-# define CONN 2
-# define FILES 3
-# define MAX_SIZE 1024
-# define MAX_BUFF 100
-//# define MAX_CONNECTIONS 10
+#include "file.hpp"
+#include "cgi.hpp"
+#include "defines.hpp"
 
 class Server;
+class File;
+class Cgi;
 
 class Webserver
 {
@@ -56,6 +52,8 @@ class Webserver
         void    addFdToMap(int fd, Fd_handler *ptr);
         void    change_event(int fd);
         void    removeFd(int fd, int type, int del);
+        void	remove_Cgi_handler(Cgi *to_remove);
+        void	remove_File_handler(File *to_remove);
         bool	is_in_map(int fd);
         int     get_EpollFd(int type);
         

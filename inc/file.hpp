@@ -19,6 +19,8 @@ class File : public Fd_handler
 		char					_buff[MAX_BUFF];
 		ssize_t					_file_size;
 		int						_pipe[2];
+		int						_inFd;
+		int						_outFd;
         
 	public:
 		Client*                 _client;
@@ -28,6 +30,8 @@ class File : public Fd_handler
 		virtual void          	input(void);
         virtual void            output(void);
 		virtual void			hangup(void){return;}
+		int 					get_inFd();
+		int 					get_outFd();
 
 };
 

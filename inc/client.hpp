@@ -1,12 +1,13 @@
 #ifndef CLIENT_HPP
 # define CLIENT_HPP
 
+# include "defines.hpp"
 # include "server.hpp"
 # include "structs.hpp"
 # include "cgi.hpp" 
 # include "requestParser.hpp"
 
-// class Server;
+class Server;
 // class Request;
 // class Response;
 
