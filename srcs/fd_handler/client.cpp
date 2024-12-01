@@ -1,5 +1,5 @@
 #include "client.hpp"
-#include "requestParser.hpp"
+
 #include "responseHandler.hpp"
 
 
@@ -7,7 +7,10 @@
 Client::Client(Server *server, Webserver *main): server(server), main(main) 
 {
     _done = false;
+    _total_bytes_read = 0;
+    std::memset(_req_buff, 0, MAX_BUFF);
     file_content = "";
+    parser = new RequestParser(server->get_config(), this->request);
     reset_last_activity();
     return ;
 }
@@ -27,31 +30,27 @@ void Client::input()
 {
     //std::cout << "handling input event on fd: " << this->get_fd() << std::endl;
     reset_last_activity();
-    size_t buffer_size = 1000024;
-    char buffer[buffer_size];
     ssize_t bytes_read;
-    ssize_t total_bytes_read = 0;
-    RequestParser* parser = new RequestParser(server->get_config(), this->request);
-    std::memset(buffer, 0, buffer_size);
-    bytes_read = read(_fd, buffer, buffer_size - 1);
-    total_bytes_read += bytes_read;
-    while (!parser->feed(buffer, bytes_read)) 
+
+    // bytes_read = read(_fd, buffer, buffer_size - 1);
+    // total_bytes_read += bytes_read;
+    if (!_done)
     {
-        
-        
-
-        std::memset(buffer, 0, buffer_size);
-        bytes_read = read(_fd, buffer, buffer_size - 1);
-        total_bytes_read += bytes_read;
-        std::cout << "buffer read in client: \n" << buffer << std::endl;
-        if (bytes_read == -1)
+        bytes_read = read(_fd,_req_buff, MAX_BUFF - 1);
+        //std::cout << "buffer read in client: \n" << buffer << std::endl;
+        if (bytes_read == -1){
             throw WebservException("Failed read in client: " + std::string(strerror(errno)));
+        }
+        _total_bytes_read += bytes_read;
+        _done = parser->feed(_req_buff, bytes_read);
+        std::memset(_req_buff, 0, MAX_BUFF);
+        return ;
     }
-    delete parser;
-    std::cout << "Read successful: " << total_bytes_read << " bytes" << std::endl; 
-    std::cout << "Read body: " << this-> request.body.size() << std::endl; 
-
+    delete parser; 
     main->change_event(_fd);
+    //std::cout << "Read successful: " << total_bytes_read << " bytes" << std::endl;
+    //std::cout << "Read body: " << this-> request.body.size() << std::endl; 
+
 }
 
 void Client::output()

@@ -28,7 +28,7 @@
 # define CONN 2
 # define FILES 3
 # define MAX_SIZE 1024
-# define MAX_BUFF 10000
+# define MAX_BUFF 100
 //# define MAX_CONNECTIONS 10
 
 class Server;

@@ -4,6 +4,7 @@
 # include "server.hpp"
 # include "structs.hpp"
 # include "cgi.hpp" 
+# include "requestParser.hpp"
 
 // class Server;
 // class Request;
@@ -17,6 +18,7 @@ class Client: public Fd_handler
 		char            _req_buff[MAX_BUFF];
         std::string     _resp_string;
         bool            _done;
+        ssize_t         _total_bytes_read;
 
     public:
 
@@ -27,8 +29,9 @@ class Client: public Fd_handler
         std::string     file_content;
         std::string     cgi_result;
         Response        response;
-        std::string    response2;
-        Request        request;
+        std::string     response2;
+        Request         request;
+        RequestParser*  parser;
 		std::string		status;
 
 

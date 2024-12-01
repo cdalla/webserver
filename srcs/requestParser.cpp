@@ -186,7 +186,7 @@ void RequestParser::set_map(void)
 
 bool RequestParser::feed(const char *chunk, ssize_t size)
 {
-	std::cout << "chunkkkkk: " << chunk << std::endl;
+	//std::cout << "chunkkkkk: \n" << chunk << std::endl;
 
 	_buffer.append(chunk, size);
 	std::cout << GRN<<"buffer in feed: \n" << _buffer << RST <<std::endl;
