@@ -164,8 +164,17 @@ bool RequestParser::feed(const char *chunk, ssize_t size)
         }
 		set_MetAddProt();
 		set_map();
-		if (finished_request.headers.find("Content-Length") != finished_request.headers.end() && stoi(finished_request.headers["Content-Length"]) == 0 )
-			return true;
+		if (finished_request.headers.find("Content-Length") != finished_request.headers.end()){
+			if (stoi(finished_request.headers["Content-Length"]) == 0 )
+				return true;
+			if (stoi(finished_request.headers["Content-Length"]) > _max_body_size){
+				finished_request.error = PAYLOAD_TO_LARGE;
+				return true;
+			}
+			if (stoi(finished_request.headers["Content-Length"]) < _max_body_size)
+				_max_body_size = stoi(finished_request.headers["Content-Length"]);
+		}
+
     }
 
 	//std::cout << "working on the body" << std::endl;
