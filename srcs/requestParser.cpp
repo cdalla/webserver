@@ -5,7 +5,7 @@
 #include "colours.hpp"
 
 RequestParser::RequestParser(VirtualServer &config, Request &request): _is_header_finish(0), _is_first_line(0),
-    _is_chunked(false), _current_chunk_size(0), _is_reading_chunk_size(true), _config(config), finished_request(request) {
+    _is_chunked(false), _current_chunk_size(0), _is_reading_chunk_size(true), _config(config), finished_request(request), _chunk_size(0){
 	finished_request.error = 0;
 	_max_body_size = config.max_body_size;
 	if (_max_body_size < 0)
@@ -34,13 +34,12 @@ int RequestParser::set_body(void)
     
     if (_is_chunked)
         return handle_chunked_data();
-    std::cout << "inside parser " << _buffer << "  \nbuffer size " << _buffer.size() << std::endl; 
+    std::cout << "inside parser "<< "  \nbuffer size " << _buffer.size() << std::endl; 
     finished_request.body.append(_buffer);
-
     _buffer.clear();
     if (finished_request.body.size() > _max_body_size)
         return (PAYLOAD_TO_LARGE);
-	std::cout << "finished_request.body : \n" << finished_request.body << std::endl;
+	std::cout << "body size" << finished_request.body.size() << std::endl;
     return 0;
 }
 
@@ -56,7 +55,6 @@ bool RequestParser::handle_chunked_data(void)
             
             std::string chunk_size_str = _buffer.substr(0, pos);
             _buffer.erase(0, pos + 2);
-            
             std::stringstream ss;
             ss << std::hex << chunk_size_str;
             ss >> _current_chunk_size;
@@ -98,7 +96,8 @@ bool  RequestParser::parse_protocol(void)
 		return true;
 	}
 	_protocol = "HTTP/1.1";
-	// std::cout << "&protocol " << _protocol << std::endl;
+	std::cout << "&protocol " << _protocol << std::endl;
+	_chunk_size -=  _buffer.find_first_of('\n') + 1;
 	_buffer.erase(0, _buffer.find_first_of('\n') + 1);
 	return false;
 }
@@ -106,13 +105,14 @@ bool  RequestParser::parse_protocol(void)
 bool  RequestParser::set_MetAddProt(void)
 {
 	finished_request.method  = _buffer.substr(0, _buffer.find_first_of(' '));
-	// std::cout << "&method " << finished_request.method << std::endl;
+	std::cout << "&method " << finished_request.method << std::endl;
 	if (st_check_method(finished_request.method) == METHOD_NOT_ALLOW){
 		finished_request.error = METHOD_NOT_ALLOW;
 	}
+	_chunk_size -=  _buffer.find_first_of(' ') + 1;
 	_buffer.erase(0, _buffer.find_first_of(' ') + 1);
 	finished_request.uri = _buffer.substr(0, _buffer.find_first_of(' '));
-	// std::cout << "&uri " << finished_request.uri << std::endl;
+	std::cout << "&uri " << finished_request.uri << std::endl;
 	_script_name = finished_request.uri;
 	_query_string = "";
 	if (finished_request.uri.find('?') != std::string::npos)
@@ -121,7 +121,7 @@ bool  RequestParser::set_MetAddProt(void)
 		_script_name = finished_request.uri.substr(0,finished_request.uri.find('?'));
 	}
 	finished_request.script_name = _script_name;
-
+	_chunk_size -=  _buffer.find_first_of(' ') + 1;
 	_buffer.erase(0, _buffer.find_first_of(' ') + 1);
 	return(parse_protocol());
 }
@@ -139,27 +139,31 @@ void RequestParser::set_map(void)
 		while (_buffer.find_first_of(':') == std::string::npos || _buffer.find_first_of(':') > _buffer.find_first_of('\n'))
 		{
 			value = _buffer.substr(_buffer.find_first_not_of(" \t"), _buffer.find_first_of("\r\n"));
-			// std::cout << "1value " << value << std::endl;
+			std::cout << "1value " << value << std::endl;
+			_chunk_size -=  _buffer.find_first_of('\n') + 1;
 			_buffer.erase(0 ,_buffer.find_first_of('\n') + 1);
 			if((finished_request.headers[ _last_key]).find_last_of(',') != (finished_request.headers[ _last_key]).length())
 				finished_request.headers[ _last_key].append(", ");
 			finished_request.headers[ _last_key].append(value);
 		}
 		_last_key = _buffer.substr(0, _buffer.find_first_of(':'));
+		_chunk_size -=  _buffer.find_first_of(':') + 2;
 		_buffer.erase(0,_buffer.find_first_of(':') + 2);
 		if (_buffer.find_first_of("\r\n") != std::string::npos)
 			value = _buffer.substr(0, _buffer.find_first_of("\r\n"));
 		else
 			value = _buffer.substr(_buffer.find_first_not_of(" \t"), _buffer.find_first_of('\n'));
-		// std::cout << "value " << value << std::endl;
+		std::cout << "value " << value << std::endl;
+		_chunk_size -=  _buffer.find_first_of('\n') + 1;
 		_buffer.erase(0,_buffer.find_first_of('\n') + 1);
 		finished_request.headers[ _last_key] =  value;
 	}
 	_is_header_finish = true;
-	if (_buffer.find_first_of("\r\n\r\n") == std::string::npos)
-		_buffer.erase(0, 2);
-	else
-		_buffer.erase(0, 4);
+
+	_chunk_size -= 2;
+	_buffer.erase(0, 2);
+	
+
     if (finished_request.headers.find("Transfer-Encoding") != finished_request.headers.end() &&
         finished_request.headers["Transfer-Encoding"].find("chunked") != std::string::npos)
         _is_chunked = true;
@@ -168,6 +172,7 @@ void RequestParser::set_map(void)
 bool RequestParser::feed(const char *chunk, ssize_t size)
 {
 	_buffer.append(chunk, size);
+	_chunk_size	= size;
     
     if (!_is_header_finish) {
         if (_buffer.find("\r\n\r\n") == std::string::npos) {
@@ -176,7 +181,13 @@ bool RequestParser::feed(const char *chunk, ssize_t size)
 		if (set_MetAddProt())
 			return true;
 		set_map();
+
+		if (finished_request.method == "GET")
+			return true;
+
 		if (finished_request.headers.find("Content-Length") != finished_request.headers.end()){
+
+			std::cout << "body size: " << finished_request.headers["Content-Length"] << std::endl;
 			if (stoi(finished_request.headers["Content-Length"]) == 0 )
 				return true;
 			if (stoi(finished_request.headers["Content-Length"]) > _max_body_size){
@@ -186,11 +197,13 @@ bool RequestParser::feed(const char *chunk, ssize_t size)
 			if (stoi(finished_request.headers["Content-Length"]) < _max_body_size)
 				_max_body_size = stoi(finished_request.headers["Content-Length"]);
 		}
-		return true;
     }
+	
 
-	//std::cout << "working on the body" << std::endl;
+	std::cout << "working on the body " << _chunk_size << std::endl;
+
     int body_result = set_body();
+	std::cout << "resolt of size: " << finished_request.body.size() << " == " << (size_t)stoi(finished_request.headers["Content-Length"]) << std::endl;
 	if (body_result != 0){
 		finished_request.error = body_result;
 		return true;
@@ -200,9 +213,11 @@ bool RequestParser::feed(const char *chunk, ssize_t size)
 		if (_current_chunk_size == 0 && _is_reading_chunk_size)
 			return true;
 	}
-	else if (_body.size() == (size_t)stoi(finished_request.headers["Content-Length"]))
+	else if (finished_request.body.size() == (size_t)stoi(finished_request.headers["Content-Length"])){
+		std::cout << "finished" << std::endl;
 		return true;
-
+	}
+	std::cout << "waiting for more" << std::endl;
     return false;
 }
 
