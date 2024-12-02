@@ -62,6 +62,7 @@ void    Webserver::removeFd(int fd, int type, int del)
 			throw WebservException("Failed to remove socket from epoll: " + std::string(strerror(errno)));
 		if (dynamic_cast<Client *>(_fds[fd]))
 		{
+			//std::cout << "deleting" << std::endl;
 			delete (_fds[fd]);
 		}
 	}

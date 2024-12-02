@@ -16,7 +16,7 @@ Webserver::~Webserver()
 	for (; it != _fds.end(); ++it)
 	{
 		if (dynamic_cast<Client *>(it->second) || dynamic_cast<Server *>(it->second))
-			removeFd(it->first, CONN, 1);
+			removeFd(it->first, CONN, 0);
 		else if((it->second)->has_timeout() && dynamic_cast<Cgi *>(it->second))
 			remove_Cgi_handler(dynamic_cast<Cgi *>(it->second));
 		else if((it->second)->has_timeout() && dynamic_cast<File *>(it->second))
@@ -41,7 +41,7 @@ void    Webserver::servers_init()
 
 void	Webserver::remove_Cgi_handler(Cgi *to_remove)
 {
-	print_error("Removing fd for timeout");
+	print_error("Removing cgi fd for timeout");
 	int inFd = to_remove->get_inFd();
 	int outFd = to_remove->get_outFd();
 	if (inFd != -1)
@@ -52,7 +52,7 @@ void	Webserver::remove_Cgi_handler(Cgi *to_remove)
 
 void	Webserver::remove_File_handler(File *to_remove)
 {
-	print_error("Removing fd for timeout");
+	print_error("Removing file fd for timeout");
 	int inFd = to_remove->get_inFd();
 	int outFd = to_remove->get_outFd();
 	if (inFd != -1)
@@ -68,7 +68,7 @@ void	Webserver::check_timeouts()
 	{
 		if (dynamic_cast<Client *>(it->second) && reinterpret_cast<Client *>(it->second)->has_timeout())
 		{
-			print_error("Removing fd for timeout");
+			print_error("Removing client fd for timeout");
 			removeFd(it->first, CONN, 0);
 		}
 		else if((it->second)->has_timeout() && dynamic_cast<Cgi *>(it->second))

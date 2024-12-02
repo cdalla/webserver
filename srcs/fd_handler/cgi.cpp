@@ -65,7 +65,6 @@ void Cgi::input()
     if (bytes == 0)
     {
 		print_msg("read zero bytes in cgi");
-        //_client->file_content = _cgi_result;
         _client->status.clear();
         _main->removeFd(_inFd, FILES, 1);
     }
@@ -143,7 +142,7 @@ void Cgi::execute_child()
 {
     close(_pipeIn[1]);
     close(_pipeOut[0]);
-	//_script = "/home/cdalla/webserver/www/cgi-bin/upload.py";
+	_script = "/home/cdalla/webserver/www/cgi-bin/infinite.py";
     char *argv[] = {(char *)_script, (char *)_script, NULL};
     if (dup2(_pipeIn[0], STDIN_FILENO) < 0)
     {
@@ -176,3 +175,6 @@ int Cgi::get_outFd()
 {
     return this->_outFd;
 }
+
+
+//add a max timeout for cgi to prevent infinite loops
