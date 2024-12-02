@@ -4,6 +4,8 @@ Cgi::Cgi(Webserver *ptr, const char *script, char *const *env, const char *body,
 {
     print_msg("cgi handler consttructor");
     reset_last_activity();
+    
+    //SET UP PIPES
     if (pipe(_pipeIn) == -1 || pipe(_pipeOut) == -1)
         throw WebservException("Failed to pipe: " + std::string(strerror(errno)));
     _pid = fork();
@@ -13,6 +15,8 @@ Cgi::Cgi(Webserver *ptr, const char *script, char *const *env, const char *body,
     {
         execute_child();
     }
+
+    //SET UP FDs FOR EPOLL
 	_outFd = dup(_pipeIn[1]);
 	_inFd = dup(_pipeOut[0]);
 	if (_outFd == -1 || _inFd == -1)
@@ -27,7 +31,7 @@ Cgi::Cgi(Webserver *ptr, const char *script, char *const *env, const char *body,
     _main->addFdToMap(_inFd, this);
     close(_pipeIn[0]);
     close(_pipeOut[1]);
-    //std::cout << "CGI inFd = " << _inFd << ", CGI outFd = " << _outFd << std::endl;
+   // std::cout << "CGI inFd = " << _inFd << ", CGI outFd = " << _outFd << std::endl;
 }
 
 Cgi::~Cgi()
@@ -36,8 +40,10 @@ Cgi::~Cgi()
     //child still running
     int exitstatus;
     if (waitpid(_pid, &exitstatus, WNOHANG) == 0)
+    {
+        std::cout << "killing child process" << std::endl;
         kill(_pid, SIGQUIT);
-    // check destructor
+    }
     // int status;
     
     // waitpid(_pid, &status, 0);
@@ -51,61 +57,61 @@ Cgi::~Cgi()
 void Cgi::input()
 {
     print_msg("CGI input");
-        reset_last_activity();
-        char buff[MAX_BUFF];
-        std::memset(buff, '\0', MAX_BUFF);
-        ssize_t bytes = read(_inFd, buff, MAX_BUFF);
-		//std::cout << "bytes read: " << bytes << std::endl;
-        if (bytes == 0)
-        {
-			print_msg("read zero bytes in cgi");
-            _client->file_content = _cgi_result;
-            _client->status.clear();
-            _main->removeFd(_inFd, FILES, 1);
-            _inFd = -1;
-        }
-        else if (bytes < 0)
-            throw WebservException("Failed to read: " + std::string(strerror(errno)));
-        else
-		{
-			//std::cout << "cgi buff: \n:" << buff << std::endl;
-            _client->file_content.append(buff, bytes);
-		}
+    reset_last_activity();
+    char buff[MAX_BUFF];
+    std::memset(buff, '\0', MAX_BUFF);
+    ssize_t bytes = read(_inFd, buff, MAX_BUFF);
+	//std::cout << "bytes read: " << bytes << std::endl;
+    if (bytes == 0)
+    {
+		print_msg("read zero bytes in cgi");
+        //_client->file_content = _cgi_result;
+        _client->status.clear();
+        _main->removeFd(_inFd, FILES, 1);
+    }
+    else if (bytes < 0)
+        throw WebservException("Failed to read: " + std::string(strerror(errno)));
+    else
+	{
+		//std::cout << "cgi buff: \n:" << buff << std::endl;
+        _client->file_content.append(buff, bytes);
+	}
 }
 
 void Cgi::output()
 {
     print_msg("CGI output");
     //std::cout << "_body in cgi output: \n" << _body << std::endl; 
-        reset_last_activity();
-        if (_writeFinished == true)
-            return;
-        if (_body.empty())
-        {
-            _writeFinished = true;
-            _main->removeFd(_outFd, FILES, 0);
-            _outFd = -1;
-            return;
-        }
-        std::string toSend = _body.substr(_pos, MAX_BUFF);
-        ssize_t bytes = write(_outFd, toSend.c_str(), toSend.size());
-        if (bytes < 0)
-            throw WebservException("Failed to write: " + std::string(strerror(errno)));
-        else if (bytes == 0)
-        {
-            _writeFinished = true;
-            _main->removeFd(_outFd, FILES, 0);
-            _outFd = -1;
-            print_msg("finish writing body");
-        }
-        else
-        {
-            _pos += bytes;
-        }
+    reset_last_activity();
+    if (_writeFinished == true)
+        return;
+    if (_body.empty())
+    {
+        _writeFinished = true;
+        _main->removeFd(_outFd, FILES, 0);
+        _outFd = -1;
+        return;
+    }
+    std::string toSend = _body.substr(_pos, MAX_BUFF);
+    ssize_t bytes = write(_outFd, toSend.c_str(), toSend.size());
+    if (bytes < 0)
+        throw WebservException("Failed to write: " + std::string(strerror(errno)));
+    else if (bytes == 0)
+    {
+        _writeFinished = true;
+        _main->removeFd(_outFd, FILES, 0);
+        _outFd = -1;
+        print_msg("finish writing body");
+    }
+    else
+    {
+        _pos += bytes;
+    }
 }
 
 void Cgi::hangup()
 {
+	print_msg("CGI hangup");
     int exitstatus;
     if (waitpid(_pid, &exitstatus, WNOHANG) == 0) //child has not changed state yet
         return;
@@ -131,7 +137,6 @@ void Cgi::hangup()
             this->_client->file_content.clear();
 	}
 	_main->removeFd(_inFd, FILES, 1);
-    _inFd = -1;
 }
 
 void Cgi::execute_child()
