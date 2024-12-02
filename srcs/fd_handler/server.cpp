@@ -41,7 +41,7 @@ void Server::createSocket()
 
 void Server::input()
 {
-		Fd_handler *client = new Client(this, _main);
+	Fd_handler *client = new Client(this, _main);
 	client->set_fd(accept(_fd, reinterpret_cast<sockaddr*>(&_address), &_addrLen));
 	if (client->get_fd() == -1) {
 		if (errno == EAGAIN || errno == EWOULDBLOCK) 
@@ -54,7 +54,7 @@ void Server::input()
 	}
 	if (!_main->is_in_map(client->get_fd()))
 	{
-		// std::cout << "adding client fd: " << client->get_fd() << std::endl;
+		std::cout << "adding client fd: " << client->get_fd() << std::endl;
     	make_socket_non_blocking(client->get_fd());
 		_main->addFdToPoll(client->get_fd(), _main->get_EpollFd(CONN), EPOLLIN);
 		_main->addFdToMap(client->get_fd(), client);

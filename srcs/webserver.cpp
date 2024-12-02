@@ -117,6 +117,7 @@ void	Webserver::run()
 			for (int n = 0; n < readyFds; n++)
 			{
             	int eventFd = events_queue[n].data.fd;
+				std::cout << "event fd = " << eventFd << std::endl;
 				if (events_queue[n].events & EPOLLIN && _fds.find(eventFd) != _fds.end())
 					_fds[eventFd]->input();
 				else if (events_queue[n].events & EPOLLOUT && _fds.find(eventFd) != _fds.end())
