@@ -186,7 +186,7 @@ bool RequestParser::feed(const char *chunk, ssize_t size)
 			if (stoi(finished_request.headers["Content-Length"]) < _max_body_size)
 				_max_body_size = stoi(finished_request.headers["Content-Length"]);
 		}
-
+		return true;
     }
 
 	//std::cout << "working on the body" << std::endl;

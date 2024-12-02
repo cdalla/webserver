@@ -28,7 +28,7 @@ Client::~Client(void) {
 
 void Client::input()
 {
-    std::cout << "handling input event on fd: " << this->get_fd() << std::endl;
+    //std::cout << "handling input event on fd: " << this->get_fd() << std::endl;
     reset_last_activity();
     ssize_t bytes_read;
 
@@ -47,7 +47,7 @@ void Client::input()
         {
                 delete parser;
                 main->change_event(_fd);
-                std::cout << "finshed" << std::endl;
+               // std::cout << "finshed" << std::endl;
         }
         std::memset(_req_buff, 0, MAX_BUFF);
         return ;
@@ -62,7 +62,7 @@ void Client::input()
 void Client::output()
 {
 
-    std::cout << "handling output event on fd: " << this->get_fd() << std::endl;
+    //std::cout << "handling output event on fd: " << this->get_fd() << std::endl;
     reset_last_activity();
 	if (status == "FILE" || status == "CGI")
 		return;

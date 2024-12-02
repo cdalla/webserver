@@ -171,7 +171,7 @@ void responseHandler::_handleDefaultError(int error)
 
 void responseHandler::_handleError(int error)
 {   
-    
+    //std::cout << error << std::endl;
     std::string error_page = _error_pages[error];
     if (error_page.empty()) {
         //std::cout << "No error page found for: " << error << std::endl;
@@ -193,6 +193,7 @@ void responseHandler::_createErrorPage(int error)
 
 std::string responseHandler::_getStatusMessage(int error)
 {
+    //std::cout << "error: " << error << std::endl;
 	switch (error)
 	{
 	case 400:
@@ -449,10 +450,10 @@ void responseHandler::_createResponse(void)
         _response = "HTTP/1.1 ";
         
         // Add basic headers if they're missing
-        if (_client->request.headers.find("Host") == _client->request.headers.end()) {
-            _handleError(400);
-            return;
-        }
+        // if (_client->request.headers.find("Host") == _client->request.headers.end()) {
+        //     _handleError(400);
+        //     return;
+        // }
 
         // Process the request
         _locationHandler(_client->request.uri);
@@ -507,7 +508,6 @@ void responseHandler::_handleDirRequest(std::string path)
                 }
             }
             //std::cout << "Serving index file" << std::endl;
-            print_msg("1");
             _handlePage(full_path);
             return;
         }
@@ -546,7 +546,6 @@ void responseHandler::_locationHandler(std::string path)
         if (_config.redirect_url[_config.redirect_url.length() - 1] == '/') {
             path.erase(0, 1);
         }
-            print_msg("2");
 
         _handlePage(_config.redirect_url + path);
     }
@@ -697,7 +696,7 @@ void responseHandler::_locationHandler(std::string path)
     }
  //   std::cout << "File request" << std::endl;
     // Handle as regular file
-            print_msg("3");
+
 
     _handlePage(full_path);
 }
