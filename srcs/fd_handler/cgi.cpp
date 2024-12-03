@@ -114,15 +114,16 @@ void Cgi::hangup()
     int exitstatus;
     if (waitpid(_pid, &exitstatus, WNOHANG) == 0) //child has not changed state yet
         return;
-	//waitpid(_pid, &exitstatus, 0);
+	waitpid(_pid, &exitstatus, 0);
 
 	print_msg("clearing cgi");
 	_client->status.clear();
     std::cout << "child terminated normally: " << WIFEXITED(exitstatus) << std::endl;
-    std::cout << "exitstatus: "<<  WEXITSTATUS(exitstatus) << std::endl;
-	if (WIFEXITED(exitstatus))
+    std::cout << "child terminated abnormally: " << WEXITSTATUS(exitstatus) << std::endl;
+    std::cout << "exitstatus: "<<  exitstatus << std::endl;
+	if (exitstatus)
     {
-        switch(WEXITSTATUS(exitstatus)) 
+        switch(exitstatus) 
 	    {
 		    case 137:
 			    this->_client->request.error = 504;
@@ -134,6 +135,7 @@ void Cgi::hangup()
 			    break ;
 		    case 0:
 			    break ;
+            
 		    default:
 			    this->_client->request.error = 502;
                 this->_client->file_content.clear();

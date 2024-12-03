@@ -14,7 +14,6 @@ private:
     std::string _buffer;
     std::string _last_key;
     VirtualServer &_config;
-    ssize_t _chunk_size;
     std::string _query_string;
     unsigned int _max_body_size;
 

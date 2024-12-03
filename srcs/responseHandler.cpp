@@ -221,7 +221,7 @@ std::string responseHandler::_getStatusMessage(int error)
 
 void responseHandler::_handlePage(std::string path)
 {
-    //std::cout << "path: " << path << std::endl;
+    std::cout << "path: " << path << std::endl;
     if (_client->request.method == "POST" || _client->request.method == "DELETE")
     {
        std::cout << "Method not allowed" << std::endl;
@@ -382,9 +382,9 @@ void responseHandler::_handleCGI(std::string path)
 
         // The response will be set in client->cgi_result when CGI processing completes
         // For now, we'll send a preliminary response
-        _response = "HTTP/1.1 200 OK\r\n";
-        _response += "Content-Type: text/html\r\n";
-        _response += "\r\n";
+        // _response = "HTTP/1.1 200 OK\r\n";
+        // _response += "Content-Type: text/html\r\n";
+        // _response += "\r\n";
 		_response += _client->file_content;
         _client->file_content.clear();
 		//std::cout << "Successfully read CGI and created response" << std::endl;
@@ -436,6 +436,7 @@ void responseHandler::_createEnv(void)
 	_env[29] = joing_string("GATEWAY_INTERFACE=", "CGI/1.1");
 	_env[30] = joing_string("SERVER_ADMIN=", "");
 	_env[31] = joing_string("SERVER_SIGNATURE=", "");
+
 }
 
 void responseHandler::_createResponse(void)
