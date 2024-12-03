@@ -44,14 +44,14 @@ Cgi::~Cgi()
         std::cout << "killing child process" << std::endl;
         kill(_pid, SIGQUIT);
     }
-    // int status;
+    int status;
     
-    // waitpid(_pid, &status, 0);
-    // if (WIFEXITED(status))
-    // {
-    //     status = WEXITSTATUS(status);
-	// 	_client->request.error = status;
-    // }
+    waitpid(_pid, &status, 0);
+    if (WIFEXITED(status))
+    {
+        status = WEXITSTATUS(status);
+		_client->request.error = status;
+    }
 }
 
 void Cgi::input()
@@ -61,7 +61,7 @@ void Cgi::input()
     char buff[MAX_BUFF];
     std::memset(buff, '\0', MAX_BUFF);
     ssize_t bytes = read(_inFd, buff, MAX_BUFF);
-	//std::cout << "bytes read: " << bytes << std::endl;
+	std::cout << "bytes read: " << bytes << std::endl;
     if (bytes == 0)
     {
 		print_msg("read zero bytes in cgi");
@@ -118,7 +118,7 @@ void Cgi::hangup()
 
 	print_msg("clearing cgi");
 	_client->status.clear();
-    //std::cout << exitstatus << std::endl;
+    std::cout << "exitstatus: "<<  WEXITSTATUS(exitstatus) << std::endl;
 	switch(exitstatus) 
 	{
 		case 137:
@@ -142,7 +142,7 @@ void Cgi::execute_child()
 {
     close(_pipeIn[1]);
     close(_pipeOut[0]);
-	_script = "/home/cdalla/webserver/www/cgi-bin/infinite.py";
+	//_script = "/home/cdalla/webserver/www/cgi-bin/infinite.py";
     char *argv[] = {(char *)_script, (char *)_script, NULL};
     if (dup2(_pipeIn[0], STDIN_FILENO) < 0)
     {

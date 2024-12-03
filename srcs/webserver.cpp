@@ -44,10 +44,10 @@ void	Webserver::remove_Cgi_handler(Cgi *to_remove)
 	print_error("Removing cgi fd for timeout");
 	int inFd = to_remove->get_inFd();
 	int outFd = to_remove->get_outFd();
-	if (inFd != -1)
-		removeFd(inFd, FILES, 0);
 	if (outFd != -1)
-		removeFd(outFd, FILES, 1);
+		removeFd(outFd, FILES, 0);
+	if (inFd != -1)
+		removeFd(inFd, FILES, 1);
 }
 
 void	Webserver::remove_File_handler(File *to_remove)
@@ -55,10 +55,10 @@ void	Webserver::remove_File_handler(File *to_remove)
 	print_error("Removing file fd for timeout");
 	int inFd = to_remove->get_inFd();
 	int outFd = to_remove->get_outFd();
-	if (inFd != -1)
-		removeFd(inFd, FILES, 0);
 	if (outFd != -1)
-		removeFd(outFd, FILES, 1);
+		removeFd(outFd, FILES, 0);
+	if (inFd != -1)
+		removeFd(inFd, FILES, 1);
 }
 
 void	Webserver::check_timeouts()
