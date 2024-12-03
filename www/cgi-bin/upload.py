@@ -9,7 +9,7 @@ import sys
 
 print("Content-type:text/html\r\n\r\n")
 form = cgi.FieldStorage()
-dir_path = "/home/dmonfrin/ffoook/www/images/"  # Added trailing slash
+dir_path = "/home/cdalla/webserver/www/images"  # Added trailing slash
 
 base_begin = """
 <!DOCTYPE html>

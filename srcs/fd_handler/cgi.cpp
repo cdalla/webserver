@@ -114,27 +114,31 @@ void Cgi::hangup()
     int exitstatus;
     if (waitpid(_pid, &exitstatus, WNOHANG) == 0) //child has not changed state yet
         return;
-	waitpid(_pid, &exitstatus, 0);
+	//waitpid(_pid, &exitstatus, 0);
 
 	print_msg("clearing cgi");
 	_client->status.clear();
+    std::cout << "child terminated normally: " << WIFEXITED(exitstatus) << std::endl;
     std::cout << "exitstatus: "<<  WEXITSTATUS(exitstatus) << std::endl;
-	switch(exitstatus) 
-	{
-		case 137:
-			this->_client->request.error = 504;
-            this->_client->file_content.clear();
-			break ;
-		case 3328:
-			this->_client->request.error = 403;
-			this->_client->file_content.clear();
-			break ;
-		case 0:
-			break ;
-		default:
-			this->_client->request.error = 502;
-            this->_client->file_content.clear();
-	}
+	if (WIFEXITED(exitstatus))
+    {
+        switch(WEXITSTATUS(exitstatus)) 
+	    {
+		    case 137:
+			    this->_client->request.error = 504;
+                this->_client->file_content.clear();
+			    break ;
+		    case 3328:
+			    this->_client->request.error = 403;
+			    this->_client->file_content.clear();
+			    break ;
+		    case 0:
+			    break ;
+		    default:
+			    this->_client->request.error = 502;
+                this->_client->file_content.clear();
+	    }
+    }
 	_main->removeFd(_inFd, FILES, 1);
 }
 
