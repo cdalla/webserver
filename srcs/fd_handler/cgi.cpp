@@ -44,14 +44,14 @@ Cgi::~Cgi()
         std::cout << "killing child process" << std::endl;
         kill(_pid, SIGQUIT);
     }
-    int status;
+    // int status;
     
-    waitpid(_pid, &status, 0);
-    if (WIFEXITED(status))
-    {
-        status = WEXITSTATUS(status);
-		_client->request.error = status;
-    }
+    // waitpid(_pid, &status, 0);
+    // if (WIFEXITED(status))
+    // {
+    //     status = WEXITSTATUS(status);
+	// 	_client->request.error = status;
+    // }
 }
 
 void Cgi::input()
@@ -120,25 +120,29 @@ void Cgi::hangup()
 	_client->status.clear();
     std::cout << "child terminated normally: " << WIFEXITED(exitstatus) << std::endl;
     std::cout << "child terminated abnormally: " << WEXITSTATUS(exitstatus) << std::endl;
-    std::cout << "exitstatus: "<<  exitstatus << std::endl;
-	if (exitstatus)
+    //std::cout << "exitstatus: "<<  exitstatus << std::endl;
+	if (WIFEXITED(exitstatus))
     {
-        switch(exitstatus) 
+        switch( WEXITSTATUS(exitstatus)) 
 	    {
 		    case 137:
 			    this->_client->request.error = 504;
                 this->_client->file_content.clear();
+                this->_client->status.clear();
 			    break ;
 		    case 3328:
 			    this->_client->request.error = 403;
 			    this->_client->file_content.clear();
-			    break ;
+                this->_client->status.clear();
+                break ;
 		    case 0:
 			    break ;
             
 		    default:
 			    this->_client->request.error = 502;
                 this->_client->file_content.clear();
+                this->_client->status.clear();
+                break ;
 	    }
     }
 	_main->removeFd(_inFd, FILES, 1);
