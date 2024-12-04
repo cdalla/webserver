@@ -10,7 +10,7 @@ form = cgi.FieldStorage()
 upload_dir = os.environ.get('UPLOAD_DIR')
 upload_dir = os.getenv('UPLOAD_DIR')
 if upload_dir == "":
-    upload_dir = '/mnt/c/Users/dmonf/OneDrive/Desktop/clo/www/images/'
+    upload_dir = '/webserver/www/images/'
 
 html_template = """
 <!DOCTYPE html>

@@ -31,7 +31,7 @@ To run the project on Linux, execute the program with the desired configuration 
 To run the project on a non-Linux system, run the following command in your command line.
 
 ```bash
-docker run --rm -it -p 127.0.0.1:8080:8080 container
+docker run --rm -it -p 127.0.0.1:8080:8080 -p 127.0.0.1:8081:8081 container
 ```
 
 This will run the container in interactive mode, opening a new shell on the command line. This shell is now running in Linux, execute the program like you can see in the Linux example above
