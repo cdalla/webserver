@@ -2,39 +2,59 @@ name: Build and Test
 
 on:
   workflow_dispatch:
-
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  build-and-test:
+  test:
     runs-on: ubuntu-latest
-
+    
     steps:
     - uses: actions/checkout@v4
 
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential
+        sudo apt-get install -y build-essential curl
 
     - name: Build
-      run: make
+      run: |
+        ls -la
+        make
+        ls -la  # Verify webserv was created
+
+    - name: Setup test directory
+      run: |
+        mkdir -p www/cgi-bin www/html www/images
+        echo "Hello World" > www/html/index.html
+        echo '#!/usr/bin/env python3' > www/cgi-bin/test.py
+        echo 'print("Content-Type: text/plain\n\nHello from CGI")' >> www/cgi-bin/test.py
+        chmod +x www/cgi-bin/test.py
+        ls -la www/cgi-bin/test.py  # Verify test file was created
 
     - name: Start server
       run: |
-        ./webserv config/sample.config &
-        echo $! > .pid
-        sleep 5  # Give the server some time to start up
-
-    - name: Test server
-      run: |
-        response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080)
-        if [ $response = "200" ]; then
-          echo "Server is responding correctly"
-        else
-          echo "Server is not responding as expected"
+        pwd
+        ls -la
+        ./webserv sample.conf &
+        echo $! > .server.pid
+        sleep 5
+        if ! ps -p $(cat .server.pid) > /dev/null; then
+          echo "Server failed to start"
           exit 1
         fi
 
+    - name: Make test script executable and run tests
+      run: |
+        chmod +x tests/test_server.sh
+        ./tests/test_server.sh
+
     - name: Stop server
-      run: kill $(cat .pid)
       if: always()
+      run: |
+        if [ -f .server.pid ]; then
+          kill $(cat .server.pid) || true
+          rm .server.pid
+        fi

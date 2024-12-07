@@ -118,10 +118,7 @@ void Cgi::hangup()
 
 	print_msg("clearing cgi");
 	_client->status.clear();
-    std::cout << "child terminated normally: " << WIFEXITED(exitstatus) << std::endl;
-    std::cout << "child terminated abnormally: " << WEXITSTATUS(exitstatus) << std::endl;
-    //std::cout << "exitstatus: "<<  exitstatus << std::endl;
-	if (WIFEXITED(exitstatus))
+	if (exitstatus)
     {
         switch( WEXITSTATUS(exitstatus)) 
 	    {
