@@ -32,7 +32,7 @@ locationMap	locationParser::_initLocationFunctions() {
 	newMap["autoindex"] = &locationParser::parseAutoindex;
 	newMap["error_page"] = &locationParser::parseErrorPages;
 	newMap["max_body_size"] = &locationParser::parseMaxBodySize;
-
+	newMap["redirect_url"] = &locationParser::parseRedirectUrl;
 
 	return newMap;
 }

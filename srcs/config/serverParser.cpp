@@ -19,6 +19,7 @@ serverMap	serverParser::_initServerFunctions() {
 	newMap["error_page"] = &serverParser::parseErrorPages;
 	newMap["max_body_size"] = &serverParser::parseMaxBodySize;
 	newMap["upload_dir"] = &serverParser::parseUploadDir;
+	newMap["redirect_url"] = &serverParser::parseRedirectUrl;
 
 
 	return newMap;
