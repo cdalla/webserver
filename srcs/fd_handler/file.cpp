@@ -32,9 +32,9 @@ File::File(std::string filename, Webserver* ptr, Client* client): _main(ptr), _c
 
 File::~File()
 {
-	this->_client->request.error = 502;
-	this->_client->file_content.clear();
-    this->_client->status.clear();
+	// this->_client->request.error = 502;
+	// this->_client->file_content.clear();
+    // this->_client->status.clear();
 }
 
 void File::input()
