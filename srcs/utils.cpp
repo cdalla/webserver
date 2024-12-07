@@ -22,12 +22,12 @@ void make_socket_non_blocking(int socket_fd)
 
 void print_msg(std::string param)
 {
-    std::cout << GRN << "Webserver: " << param << std::endl;
+    std::cout << GRN << "Webserver: " << param << RST << std::endl;
 }
 
 void print_error(std::string param)
 {
-     std::cerr << RED << "Webserver_error: " << param << std::endl;
+    std::cerr << RED << "Webserver_error: " << param << RST << std::endl;
 }
 
 // std::string		get_URI_prefix(std::string const &URI) {
@@ -37,4 +37,5 @@ void print_error(std::string param)
 // 		throw std::runtime_error("Error extracting prefix from URI: no forward slash present"); // i don't see how we would ever even make it here
 
 // 	return (URI.substr(0, pos));
+
 // }

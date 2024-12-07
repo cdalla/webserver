@@ -6,7 +6,7 @@
 #    By: nsterk <nsterk@student.codam.nl>             +#+                      #
 #                                                    +#+                       #
 #    Created: 2022/04/13 14:42:55 by nsterk        #+#    #+#                  #
-#    Updated: 2024/10/17 16:07:55 by nsterk        ########   odam.nl          #
+#    Updated: 2024/11/16 14:55:53 by cdalla-s      ########   odam.nl          #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,11 +17,11 @@ SRCS_DIR	:=	srcs
 OBJ_DIR		:=	objs
 VPATH		:=	$(subst $(space),:,$(shell find srcs -type d))
 
-SRCS		=	main.cpp webserver.cpp webserver_epoll.cpp utils.cpp client.cpp server.cpp responseHandler.cpp requestHandler.cpp parseRequest.cpp serverParser.cpp locationParser.cpp config.cpp baseParser.cpp
+SRCS		=	main.cpp webserver.cpp webserver_epoll.cpp utils.cpp client.cpp server.cpp responseHandler.cpp requestParser.cpp serverParser.cpp locationParser.cpp config.cpp baseParser.cpp file.cpp cgi.cpp
 OBJS		=	$(addprefix $(OBJ_DIR)/, $(SRCS:.cpp=.o))
 
 CC			:=	c++
-FLAGS		:= -std=c++11 -fsanitize=address -g -I$(INC_DIR)
+FLAGS		:= -std=c++11 -g -I$(INC_DIR) -fsanitize=address
 
 all:		$(NAME)
 

@@ -9,7 +9,7 @@ serverMap	serverParser::_initServerFunctions() {
 	serverMap newMap;
 
 	newMap["listen"] = &serverParser::parseListen;
-	newMap["cgi_pass"] = &serverParser::parseCgiPass;
+	newMap["cgi_ext"] = &serverParser::parseCgiExt;
 	newMap["host"] = &serverParser::parseHost;
 	newMap["server_name"] = &serverParser::parseName;
 	newMap["root"] = &serverParser::parseRoot;
@@ -18,6 +18,8 @@ serverMap	serverParser::_initServerFunctions() {
 	newMap["autoindex"] = &serverParser::parseAutoindex;
 	newMap["error_page"] = &serverParser::parseErrorPages;
 	newMap["max_body_size"] = &serverParser::parseMaxBodySize;
+	newMap["upload_dir"] = &serverParser::parseUploadDir;
+
 
 	return newMap;
 }
@@ -29,8 +31,7 @@ serverParser::serverParser(void) : baseParser<VirtualServer>() {
 	context.autoindex = false; // the default for nginx is also false
 	context.server_name = "";
 	context.root = "";
-	context.cgi_pass = "";
-	context.max_body_size = "";
+	context.max_body_size = 0;
 };
 
 serverParser::~serverParser(void) {};
@@ -191,13 +192,13 @@ void	serverParser::checkHomeLocation(void) {
 	Location	home;
 
 	home.root = context.root;
-	home.cgi_pass = context.cgi_pass;
+	home.cgi_ext.assign(context.cgi_ext.begin(), context.cgi_ext.end());
 	home.upload_dir = context.upload_dir;
 	home.redirect_url = context.redirect_url;
 	home.max_body_size = context.max_body_size;
 	home.autoindex = context.autoindex;
-	home.index = context.index;
-	home.methods = context.methods;
+ home.index.assign(context.index.begin(), context.index.end());
+    home.methods.assign(context.methods.begin(), context.methods.end());
 	home.error_pages = context.error_pages;
 	// to do: set empty directives to the default settings
 
@@ -213,7 +214,13 @@ std::ostream&   operator<<(std::ostream& out, VirtualServer const &obj) {
 	out << "methods: ";
 	for (size_t i = 0; i < obj.methods.size(); i++)
 		out << obj.methods[i] << " ";
-	out << "\ncgi_pass: " << obj.cgi_pass << std::endl;
+	    out << "\ncgi_ext: ";
+    for (size_t i = 0; i < obj.cgi_ext.size(); i++) {
+        out << obj.cgi_ext[i];
+        if (i < obj.cgi_ext.size() - 1)
+            out << " ";
+    }
+    out << std::endl;
 	out << "upload_dir: " << obj.upload_dir << std::endl;
 	out << "max_body_size: " << obj.max_body_size << std::endl;
 	out << "autoindex: " << (!obj.autoindex ? "off" : "on") << std::endl;

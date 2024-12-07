@@ -6,6 +6,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include "client.hpp"
 
 #include "structs.hpp"
 
@@ -14,41 +15,47 @@ class Client;
 class responseHandler {
 
     private:
-
-		Client*			_ptr;
-
-		Response		_GET(Request &request);
-		Response		_POST(Request &request);
-		Response		_DELETE(Request &request);
-        void			_determineType(Request &request);
-		bool			_makeStatusLine(Request &r);
-		void			_fillBody(bool status);
-		Response		_debug(Request &request);
-		// Location		_getLocation(std::string const &path);
 		
-		int				_statusCode;
-		bool			_binaryMode;
-		std::ifstream	_ifs;
-		Response		_response;
+		Client* _client;
+		VirtualServer _config;
+		Webserver* _main;
+		std::string _file;
+		std::string _content_type;
+		std::string _body;
+		std::string _root;
+		std::string _response;
+		std::string _upload_dir;
+		char** _env;
+		std::map<unsigned int, std::string>	_error_pages;
+		std::vector<std::string> _cgi_ext;
+		std::vector<std::string> _index;
+		bool _autoindex;
+		
+		
 
-    public:
+		std::string 	_getStatusMessage(int error);
+		void			_determineType( std::string path );
+		void			_createErrorPage( int error );
+		void 			_handleError(int error);
+		void			_handleErrorPage(int error, std::string error_page);
+		void 			_handleDefaultError(int error);
+		void 			_handlePage( std::string path );
+		void 			_handleDirectory( std::string path );
+		void 			_handleCGI( std::string path );
+		void 			_createEnv( void );
+		void 			_createResponse( void );
+		void 			_locationHandler( std::string path );
+		void 			_handleDirRequest( std::string path );
+		void			_handleRedirect(std::string path);
 
-        responseHandler(Client *ptr);
-		// responseHandler(const responseHandler &src);
-        ~responseHandler(void);
+	public:
 
-		// responseHandler& operator=(responseHandler &src);
+        responseHandler( Client *ptr );
+        ~responseHandler( void );
 
-        Response	create(Request &request);
-		Client*		getClient(void) const;
-		int			getStatusCode(void) const;
-		bool		getBinaryMode(void) const;
-		Response	getResponse(void) const;
+        std::string	get( void );
+		
 
-		VirtualServer	config;
 };
-
-std::ostream&	operator<<(std::ostream& out, responseHandler const &obj);
-std::ostream&	operator<<(std::ostream& out, Response const &obj);
 
 #endif

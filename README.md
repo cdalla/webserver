@@ -20,7 +20,7 @@ docker build -t container .
 ## Running
 This webserver takes one argument: a configuration file. Sample configuration files can be found in the "configurations" repository.
 
-**Linux**  
+**Linux**docker run --rm -it -p 127.0.0.1:8080:8080 container  
 To run the project on Linux, execute the program with the desired configuration via the command line, like so:
 
 ```bash

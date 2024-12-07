@@ -1,25 +1,36 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
-// #include "webserver.hpp"
+#include "webserver.hpp"
 // #include "server.hpp"
-#include "socket.hpp"
+#include "fd_handler.hpp"
 #include "structs.hpp"
 
-class Server : public Socket 
+class Webserver;
+
+class Server : public Fd_handler
 {
 	private:    
     
 	    unsigned int 			_port;
-		VirtualServer			_config;
+		VirtualServer			&_config;
+		Webserver*				_main;
+
+        socklen_t               _addrLen;
+        struct sockaddr_in 		_address;
+
 	
 	public:
 	
-    	Server(VirtualServer configStruct);
+    	Server(VirtualServer &configStruct, Webserver* ptr);
 		~Server() = default;
-
+		
         void 					createSocket();
-		virtual bool    consume(int event_type);
+		virtual void            input(void);
+        virtual void            output(void);
+		virtual void			hangup(void){return;}
+		VirtualServer&			get_config() const;
+
 
 };
 

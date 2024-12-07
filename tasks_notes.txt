@@ -17,3 +17,7 @@
 - error handling
 - class to output messages
 - connection timeouts
+
+
+--connection timeout in CGI and FILES should reset also client timer???
+-- for cgi timeouts kill the child process

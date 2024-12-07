@@ -9,12 +9,33 @@ class baseParser<T>::ConfigException : public std::exception {
 };
 
   template <typename T>
-void	baseParser<T>::parseCgiPass(std::vector<std::string> &args) {
-	if (args.size() != 1) {
-		throw std::runtime_error("Configuration error: CGI pass");
-	}
-	context.cgi_pass = args[0];
+void	baseParser<T>::parseCgiExt(std::vector<std::string> &args) {
+	if (args.empty()) {
+        throw std::runtime_error("Configuration error: CGI extensions cannot be empty");
+    }
+    
+    // Clear any existing extensions
+    context.cgi_ext.clear();
+    
+    // Add each extension to the list
+    for (std::vector<std::string>::iterator it = args.begin(); it != args.end(); ++it) {
+        // Optionally validate that each extension starts with a dot
+        if ((*it)[0] != '.') {
+            throw std::runtime_error("Configuration error: CGI extension must start with a dot (.)");
+        }
+        context.cgi_ext.push_back(*it);
+    }
 }
+
+  template <typename T>
+void	baseParser<T>::parseUploadDir(std::vector<std::string> &args) {
+	if (args.size() != 1) {
+		std::cout << "parseUploadDir\n";
+		throw ConfigException();
+	}
+	context.upload_dir = args[0];
+}
+
 
   template <typename T>
 void	baseParser<T>::parseRoot(std::vector<std::string> &args) {
@@ -80,15 +101,14 @@ void	baseParser<T>::parseErrorPages(std::vector<std::string> &args) {
 	context.error_pages[code] = path;
 }
 
-  template <typename T>
-void	baseParser<T>::parseUploadDir(std::vector<std::string> &args) {
-	if (args.size() != 1) {
-		std::cout << "parseUploadDir ConfigException\n";
-		throw ConfigException();
-	}
-	context.upload_dir = args[0];
-
-}
+//  template <typename T>
+// void	baseParser<T>::parseUploadDir(std::vector<std::string> &args) {
+// 	if (args.size() != 1) {
+// 		std::cout << "parseUploadDir ConfigException\n";
+// 		throw ConfigException();
+// 	}
+// 	context.upload_dir = args[0];
+// }
 
   template <typename T>
 void	baseParser<T>::parseRedirectUrl(std::vector<std::string> &args) {
@@ -108,6 +128,42 @@ void	baseParser<T>::parseMaxBodySize(std::vector<std::string> &args) {
 		std::cout << "parseMaxBodySize ConfigException\n";
 		throw ConfigException();
 	}
-	context.max_body_size = args[0];
+	//context.max_body_size = args[0];
+	std::string str = args[0];
+	
+	/*
+	- no letter bytes
+	-K kilo
+	-M meg
+	-G giga
+	-T tera
+	-Z ziliobyte
+	*/
+	size_t pos = str.find_first_not_of("0123456789");
+	if (pos == std::string::npos){
+		context.max_body_size = stoi(str);
+		return;
+	}
+	//std::cout << "aaaaaaaaaaaaaaaaa: " << str[pos] <<std::endl;
+	if (pos != str.size() - 1 || (str[pos] != 'K' && str[pos] != 'M' && str[pos] != 'G' ))
+	{
+		//std::cout << "SUCA" << std::endl;
+		return; //error
+	}
+	std::string res = str.substr(0, pos);
+	switch (str[pos])
+	{
+	case 'K':
+		res.append("000");
+		break;
+	case 'M':
+		res.append("000000");
+		break;
+	case 'G':
+		res.append("000000000");
+		break;
+	}
+	context.max_body_size = stoi(res);
+
 
 }

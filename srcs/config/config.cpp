@@ -47,6 +47,10 @@ void	Config::parseConfig(void) {
 		}
 		i++;
 	}
+	// for (int i =0; i < servers.size(); i++)
+	// {
+	// 	std::cout << servers[i] << std::endl;
+	// }
 };
 
 std::ostream&   operator<<(std::ostream& out, Config const &obj) {

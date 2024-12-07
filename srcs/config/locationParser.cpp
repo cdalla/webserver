@@ -13,10 +13,9 @@
 locationParser::locationParser(void) : baseParser<Location>() {
 	context.path = "";
 	context.root = "";
-	context.cgi_pass = "";
 	context.upload_dir = "";
 	context.redirect_url = "";
-	context.max_body_size = "";
+	context.max_body_size = 0;
 }
 
 locationParser::~locationParser(void) {}
@@ -25,7 +24,7 @@ locationMap	locationParser::_initLocationFunctions() {
 
 	locationMap newMap;
 
-	newMap["cgi_pass"] = &locationParser::parseCgiPass;
+	newMap["cgi_ext"] = &locationParser::parseCgiExt;
 	newMap["upload_dir"] = &locationParser::parseUploadDir;
 	newMap["root"] = &locationParser::parseRoot;
 	newMap["allow_methods"] = &locationParser::parseMethods;
@@ -33,6 +32,7 @@ locationMap	locationParser::_initLocationFunctions() {
 	newMap["autoindex"] = &locationParser::parseAutoindex;
 	newMap["error_page"] = &locationParser::parseErrorPages;
 	newMap["max_body_size"] = &locationParser::parseMaxBodySize;
+
 
 	return newMap;
 }
@@ -48,6 +48,11 @@ Location	locationParser::parseLocation(std::vector<std::string> &tokens, std::ve
 	i++;
 	if (i == tokens.end() || *i == "{")
 		throw std::runtime_error("Invalid location configuration: missing location path");
+	if ((*i).at(0) != '/')
+	{
+		//std::cout << (*i) << std::endl;
+		throw std::runtime_error("Invalid location configuration: missing opening slash path");
+	}
 	context.path = *i;
 	
 	i++;
@@ -88,23 +93,28 @@ std::ostream&   operator<<(std::ostream& out, Location const &obj) {
 	out << "	path: " << obj.path << std::endl;
 	out << "	root: " << obj.root << std::endl;
 	out << "	methods: ";
-	for (size_t i = 0; i < obj.methods.size(); i++)
-		out << obj.methods[i] << " ";
+    for (std::list<std::string>::const_iterator it = obj.methods.begin(); it != obj.methods.end(); ++it) {
+        out << *it << " ";
+	}
 	out << "\n";
-	if (obj.cgi_pass != "")
-		out << "	cgi_pass: " << obj.cgi_pass << std::endl;
+	out << "    cgi_ext: ";
+    for (std::list<std::string>::const_iterator it = obj.cgi_ext.begin(); it != obj.cgi_ext.end(); ++it) {
+        out << *it << " ";
+    }
+    out << "\n";
 	if (obj.upload_dir != "")	
 		out << "	upload_dir: " << obj.upload_dir << std::endl;
 	if (obj.redirect_url != "")
 		out << "	redirect_url: " << obj.redirect_url << std::endl;
-	if (obj.max_body_size != "")
+	if (obj.max_body_size)
 		out << "	max_body_size: " << obj.max_body_size << std::endl;
 	out << "	autoindex: " << (!obj.autoindex ? "off" : "on") << std::endl;
 	if (obj.index.size())
 	{
 		out << "	index: ";
-		for (size_t i = 0; i < obj.index.size(); i++)
-			out << "	" << obj.index[i] << " ";
+		for (std::list<std::string>::const_iterator it = obj.index.begin(); it != obj.index.end(); ++it) {
+        out << *it << " ";
+        }
 		out << "\n";
 	}
 	out << "	error_pages:" << std::endl;
