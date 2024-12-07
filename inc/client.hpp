@@ -34,6 +34,7 @@ class Client: public Fd_handler
         Request         request;
         RequestParser*  parser;
 		std::string		status;
+		int				error;
 
 
         virtual void            input(void);
