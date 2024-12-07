@@ -46,6 +46,7 @@ typedef enum e_request_type
     POST,
     DELETE,
     METHOD_NOT_ALLOW = 405,
+	NOT_IMPLEMTED = 501,
     WRONG_PROTOCOL = 505,
     PAYLOAD_TO_LARGE = 413,
     BAD_REQUEST = 400,

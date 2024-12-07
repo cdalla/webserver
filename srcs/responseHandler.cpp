@@ -151,8 +151,12 @@ std::string responseHandler::_getStatusMessage(int error){
             return "Not Found";
         case 405:
             return "Method Not Allowed";
+		case 408:
+			return "Request Timeout";
         case 413:
             return "Payload Too Large";
+		case 501:
+			return "Not Implemented";
         case 502:
             return "Bad Gateway";
         case 503:
@@ -161,15 +165,17 @@ std::string responseHandler::_getStatusMessage(int error){
             return "Gateway Timeout";
         case 505:
             return "HTTP Version Not Supported";
+		case 4444:
+			return "Carlo the King";
         default:
             return "Internal Server Error";
 	}
 }
 
 void responseHandler::_handlePage(std::string path){
-    std::cout << "path: " << path << std::endl;
+    //std::cout << "path: " << path << std::endl;
     if (_client->request.method == "POST" || _client->request.method == "DELETE"){
-       std::cout << "Method not allowed" << std::endl;
+       //std::cout << "Method not allowed" << std::endl;
         _handleError(405);
         return;
     }
@@ -242,7 +248,7 @@ void responseHandler::_handleDirectory(std::string path){
 }
 
 void responseHandler::_handleCGI(std::string path){
-	std::cout << "body size: " << _client->request.body.size() << std::endl;
+	//std::cout << "body size: " << _client->request.body.size() << std::endl;
 	if (_client->cgi_result.empty()){
         if (access(path.c_str(), F_OK) == -1) {
             std::cerr << "CGI script not found: " << path << std::endl;

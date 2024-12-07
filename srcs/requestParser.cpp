@@ -24,7 +24,7 @@ int st_check_method(std::string method){
 		return POST;
 	if (method.compare("DELETE") == 0)
 		return DELETE;
-	return METHOD_NOT_ALLOW;
+	return NOT_IMPLEMTED;
 }
 
 int RequestParser::set_body(void){
@@ -37,7 +37,7 @@ int RequestParser::set_body(void){
     _buffer.clear();
     if (finished_request.body.size() > _max_body_size)
         return (PAYLOAD_TO_LARGE);
-	std::cout << "body size" << finished_request.body.size() << std::endl;
+	//std::cout << "body size" << finished_request.body.size() << std::endl;
     return 0;
 }
 
@@ -86,25 +86,25 @@ bool  RequestParser::parse_protocol(void){
 		return true;
 	}
 	_protocol = "HTTP/1.1";
-	std::cout << "&protocol " << _protocol << std::endl;
+	//std::cout << "&protocol " << _protocol << std::endl;
 	_buffer.erase(0, _buffer.find_first_of('\n') + 1);
 	return false;
 }
 
 bool  RequestParser::set_MetAddProt(void){
 	finished_request.method  = _buffer.substr(0, _buffer.find_first_of(' '));
-	if (st_check_method(finished_request.method) == METHOD_NOT_ALLOW){
-		finished_request.error = METHOD_NOT_ALLOW;
+	if (st_check_method(finished_request.method) == NOT_IMPLEMTED){
+		finished_request.error = NOT_IMPLEMTED;
 	}
 	_buffer.erase(0, _buffer.find_first_of(' ') + 1);
 	finished_request.uri = _buffer.substr(0, _buffer.find_first_of(' '));
-	std::cout << "&uri " << finished_request.uri << std::endl;
+	//std::cout << "&uri " << finished_request.uri << std::endl;
 	_script_name = finished_request.uri;
 	_query_string = "";
 
 	if (finished_request.uri.find('?') != std::string::npos){
 		finished_request.query_string = finished_request.uri.substr(finished_request.uri.find('?') + 1, finished_request.uri.length());
-		std::cout << "&query_string " << finished_request.query_string << std::endl;
+		//std::cout << "&query_string " << finished_request.query_string << std::endl;
 		_script_name = finished_request.uri.substr(0,finished_request.uri.find('?'));
 	}
 	finished_request.script_name = _script_name;
@@ -156,13 +156,13 @@ bool RequestParser::feed(const char *chunk, ssize_t size)
 		if (set_MetAddProt())
 			return true;
 		set_map();
-		std::cout << finished_request.method << std::endl;
+		//std::cout << finished_request.method << std::endl;
 		if (finished_request.method != "POST")
 			return true;
-		std::cout << "start with body" << std::endl;
+		//std::cout << "start with body" << std::endl;
 		if (finished_request.headers.find("Content-Length") != finished_request.headers.end()){
 
-			std::cout << "body size: " << finished_request.headers["Content-Length"] << std::endl;
+			//std::cout << "body size: " << finished_request.headers["Content-Length"] << std::endl;
 			if (stoi(finished_request.headers["Content-Length"]) == 0 )
 				return true;
 			if (stoi(finished_request.headers["Content-Length"]) > _max_body_size){
@@ -185,10 +185,10 @@ bool RequestParser::feed(const char *chunk, ssize_t size)
 			return true;
 	}
 	else if (finished_request.body.size() == (size_t)stoi(finished_request.headers["Content-Length"])){
-		std::cout << "finished" << std::endl;
+		//std::cout << "finished" << std::endl;
 		return true;
 	}
-	std::cout << "waiting for more" << std::endl;
+	//std::cout << "waiting for more" << std::endl;
     return false;
 }
 

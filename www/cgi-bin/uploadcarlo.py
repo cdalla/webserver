@@ -2,20 +2,29 @@
 import cgi, os
 import sys
 import cgitb; cgitb.enable()
+import random
+import string
+
+
 form = cgi.FieldStorage()
-sys.stderr.write("here script")
-print("here in script", file=sys.stderr)
+upload_dir = os.environ.get('UPLOAD_DIR')
+upload_dir = os.getenv('UPLOAD_DIR')
+if upload_dir == "":
+    upload_dir = '/mnt/c/Users/dmonf/OneDrive/Desktop/clo/www/images/'
 # Get filename here.
 fileitem = form['fileName']
 # Test if the file was uploaded
 if fileitem.filename:
 	# strip leading path from file name to avoid
 	# directory traversal attacks
-	fn = os.path.basename(fileitem.filename)
-	with open('/home/cdalla-s/Desktop/serv/www/images/' + fn, 'wb') as f:
+	filename = os.path.basename(fileitem.filename)
+	temp_pathname = os.path.join(upload_dir, filename)
+	while os.path.exists(temp_pathname):
+		name, ext = os.path.splitext(filename)
+		temp_pathname = os.path.join(upload_dir, name + random.choice(string.ascii_letters) + ext)
+	with open(temp_pathname, 'wb') as f:
 		f.write(fileitem.file.read())
-		message = 'The file "' + fn + '" was uploaded successfully'
-		print(message, file=sys.stderr)
+		message = 'The file "' + temp_pathname + '" was uploaded successfully'
 		print("Content-type:text/html\r\n\r\n")
 		html_template = """
 		<!DOCTYPE html>
@@ -51,7 +60,6 @@ if fileitem.filename:
  
 else:
 	message = 'No file was uploaded'
-	print(message, file=sys.stderr)
 	print("Content-type:text/html\r\n\r\n")
 	html_template = """
 	<!DOCTYPE html>
