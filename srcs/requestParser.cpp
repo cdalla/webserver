@@ -175,7 +175,7 @@ bool RequestParser::feed(const char *chunk, ssize_t size)
     }
 	
     int body_result = set_body();
-	std::cout << "resolt of size: " << finished_request.body.size() << " == " << (size_t)stoi(finished_request.headers["Content-Length"]) << std::endl;
+	//std::cout << "resolt of size: " << finished_request.body.size() << " == " << (size_t)stoi(finished_request.headers["Content-Length"]) << std::endl;
 	if (body_result != 0){
 		finished_request.error = body_result;
 		return true;

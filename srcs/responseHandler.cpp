@@ -242,6 +242,7 @@ void responseHandler::_handleDirectory(std::string path){
 }
 
 void responseHandler::_handleCGI(std::string path){
+	std::cout << "body size: " << _client->request.body.size() << std::endl;
 	if (_client->cgi_result.empty()){
         if (access(path.c_str(), F_OK) == -1) {
             std::cerr << "CGI script not found: " << path << std::endl;
@@ -257,9 +258,9 @@ void responseHandler::_handleCGI(std::string path){
         _createEnv();
         if (_client->file_content.empty()){
             // Create new Cgi instance instead of CgiHandler
-            std::cout << "BODY: \n" << _client->request.body << std::endl;
-            std::cout << "BODY sixe: \n" << _client->request.body.size() << std::endl;
-            Cgi* cgi = new Cgi(_main, path.c_str(), _env, _client->request.body.empty() ? "" :_client->request.body.c_str(), _client);
+            //std::cout << "BODY: \n" << _client->request.body << std::endl;
+            //std::cout << "BODY sixe: \n" << _client->request.body.size() << std::endl;
+            Cgi* cgi = new Cgi(_main, path.c_str(), _env, _client->request.body.empty() ? "" :_client->request.body, _client);
             _client->status = "CGI";
         } else {
             _response += _client->file_content;
@@ -377,6 +378,7 @@ void responseHandler::_locationHandler(std::string path){
     _autoindex = _config.autoindex;
     _index = _config.index;
     _error_pages = _config.error_pages;
+	//_config.redirect_url = "https://www.google.com";
 
     if (!_config.redirect_url.empty()) {
         if (_config.redirect_url[_config.redirect_url.length() - 1] == '/') {

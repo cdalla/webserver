@@ -109,7 +109,7 @@ void	Webserver::run()
 	int readyFds = 0;
 	while (true)
 	{
-		//check_timeouts();
+		check_timeouts();
 		{
 			readyFds = epoll_wait(_epollConn, events_queue, MAX_EVENTS, 10);
 			if (readyFds == -1)
@@ -140,8 +140,6 @@ void	Webserver::run()
 					_fds[eventFd]->output();
 				else if (events_queue[n].events & EPOLLHUP && _fds.find(eventFd) != _fds.end())
 						_fds[eventFd]->hangup();
-				else
-					removeFd(eventFd, FILES, 1);
 			}
 		}
 	}

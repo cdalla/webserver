@@ -1,14 +1,14 @@
 #include "cgi.hpp"
 
-Cgi::Cgi(Webserver *ptr, const char *script, char *const *env, const char *body, Client *client) : _main(ptr), _pipeIn{-1, -1}, _pipeOut{-1, -1}, _env(env), _script(script), _body(body), _pos(0), _writeFinished(false), _client(client)
+Cgi::Cgi(Webserver *ptr, const char *script, char *const *env, std::string body, Client *client) : _main(ptr), _pipeIn{-1, -1}, _pipeOut{-1, -1}, _env(env), _script(script), _body(body), _pos(0), _writeFinished(false), _client(client)
 {
     print_msg("cgi handler consttructor");
     reset_last_activity();
     
     //SET UP PIPES
     if (pipe(_pipeIn) == -1 || pipe(_pipeOut) == -1)
-        throw WebservException("Failed to pipe: " + std::string(strerror(errno)));
-    _pid = fork();
+        throw WebservException("Failed to pipe: " + std::string(strerror(errno)));	
+	_pid = fork();
     if (_pid < 0)
         throw WebservException("Failed to fork: " + std::string(strerror(errno)));
     else if (_pid == 0)
@@ -31,6 +31,8 @@ Cgi::Cgi(Webserver *ptr, const char *script, char *const *env, const char *body,
     _main->addFdToMap(_inFd, this);
     close(_pipeIn[0]);
     close(_pipeOut[1]);
+	// dup2(oldin, STDIN_FILENO);
+	// dup2(oldout, STDOUT_FILENO);
    // std::cout << "CGI inFd = " << _inFd << ", CGI outFd = " << _outFd << std::endl;
 }
 
@@ -42,6 +44,9 @@ Cgi::~Cgi()
     if (waitpid(_pid, &exitstatus, WNOHANG) == 0)
     {
         std::cout << "killing child process" << std::endl;
+		this->_client->request.error = 502;
+        this->_client->file_content.clear();
+        this->_client->status.clear();
         kill(_pid, SIGQUIT);
     }
     // int status;
@@ -57,7 +62,7 @@ Cgi::~Cgi()
 void Cgi::input()
 {
     print_msg("CGI input");
-    reset_last_activity();
+    //reset_last_activity();
     char buff[MAX_BUFF];
     std::memset(buff, '\0', MAX_BUFF);
     ssize_t bytes = read(_inFd, buff, MAX_BUFF);
@@ -81,7 +86,7 @@ void Cgi::output()
 {
     print_msg("CGI output");
     //std::cout << "_body in cgi output: \n" << _body << std::endl; 
-    reset_last_activity();
+    //reset_last_activity();
     if (_writeFinished == true)
         return;
     if (_body.empty())
@@ -100,6 +105,7 @@ void Cgi::output()
         _writeFinished = true;
         _main->removeFd(_outFd, FILES, 0);
         _outFd = -1;
+		//std::cout << "pos: " << _pos << std::endl;
         print_msg("finish writing body");
     }
     else
@@ -114,13 +120,12 @@ void Cgi::hangup()
     int exitstatus;
     if (waitpid(_pid, &exitstatus, WNOHANG) == 0) //child has not changed state yet
         return;
-	waitpid(_pid, &exitstatus, 0);
 
 	print_msg("clearing cgi");
 	_client->status.clear();
-	if (exitstatus)
+	if (WIFEXITED(exitstatus))
     {
-        switch( WEXITSTATUS(exitstatus)) 
+        switch((exitstatus)) 
 	    {
 		    case 137:
 			    this->_client->request.error = 504;

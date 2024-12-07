@@ -33,7 +33,7 @@ class Cgi : public Fd_handler
 		
 	public:
 	
-    	Cgi(Webserver* ptr, const char *script, char * const *env, const char *body, Client *client);
+    	Cgi(Webserver* ptr, const char *script, char * const *env, std::string body, Client *client);
 		~Cgi();
 
 		virtual void            input(void);

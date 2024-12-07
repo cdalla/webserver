@@ -30,9 +30,16 @@ File::File(std::string filename, Webserver* ptr, Client* client): _main(ptr), _c
 	//std::cout<< "pipe in = " << _pipe[0] << " pipe out = " << _pipe[1] << std::endl;
 }
 
+File::~File()
+{
+	this->_client->request.error = 502;
+	this->_client->file_content.clear();
+    this->_client->status.clear();
+}
+
 void File::input()
 {
-	reset_last_activity();
+	//reset_last_activity();
 	//std::cout << "IN PIPE" << std::endl;
 	ssize_t bytes_r = read(_inFd, _buff, MAX_BUFF);
 	// std::cout << "bytes_r = " << bytes_r << std::endl;
@@ -59,7 +66,7 @@ void File::input()
 
 void File::output()
 {
-	reset_last_activity();
+	//reset_last_activity();
 	//std::cout << "OUT PIPE" << std::endl;
 	ssize_t bytes_r = read(_fd, _buff, MAX_BUFF);
 	if (bytes_r < 0)
