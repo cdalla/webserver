@@ -83,7 +83,7 @@ void responseHandler::_handleErrorPage(int error, std::string error_page){
     std::string path = _root;
     if (_root.empty())
         path = _config.root;
-    if (path[path.length() - 1] != '/')
+    if (path[path.length() - 1] != '/' && error_page[0] != '/'){
         path += "/";
     std::string error_path = path + error_page;
     if (access(error_path.c_str(), F_OK) == -1) {
@@ -94,12 +94,10 @@ void responseHandler::_handleErrorPage(int error, std::string error_page){
         return;
     }
 	if (this->_client->file_content.empty()){
-		int file_fd = open(error_path.c_str(), O_RDONLY);
-		if (file_fd == -1){
-			if (errno == EACCES)
-				_handleDefaultError(403);
-			_handleDefaultError(404);
-		}
+		File *file = new File(path, _main, _client);
+        _client->status = "FILE";
+	} else {
+        _client->status = "OK";
 		_determineType(path);
         _response = "HTTP/1.1 ";
         _response += std::to_string(error);
@@ -108,7 +106,7 @@ void responseHandler::_handleErrorPage(int error, std::string error_page){
         _response += "Content-Type: " + _content_type + "\r\n";
         _response += "Content-Length: " + std::to_string(_client->file_content.length()) + "\r\n";
         _response += "\r\n" + _client->file_content;
-
+        _client->file_content.clear();
 	}
 }
 
