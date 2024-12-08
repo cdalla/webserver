@@ -369,11 +369,14 @@ void responseHandler::_handleDirRequest(std::string path)
     _handleError(404);
 }
 
-void responseHandler::_handleRedirect(std::string path){
-    _response = "HTTP/1.1 301 Moved Permanently\r\n";
-    _response += "Location: " + path + "/\r\n";
+void responseHandler::_handleRedirect(std::string path) {
+    _response = "HTTP/1.1 302 Found\r\n";
+    if (path.find("http://") == 0 || path.find("https://") == 0) {
+        _response += "Location: " + path + "\r\n";
+    } else {
+        _response += "Location: " + path + "/\r\n";
+    }
     _response += "Content-Length: 0\r\n\r\n";
-
 }
 
 void responseHandler::_locationHandler(std::string path){
@@ -384,14 +387,7 @@ void responseHandler::_locationHandler(std::string path){
     _autoindex = _config.autoindex;
     _index = _config.index;
     _error_pages = _config.error_pages;
-	//_config.redirect_url = "https://www.google.com";
-
-    if (!_config.redirect_url.empty()) {
-        if (_config.redirect_url[_config.redirect_url.length() - 1] == '/') {
-            path.erase(0, 1);
-        }
-        _handlePage(_config.redirect_url + path);
-    }
+	_redirect_url = _config.redirect_url;
 
     // Find best matching location using a pointer to avoid copying
     const Location* matched_location = NULL;
@@ -416,7 +412,6 @@ void responseHandler::_locationHandler(std::string path){
                 if (it->path == extension) {
                     matched_location = &(*it);
                     location_prefix = path.substr(0, ext_pos + extension.length());
-
                     break;
                 }
             }
@@ -445,13 +440,6 @@ void responseHandler::_locationHandler(std::string path){
     }  else {    
 		std::list<std::string>::const_iterator method_it;
         bool method_found = false;
-        if (!matched_location->redirect_url.empty()){ 
-            if (matched_location->redirect_url[matched_location->redirect_url.length() - 1] == '/') {
-                path.erase(0, 1);
-            }
-            _handleRedirect(matched_location->redirect_url + path);
-            return;
-        }
         if (!matched_location->methods.empty()) {
             for (method_it = matched_location->methods.begin(); 
                  method_it != matched_location->methods.end(); ++method_it) {
@@ -481,6 +469,7 @@ void responseHandler::_locationHandler(std::string path){
         if (!matched_location->error_pages.empty())
             _error_pages = matched_location->error_pages;
         _autoindex = matched_location->autoindex;
+        _redirect_url = matched_location->redirect_url;
     }
       
      // Remove the location prefix from the path for proper file handling
@@ -494,16 +483,24 @@ void responseHandler::_locationHandler(std::string path){
     if (adjusted_path[0] == '/') {
        adjusted_path.erase(0, 1);
     }
+    if (!_redirect_url.empty()) {
+        _handleRedirect(_redirect_url + adjusted_path);
+        return;
+    }
+    
     // Process the request
     std::string full_path = _root + adjusted_path;
     size_t ext_pos = path.find_last_of(".");
+    std::cout << "ext_pos: " << ext_pos << std::endl;
     if (ext_pos != std::string::npos) {
         std::string extension = path.substr(ext_pos);
         std::vector<std::string>::const_iterator cgi_it;
         for (cgi_it = _cgi_ext.begin(); cgi_it != _cgi_ext.end(); ++cgi_it) {
+            std::cout << "CGI EXT: " << *cgi_it << std::endl;
             if (*cgi_it == extension) {
                 std::string script_name = path.substr(path.find_last_of("/") + 1);
                 std::string cgi_path = _root + script_name;
+                std::cout << "CGI PATH: " << cgi_path << std::endl;
                 _handleCGI(cgi_path);
                 return;
             }
@@ -520,5 +517,6 @@ void responseHandler::_locationHandler(std::string path){
         _handleDirRequest(full_path);
         return;
     }
+    std::cout << "Handle page: " << full_path << std::endl;
     _handlePage(full_path);
 }

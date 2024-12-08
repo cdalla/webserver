@@ -31,13 +31,13 @@ private:
     void set_map(void);
     int set_body(void);
     bool handle_chunked_data(void);
+    void printHeader() const;
 
 public:
     RequestParser(VirtualServer &config, Request &request);
     ~RequestParser(void);
 
     bool feed(const char *chunk, ssize_t byte);
-    std::string _body;
 };
 
 typedef enum e_request_type

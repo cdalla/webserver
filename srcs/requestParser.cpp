@@ -13,6 +13,13 @@ RequestParser::RequestParser(VirtualServer &config, Request &request): _is_heade
 		_max_body_size = 1000000;
 }
 
+void RequestParser::printHeader() const {
+	std::cout << B_WHT << "Method: " << finished_request.method << RST << std::endl;
+    for (std::map<std::string, std::string>::const_iterator it = finished_request.headers.begin(); it != finished_request.headers.end(); ++it) {
+        std::cout << it->first << ": " << it->second << std::endl;
+    }
+}
+
 RequestParser::~RequestParser(void){
 }
 
@@ -71,7 +78,7 @@ bool RequestParser::handle_chunked_data(void){
                 return true;
             }
             
-            _body.append(_buffer.substr(0, _current_chunk_size));
+            finished_request.body.append(_buffer.substr(0, _current_chunk_size));
             _buffer.erase(0, _current_chunk_size + 2);
             _is_reading_chunk_size = true;
         }
@@ -156,6 +163,7 @@ bool RequestParser::feed(const char *chunk, ssize_t size)
 		if (set_MetAddProt())
 			return true;
 		set_map();
+
 		//std::cout << finished_request.method << std::endl;
 		if (finished_request.method != "POST")
 			return true;
