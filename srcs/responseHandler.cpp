@@ -81,10 +81,12 @@ void responseHandler::_determineType(std::string path){
 
 void responseHandler::_handleErrorPage(int error, std::string error_page){
     std::string path = _root;
-    if (_root.empty())
-        path = _config.root;
+    if (_root.empty()) {
+        path = DEFAULT_ROOT;
+    }
     if (path[path.length() - 1] != '/' && error_page[0] != '/'){
         path += "/";
+    }
     std::string error_path = path + error_page;
     if (access(error_path.c_str(), F_OK) == -1) {
         _handleDefaultError(404);
@@ -94,7 +96,7 @@ void responseHandler::_handleErrorPage(int error, std::string error_page){
         return;
     }
 	if (this->_client->file_content.empty()){
-		File *file = new File(path, _main, _client);
+		File *file = new File(error_path, _main, _client);
         _client->status = "FILE";
 	} else {
         _client->status = "OK";
@@ -110,6 +112,7 @@ void responseHandler::_handleErrorPage(int error, std::string error_page){
 	}
 }
 
+
 void responseHandler::_handleDefaultError(int error){
     _createErrorPage(error);
     _response = "HTTP/1.1 ";
@@ -121,7 +124,11 @@ void responseHandler::_handleDefaultError(int error){
     _response += "\r\n" + _body;
 }
 
-void responseHandler::_handleError(int error){   
+void responseHandler::_handleError(int error){ 
+    if (_error_pages.empty()) {
+        _handleDefaultError(error);
+        return;
+    }
     std::string error_page = _error_pages[error];
     if (error_page.empty()) {
         _handleDefaultError(error);
@@ -258,7 +265,6 @@ void responseHandler::_handleCGI(std::string path){
             _handleError(403);
             return;
         }
-
         _createEnv();
         if (_client->file_content.empty()){
             // Create new Cgi instance instead of CgiHandler
@@ -494,11 +500,9 @@ void responseHandler::_locationHandler(std::string path){
         std::string extension = path.substr(ext_pos);
         std::vector<std::string>::const_iterator cgi_it;
         for (cgi_it = _cgi_ext.begin(); cgi_it != _cgi_ext.end(); ++cgi_it) {
-            std::cout << "CGI EXT: " << *cgi_it << std::endl;
             if (*cgi_it == extension) {
                 std::string script_name = path.substr(path.find_last_of("/") + 1);
                 std::string cgi_path = _root + script_name;
-                std::cout << "CGI PATH: " << cgi_path << std::endl;
                 _handleCGI(cgi_path);
                 return;
             }
@@ -515,6 +519,5 @@ void responseHandler::_locationHandler(std::string path){
         _handleDirRequest(full_path);
         return;
     }
-    std::cout << "Handle page: " << full_path << std::endl;
     _handlePage(full_path);
 }
