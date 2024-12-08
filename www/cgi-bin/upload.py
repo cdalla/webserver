@@ -4,6 +4,7 @@ import cgitb; cgitb.enable()
 import os
 import random
 import string
+import sys
 
 print("Content-type:text/html\r\n\r\n")
 form = cgi.FieldStorage()

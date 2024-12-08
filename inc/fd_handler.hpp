@@ -18,7 +18,7 @@
 # define OUT 1
 # define MAX_SIZE 1024
 # define MAX_CONNECTIONS 100
-# define TIMEOUT 10
+# define TIMEOUT 5
 
 class Fd_handler
 {

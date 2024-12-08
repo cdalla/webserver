@@ -26,6 +26,7 @@ class File : public Fd_handler
 		Client*                 _client;
 
     	File(std::string filename, Webserver* ptr, Client* client);
+		~File();
 
 		virtual void          	input(void);
         virtual void            output(void);

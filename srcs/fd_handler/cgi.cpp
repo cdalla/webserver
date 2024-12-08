@@ -1,14 +1,14 @@
 #include "cgi.hpp"
 
-Cgi::Cgi(Webserver *ptr, const char *script, char *const *env, const char *body, Client *client) : _main(ptr), _pipeIn{-1, -1}, _pipeOut{-1, -1}, _env(env), _script(script), _body(body), _pos(0), _writeFinished(false), _client(client)
+Cgi::Cgi(Webserver *ptr, const char *script, char *const *env, std::string body, Client *client) : _main(ptr), _pipeIn{-1, -1}, _pipeOut{-1, -1}, _env(env), _script(script), _body(body), _pos(0), _writeFinished(false), _client(client)
 {
-    print_msg("cgi handler consttructor");
+    //print_msg("cgi handler consttructor");
     reset_last_activity();
     
     //SET UP PIPES
     if (pipe(_pipeIn) == -1 || pipe(_pipeOut) == -1)
-        throw WebservException("Failed to pipe: " + std::string(strerror(errno)));
-    _pid = fork();
+        throw WebservException("Failed to pipe: " + std::string(strerror(errno)));	
+	_pid = fork();
     if (_pid < 0)
         throw WebservException("Failed to fork: " + std::string(strerror(errno)));
     else if (_pid == 0)
@@ -31,40 +31,45 @@ Cgi::Cgi(Webserver *ptr, const char *script, char *const *env, const char *body,
     _main->addFdToMap(_inFd, this);
     close(_pipeIn[0]);
     close(_pipeOut[1]);
+	// dup2(oldin, STDIN_FILENO);
+	// dup2(oldout, STDOUT_FILENO);
    // std::cout << "CGI inFd = " << _inFd << ", CGI outFd = " << _outFd << std::endl;
 }
 
 Cgi::~Cgi()
 {
-    print_msg("CGI destructor");
+    //print_msg("CGI destructor");
     //child still running
     int exitstatus;
     if (waitpid(_pid, &exitstatus, WNOHANG) == 0)
     {
-        std::cout << "killing child process" << std::endl;
+        //std::cout << "killing child process" << std::endl;
+		this->_client->request.error = 502;
+        this->_client->file_content.clear();
+        this->_client->status.clear();
         kill(_pid, SIGQUIT);
     }
-    int status;
+    // int status;
     
-    waitpid(_pid, &status, 0);
-    if (WIFEXITED(status))
-    {
-        status = WEXITSTATUS(status);
-		_client->request.error = status;
-    }
+    // waitpid(_pid, &status, 0);
+    // if (WIFEXITED(status))
+    // {
+    //     status = WEXITSTATUS(status);
+	// 	_client->request.error = status;
+    // }
 }
 
 void Cgi::input()
 {
-    print_msg("CGI input");
-    reset_last_activity();
+    //print_msg("CGI input");
+    //reset_last_activity();
     char buff[MAX_BUFF];
     std::memset(buff, '\0', MAX_BUFF);
     ssize_t bytes = read(_inFd, buff, MAX_BUFF);
-	std::cout << "bytes read: " << bytes << std::endl;
+	//std::cout << "bytes read: " << bytes << std::endl;
     if (bytes == 0)
     {
-		print_msg("read zero bytes in cgi");
+		//print_msg("read zero bytes in cgi");
         _client->status.clear();
         _main->removeFd(_inFd, FILES, 1);
     }
@@ -79,9 +84,9 @@ void Cgi::input()
 
 void Cgi::output()
 {
-    print_msg("CGI output");
+    //print_msg("CGI output");
     //std::cout << "_body in cgi output: \n" << _body << std::endl; 
-    reset_last_activity();
+    //reset_last_activity();
     if (_writeFinished == true)
         return;
     if (_body.empty())
@@ -100,7 +105,8 @@ void Cgi::output()
         _writeFinished = true;
         _main->removeFd(_outFd, FILES, 0);
         _outFd = -1;
-        print_msg("finish writing body");
+		//std::cout << "pos: " << _pos << std::endl;
+        //print_msg("finish writing body");
     }
     else
     {
@@ -110,35 +116,35 @@ void Cgi::output()
 
 void Cgi::hangup()
 {
-	print_msg("CGI hangup");
+	//print_msg("CGI hangup");
     int exitstatus;
     if (waitpid(_pid, &exitstatus, WNOHANG) == 0) //child has not changed state yet
         return;
-	waitpid(_pid, &exitstatus, 0);
 
-	print_msg("clearing cgi");
+	//print_msg("clearing cgi");
 	_client->status.clear();
-    std::cout << "child terminated normally: " << WIFEXITED(exitstatus) << std::endl;
-    std::cout << "child terminated abnormally: " << WEXITSTATUS(exitstatus) << std::endl;
-    std::cout << "exitstatus: "<<  exitstatus << std::endl;
-	if (exitstatus)
+	if (WIFEXITED(exitstatus))
     {
-        switch(exitstatus) 
+        switch((exitstatus)) 
 	    {
 		    case 137:
 			    this->_client->request.error = 504;
                 this->_client->file_content.clear();
+                this->_client->status.clear();
 			    break ;
 		    case 3328:
 			    this->_client->request.error = 403;
 			    this->_client->file_content.clear();
-			    break ;
+                this->_client->status.clear();
+                break ;
 		    case 0:
 			    break ;
             
 		    default:
 			    this->_client->request.error = 502;
                 this->_client->file_content.clear();
+                this->_client->status.clear();
+                break ;
 	    }
     }
 	_main->removeFd(_inFd, FILES, 1);

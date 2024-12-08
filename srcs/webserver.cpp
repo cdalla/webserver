@@ -68,13 +68,20 @@ void	Webserver::check_timeouts()
 	{
 		if (dynamic_cast<Client *>(it->second) && reinterpret_cast<Client *>(it->second)->has_timeout())
 		{
-			print_error("Removing client fd for timeout");
-			removeFd(it->first, CONN, 0);
+			dynamic_cast<Client *>(it->second)->request.error = 408;
+			change_event(it->first);
 		}
 		else if((it->second)->has_timeout() && dynamic_cast<Cgi *>(it->second))
+		{
 			remove_Cgi_handler(dynamic_cast<Cgi *>(it->second));
+		}
 		else if((it->second)->has_timeout() && dynamic_cast<File *>(it->second))
+		{
+			dynamic_cast<File *>(it->second)->_client->request.error = 502;
+        	dynamic_cast<File *>(it->second)->_client->file_content.clear();
+        	dynamic_cast<File *>(it->second)->_client->status.clear();
 			remove_File_handler(dynamic_cast<File *>(it->second));
+		}
 	}
 }
 
@@ -109,7 +116,7 @@ void	Webserver::run()
 	int readyFds = 0;
 	while (true)
 	{
-		//check_timeouts();
+		check_timeouts();
 		{
 			readyFds = epoll_wait(_epollConn, events_queue, MAX_EVENTS, 10);
 			if (readyFds == -1)
@@ -140,8 +147,6 @@ void	Webserver::run()
 					_fds[eventFd]->output();
 				else if (events_queue[n].events & EPOLLHUP && _fds.find(eventFd) != _fds.end())
 						_fds[eventFd]->hangup();
-				else
-					removeFd(eventFd, FILES, 1);
 			}
 		}
 	}
