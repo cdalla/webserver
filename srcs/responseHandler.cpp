@@ -126,8 +126,14 @@ void responseHandler::_handleDefaultError(int error){
 
 void responseHandler::_handleError(int error){ 
     if (_error_pages.empty()) {
-        _handleDefaultError(error);
-        return;
+        if (!_config.error_pages.empty()) {
+            _error_pages = _config.error_pages;
+            _root =  !_config.root.empty() ? _config.root : DEFAULT_ROOT;
+        }
+        else {
+            _handleDefaultError(error);
+            return;
+        }
     }
     std::string error_page = _error_pages[error];
     if (error_page.empty()) {
@@ -386,7 +392,7 @@ void responseHandler::_handleRedirect(std::string path) {
 void responseHandler::_locationHandler(std::string path){
     // Reset to server defaults
     _cgi_ext = _config.cgi_ext;
-    _root = !_config.root.empty() ? _config.root : "/var/www/";
+    _root = !_config.root.empty() ? _config.root : DEFAULT_ROOT;
     _upload_dir = _config.upload_dir;
     _autoindex = _config.autoindex;
     _index = _config.index;
@@ -470,8 +476,7 @@ void responseHandler::_locationHandler(std::string path){
             _index.assign(matched_location->index.begin(), 
                         matched_location->index.end());
         }
-        if (!matched_location->error_pages.empty())
-            _error_pages = matched_location->error_pages;
+        _error_pages = matched_location->error_pages;
         _autoindex = matched_location->autoindex;
         _redirect_url = matched_location->redirect_url;
     }
@@ -495,7 +500,6 @@ void responseHandler::_locationHandler(std::string path){
     // Process the request
     std::string full_path = _root + adjusted_path;
     size_t ext_pos = path.find_last_of(".");
-    std::cout << "ext_pos: " << ext_pos << std::endl;
     if (ext_pos != std::string::npos) {
         std::string extension = path.substr(ext_pos);
         std::vector<std::string>::const_iterator cgi_it;
