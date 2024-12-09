@@ -10,15 +10,15 @@ void sig_handler(int signal)
 
 int main(int argc, char **argv)
 {
-	if (argc != 2) 
+	if (argc > 2) 
 	{
-		print_error("Exactly one argument expected");
+		print_error("Too many arguments provided");
 		return (0);
 	}
 
 	signal(SIGINT, sig_handler);
 
-	std::string config_file = "default.conf";
+	std::string config_file = "configurations/default.conf";
 	if (argc ==  2)
 		config_file = std::string(argv[1]);
 	

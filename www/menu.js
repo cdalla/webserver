@@ -20,18 +20,9 @@ document.addEventListener("DOMContentLoaded", function () {
 	footer.innerHTML = `
 			<li class="footer">
 				<a href="index.html">
-					Yaaasss bitch
+					Back 2 home
 				</a>
 			</li>
-			<li class="footer">
-				<a href="debug.debug">
-					Debug info
-				</a>
-			</li>
-			<div id="shutup">
-				<li class="footer">
-					<a href="shutup.html">shut up
-					</a></li> </div>
 	`;
 
 	const menu = document.getElementById('menu');

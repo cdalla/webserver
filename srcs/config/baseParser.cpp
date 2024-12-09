@@ -14,14 +14,11 @@ void	baseParser<T>::parseCgiExt(std::vector<std::string> &args) {
         throw std::runtime_error("Configuration error: CGI extensions cannot be empty");
     }
     
-    // Clear any existing extensions
     context.cgi_ext.clear();
     
-    // Add each extension to the list
     for (std::vector<std::string>::iterator it = args.begin(); it != args.end(); ++it) {
-        // Optionally validate that each extension starts with a dot
-        if ((*it)[0] != '.') {
-            throw std::runtime_error("Configuration error: CGI extension must start with a dot (.)");
+        if (*it != ".py" && *it != ".sh") {
+            throw std::runtime_error("Configuration error: only bash or python CGI is supported (.sh, .py)");
         }
         context.cgi_ext.push_back(*it);
     }
@@ -49,7 +46,7 @@ void	baseParser<T>::parseRoot(std::vector<std::string> &args) {
   template <typename T>
 void	baseParser<T>::parseMethods(std::vector<std::string> &args) {
 	for (std::vector<std::string>::iterator i = args.begin(); i != args.end(); i++) {
-		if (*i == "GET" || *i == "POST" || *i == "DELETE" || *i == "PATCH")
+		if (*i == "GET" || *i == "POST" || *i == "DELETE")
 			context.methods.push_back(*i);
 		else {
 			throw ConfigException();
@@ -144,7 +141,6 @@ void	baseParser<T>::parseMaxBodySize(std::vector<std::string> &args) {
 		context.max_body_size = stoi(str);
 		return;
 	}
-	//std::cout << "aaaaaaaaaaaaaaaaa: " << str[pos] <<std::endl;
 	if (pos != str.size() - 1 || (str[pos] != 'K' && str[pos] != 'M' && str[pos] != 'G' ))
 	{
 		//std::cout << "SUCA" << std::endl;

@@ -30,29 +30,29 @@ if fileitem.filename:
 		<!DOCTYPE html>
 
 		<head>
-		<link rel="stylesheet" type="text/css" href="style.css">
-		<title>Fucking dope HTML page</title>
+			<link rel="stylesheet" type="text/css" href="style.css">
+			<title>Friggin dope HTML page</title>
 		</head>
 
 		<body>
-		<div class="header">
-		<h1>This is where you upload stuff</h1>
-		</div>
-		<div class="menu">
-		<ul id="menu"></ul>
-		</div>
-		<div class="container">
-		<div class="image">
-		<img src="IllusionsMichael.jpg" width="400" height="400" alt="ILLUSIONS, michael"/>
-		</div>
-		<div class="text">
-		YAY about something
-		</div>
-		</div>
-		<div class="footer">
-		<ul id="footer"></ul>
-		</div>
-		<script src="menu.js" defer></script>
+			<div class="header">
+				<h1>This is where you upload stuff</h1>
+			</div>
+			<div class="menu">
+				<ul id="menu"></ul>
+			</div>
+			<div class="container">
+				<div class="image">
+					<img src="img/IllusionsMichael.jpg" width="400" height="400" alt="ILLUSIONS, michael"/>
+				</div>
+				<div class="text">
+					Your file was successfully uploaded! Yippyyyy!
+				</div>
+			</div>
+			<div class="footer">
+				<ul id="footer"></ul>
+			</div>
+			<script src="menu.js" defer></script>
 		</body>
 		</html>
 		"""
@@ -65,8 +65,8 @@ else:
 	<!DOCTYPE html>
 
 	<head>
-		<link rel="www/stylesheet" type="text/css" href="style.css">
-	<title>Fucking dope HTML page</title>
+		<link rel="stylesheet" type="text/css" href="style.css">
+	<title>Friggin dope HTML page</title>
 	</head>
 
 	<body>
@@ -78,16 +78,16 @@ else:
 		</div>
 		<div class="container">
 			<div class="image">
-				<img src="www/img/IllusionsMichael.jpg" width="400" height="400" alt="ILLUSIONS, michael"/>
+				<img src="img/IllusionsMichael.jpg" width="400" height="400" alt="ILLUSIONS, michael"/>
 			</div>
 			<div class="text">
-				BOO about something
+				Something went wrong with uploading the file, boohoo!
 			</div>
 		</div>
 		<div class="footer">
 			<ul id="footer"></ul>
 		</div>
-		<script src="www/menu.js" defer></script>
+		<script src="menu.js" defer></script>
 	</body>
 	</html>
 	"""
