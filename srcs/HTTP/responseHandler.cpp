@@ -344,7 +344,7 @@ void responseHandler::_handleRedirect(std::string path) {
 // then we need to check if we need to redirect
 // then we process the request
 void responseHandler::_locationHandler(std::string path){
-    std::cout << path << std::endl;
+    std::cout << "Method: " << _client->request.method << " Path: " << path << std::endl;
     // Reset to server defaults
     _cgi_ext = _config.cgi_ext;
     _root = !_config.root.empty() ? _config.root : DEFAULT_ROOT;
