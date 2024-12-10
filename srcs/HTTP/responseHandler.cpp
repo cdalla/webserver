@@ -152,7 +152,7 @@ std::string CGIResponseParser(std::string CGIResponse)
     if (CGIResponse.size() > 0)
         parsedResponse += "Content-Length: " + std::to_string(CGIResponse.size()) + "\r\n";
     parsedResponse += headers + "\r\n\r\n" + CGIResponse;
-    std::cout << parsedResponse << std::endl;
+
     return (parsedResponse);
 }
 

@@ -5,7 +5,7 @@ import os
 import random
 import string
 
-
+print("Status: 201 Created")
 print("Content-type:text/html\r\n\r\n")
 form = cgi.FieldStorage()
 upload_dir = os.environ.get('UPLOAD_DIR')
