@@ -135,6 +135,7 @@ void	baseParser<T>::parseMaxBodySize(std::vector<std::string> &args) {
 	-G giga
 	-T tera
 	-Z ziliobyte
+	-C carlobyte
 	*/
 	size_t pos = str.find_first_not_of("0123456789");
 	if (pos == std::string::npos){
@@ -143,8 +144,7 @@ void	baseParser<T>::parseMaxBodySize(std::vector<std::string> &args) {
 	}
 	if (pos != str.size() - 1 || (str[pos] != 'K' && str[pos] != 'M' && str[pos] != 'G' ))
 	{
-		//std::cout << "SUCA" << std::endl;
-		return; //error
+		throw ConfigException();
 	}
 	std::string res = str.substr(0, pos);
 	switch (str[pos])
@@ -160,6 +160,4 @@ void	baseParser<T>::parseMaxBodySize(std::vector<std::string> &args) {
 		break;
 	}
 	context.max_body_size = stoi(res);
-
-
 }

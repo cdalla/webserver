@@ -31,7 +31,6 @@ void Client::input()
 {
     reset_last_activity();
     ssize_t bytes_read;
-	//print_msg("in");
 
     if (!_done)
     {
@@ -53,7 +52,6 @@ void Client::input()
 
 void Client::output()
 {
-	//print_msg("out");
     reset_last_activity();
 	if (status == "FILE" || status == "CGI")
 		return;

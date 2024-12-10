@@ -2,7 +2,6 @@
 
 Cgi::Cgi(Webserver *ptr, const char *script, char *const *env, std::string body, Client *client) : _main(ptr), _pipeIn{-1, -1}, _pipeOut{-1, -1}, _env(env), _script(script), _body(body), _pos(0), _writeFinished(false), _client(client)
 {
-    //print_msg("cgi handler consttructor");
     reset_last_activity();
     
     //SET UP PIPES
@@ -31,45 +30,27 @@ Cgi::Cgi(Webserver *ptr, const char *script, char *const *env, std::string body,
     _main->addFdToMap(_inFd, this);
     close(_pipeIn[0]);
     close(_pipeOut[1]);
-	// dup2(oldin, STDIN_FILENO);
-	// dup2(oldout, STDOUT_FILENO);
-   // std::cout << "CGI inFd = " << _inFd << ", CGI outFd = " << _outFd << std::endl;
 }
 
 Cgi::~Cgi()
 {
-    //print_msg("CGI destructor");
-    //child still running
     int exitstatus;
     if (waitpid(_pid, &exitstatus, WNOHANG) == 0)
     {
-        //std::cout << "killing child process" << std::endl;
 		this->_client->request.error = 502;
         this->_client->file_content.clear();
         this->_client->status.clear();
         kill(_pid, SIGQUIT);
     }
-    // int status;
-    
-    // waitpid(_pid, &status, 0);
-    // if (WIFEXITED(status))
-    // {
-    //     status = WEXITSTATUS(status);
-	// 	_client->request.error = status;
-    // }
 }
 
 void Cgi::input()
 {
-    //print_msg("CGI input");
-    //reset_last_activity();
     char buff[MAX_BUFF];
     std::memset(buff, '\0', MAX_BUFF);
     ssize_t bytes = read(_inFd, buff, MAX_BUFF);
-	//std::cout << "bytes read: " << bytes << std::endl;
     if (bytes == 0)
     {
-		//print_msg("read zero bytes in cgi");
         _client->status.clear();
         _main->removeFd(_inFd, FILES, 1);
     }
@@ -77,16 +58,12 @@ void Cgi::input()
         throw WebservException("Failed to read: " + std::string(strerror(errno)));
     else
 	{
-		//std::cout << "cgi buff: \n:" << buff << std::endl;
         _client->file_content.append(buff, bytes);
 	}
 }
 
 void Cgi::output()
 {
-    //print_msg("CGI output");
-    //std::cout << "_body in cgi output: \n" << _body << std::endl; 
-    //reset_last_activity();
     if (_writeFinished == true)
         return;
     if (_body.empty())
@@ -105,8 +82,6 @@ void Cgi::output()
         _writeFinished = true;
         _main->removeFd(_outFd, FILES, 0);
         _outFd = -1;
-		//std::cout << "pos: " << _pos << std::endl;
-        //print_msg("finish writing body");
     }
     else
     {
@@ -116,12 +91,10 @@ void Cgi::output()
 
 void Cgi::hangup()
 {
-	//print_msg("CGI hangup");
     int exitstatus;
     if (waitpid(_pid, &exitstatus, WNOHANG) == 0) //child has not changed state yet
         return;
 
-	//print_msg("clearing cgi");
 	_client->status.clear();
 	if (WIFEXITED(exitstatus))
     {
@@ -154,7 +127,6 @@ void Cgi::execute_child()
 {
     close(_pipeIn[1]);
     close(_pipeOut[0]);
-	//_script = "/home/cdalla/webserver/www/cgi-bin/infinite.py";
     char *argv[] = {(char *)_script, (char *)_script, NULL};
     if (dup2(_pipeIn[0], STDIN_FILENO) < 0)
     {
@@ -175,7 +147,7 @@ void Cgi::execute_child()
 	std::cerr << "Error: " << error << std::endl;
     close(STDIN_FILENO);
     close(STDOUT_FILENO);
-    exit(error);
+    exit(1);
 }
 
 int Cgi::get_inFd()
@@ -187,6 +159,3 @@ int Cgi::get_outFd()
 {
     return this->_outFd;
 }
-
-
-//add a max timeout for cgi to prevent infinite loops

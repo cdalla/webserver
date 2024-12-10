@@ -258,6 +258,13 @@ void responseHandler::_handleDirectory(std::string path){
 	_client->status = "done";
 }
 
+// void CGIResponseParser(std::string CGIResponse)
+// {
+// 	std::string parsedResponse;
+// 	std::string header = CGIResponse.substr(0, CGIResponse.find_first_of("\r\n\r\n"));
+// 	header.split("\r\n");
+// }
+
 void responseHandler::_handleCGI(std::string path){
 	//std::cout << "body size: " << _client->request.body.size() << std::endl;
 	if (_client->cgi_result.empty()){
@@ -273,12 +280,10 @@ void responseHandler::_handleCGI(std::string path){
         }
         _createEnv();
         if (_client->file_content.empty()){
-            // Create new Cgi instance instead of CgiHandler
-            //std::cout << "BODY: \n" << _client->request.body << std::endl;
-            //std::cout << "BODY sixe: \n" << _client->request.body.size() << std::endl;
             Cgi* cgi = new Cgi(_main, path.c_str(), _env, _client->request.body.empty() ? "" :_client->request.body, _client);
             _client->status = "CGI";
         } else {
+			
             _response += _client->file_content;
             _client->file_content.clear();
         }
