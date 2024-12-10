@@ -77,6 +77,7 @@ struct Request {
 	std::string		resource;
 	std::string		extension;
 	std::string		uri;
+	std::string		url;
 	std::string		_path;
 	std::string		body;
 	std::string 	query_string;

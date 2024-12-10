@@ -1,9 +1,9 @@
 #include "responseHandler.hpp"
+#include "errorHandler.cpp"
 #include "colours.hpp"
 #include "utils.hpp"
 #include <cerrno>
 #include <fstream>
-#include <sys/epoll.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <cctype>
@@ -11,24 +11,24 @@
 #include <string.h>
 #include <algorithm>
 #include "file.hpp"
+#include <sys/stat.h>
 
-#define DEFAULT_ROOT "/var/www/html"
 
 responseHandler::responseHandler(Client *ptr) : 
     _client(ptr),
     _config(ptr->server->get_config()),
     _main(ptr->main),
-    _upload_dir(""),
-    _file(""),
+    _upload_dir(""), // Default upload directory
     _content_type("text/plain"),
     _body(""),
-    _root(""),
+    _root(""), // Default root
     _response(""),
     _env(nullptr),
-    _autoindex(false),
-    _index(),
-    _cgi_ext()
+    _autoindex(false), // Default autoindex off
+    _index(), // Default index files
+    _cgi_ext() // Default CGI extensions
 {
+    // Initialize environment variables used for CGI
     _env = new char*[33];
     for (int i = 0; i < 33; i++) {
         _env[i] = nullptr;
@@ -51,6 +51,7 @@ std::string responseHandler::get(void){
 	return _response;
 }
 
+// We need this to set the content type of the response's headers
 void responseHandler::_determineType(std::string path){
 	std::string extension;
 	size_t pos;
@@ -79,114 +80,16 @@ void responseHandler::_determineType(std::string path){
     }
 }
 
-void responseHandler::_handleErrorPage(int error, std::string error_page){
-    std::string path = _root;
-    if (_root.empty()) {
-        path = DEFAULT_ROOT;
-    }
-    if (path[path.length() - 1] != '/' && error_page[0] != '/'){
-        path += "/";
-    }
-    std::string error_path = path + error_page;
-    if (access(error_path.c_str(), F_OK) == -1) {
-        _handleDefaultError(404);
-    }
-    if (access(error_path.c_str(), R_OK) == -1) {
-        _handleDefaultError(403);
-        return;
-    }
-	if (this->_client->file_content.empty()){
-		File *file = new File(error_path, _main, _client);
-        _client->status = "FILE";
-	} else {
-        _client->status = "OK";
-		_determineType(path);
-        _response = "HTTP/1.1 ";
-        _response += std::to_string(error);
-        _response += " ";
-        _response += _getStatusMessage(error);
-        _response += "Content-Type: " + _content_type + "\r\n";
-        _response += "Content-Length: " + std::to_string(_client->file_content.length()) + "\r\n";
-        _response += "\r\n" + _client->file_content;
-        _client->file_content.clear();
-	}
-}
-
-
-void responseHandler::_handleDefaultError(int error){
-    _createErrorPage(error);
-    _response = "HTTP/1.1 ";
-    _response += std::to_string(error);
-    _response += " ";
-    _response += _getStatusMessage(error);
-    _response += "Content-Type: text/html\r\n";
-    _response += "Content-Length: " + std::to_string(_body.length()) + "\r\n";
-    _response += "\r\n" + _body;
-}
-
-void responseHandler::_handleError(int error){ 
-    if (_error_pages.empty()) {
-        if (!_config.error_pages.empty()) {
-            _error_pages = _config.error_pages;
-            _root =  !_config.root.empty() ? _config.root : DEFAULT_ROOT;
-        }
-        else {
-            _handleDefaultError(error);
-            return;
-        }
-    }
-    std::string error_page = _error_pages[error];
-    if (error_page.empty()) {
-        _handleDefaultError(error);
-        return;
-    }
-    _handleErrorPage(error, error_page);
-}
-
-void responseHandler::_createErrorPage(int error){
-	std::string errorPage;
-	std::string errorMessage;
-
-	errorMessage = std::to_string(error) + " " + _getStatusMessage(error);
-	errorPage = "<!DOCTYPE html>\n<html>\n<head>\n<title>" + errorMessage + "</title>\n</head>\n<body>\n<h1>" + errorMessage + "</h1>\n</body>\n</html>\n";
-	_body = errorPage;
-}
-
-std::string responseHandler::_getStatusMessage(int error){
-	switch (error){
-        case 400:
-            return "Bad Request";
-        case 403:
-            return "Forbidden";
-        case 404:
-            return "Not Found";
-        case 405:
-            return "Method Not Allowed";
-		case 408:
-			return "Request Timeout";
-        case 413:
-            return "Payload Too Large";
-		case 501:
-			return "Not Implemented";
-        case 502:
-            return "Bad Gateway";
-        case 503:
-            return "Service Unavailable";
-        case 504:
-            return "Gateway Timeout";
-        case 505:
-            return "HTTP Version Not Supported";
-		case 4444:
-			return "Carlo the King";
-        default:
-            return "Internal Server Error";
-	}
-}
-
+// Page handling is a bit more complex, after doing basic checks:
+// 1. Check if the method is allowed (POST and DELETE are not allowed the server needs
+//    a CGI script to handle them)   
+// 2. Check file permissions and existence
+// 3. Check if the file is empty
+// we need to read the file passing from epoll, this is done in the File class
+// 
 void responseHandler::_handlePage(std::string path){
-    //std::cout << "path: " << path << std::endl;
+    std::cout << "The request is a Page" << std::endl;
     if (_client->request.method == "POST" || _client->request.method == "DELETE"){
-       //std::cout << "Method not allowed" << std::endl;
         _handleError(405);
         return;
     }
@@ -201,7 +104,6 @@ void responseHandler::_handlePage(std::string path){
         _handleError(403);
         return;
     }
-
 	if (_client->file_content.empty()){
         File *file = new File(path, _main, _client);
         _client->status = "FILE";
@@ -216,57 +118,52 @@ void responseHandler::_handlePage(std::string path){
     }
 }
 
-void responseHandler::_handleDirectory(std::string path){
-	DIR *dir = opendir(path.c_str());
-	if (dir == NULL) {
-		_handleError(404);
-		return;
-	}
-	// Build HTML directory listing
-	_body = "<!DOCTYPE html>\n<html>\n<head>\n";
-	_body += "<title>Directory listing</title>\n";
-	_body += "<style>body{font-family:Arial,sans-serif;margin:20px;}\n";
-	_body += "a{text-decoration:none;color:#0066cc;display:block;padding:5px;}\n";
-	_body += "a:hover{background:#f0f0f0;}</style>\n";
-	_body += "</head>\n<body>\n";
-	_body += "<h1>Directory listing for " + _client->request.uri + "</h1>\n";
-	_body += "<div>\n";
-	
-	struct dirent *entry;
-	while ((entry = readdir(dir)) != NULL) {
-        if (entry->d_name[0] == '.' && entry->d_name[1] == '\0')
-            continue;  // Skip current directory
-        
-        _body += "<a href=\"";
-        if (_client->request.uri.back() != '/') {
-            _body += _client->request.uri + "/" + entry->d_name;
-        } else {
-            _body += _client->request.uri + entry->d_name;
+// CGI response needs to be parsed before sending it to the client
+// We need to check if the response has a status code, if it does we use it
+// otherwise we use 200 OK
+// We also need to check if the response has a body, if it does we need to set the Content-Length
+std::string CGIResponseParser(std::string CGIResponse)
+{
+	std::string parsedResponse;
+    std::string headers;
+    size_t headerEnd = CGIResponse.find("\r\n\r\n");
+    if (headerEnd == std::string::npos){
+        headerEnd = CGIResponse.find("\n\n");
+        if (headerEnd != std::string::npos) {
+            headers = CGIResponse.substr(0, headerEnd);
+            CGIResponse.erase(0, headerEnd + 2);
         }
-        _body += "\">" + std::string(entry->d_name) + "</a>\n";
-	}
-	
-	_body += "</div>\n</body>\n</html>";
-	closedir(dir);
-
-	_response = "HTTP/1.1 200 OK\r\n";
-	_response += "Content-Type: text/html\r\n";
-	_response += "Content-Length: " + std::to_string(_body.length()) + "\r\n";
-	_response += "Connection: keep-alive\r\n";
-	_response += "\r\n";
-	_response += _body;
-	_client->status = "done";
+    } else {
+        headers = CGIResponse.substr(0, headerEnd);
+        CGIResponse.erase(0, headerEnd + 4);
+    }
+ 
+   // Add HTTP/1.1 status line - check for Status header first
+    if (headers.find("Status:") != std::string::npos) {
+        std::string status = headers.substr(headers.find("Status:") + 7);
+        status = status.substr(0, status.find("\n"));
+        parsedResponse += "HTTP/1.1 " + status + "\r\n";
+        headers.erase(headers.find("Status:"), headers.find("\n") + 1);
+    } else {
+        parsedResponse += "HTTP/1.1 200 OK\r\n";
+    }
+        // Add remaining headers (if any) and make sure we have exactly one \r\n before body
+    CGIResponse.erase(0, CGIResponse.find_first_not_of("\n\r"));
+    if (CGIResponse.size() > 0)
+        parsedResponse += "Content-Length: " + std::to_string(CGIResponse.size()) + "\r\n";
+    parsedResponse += headers + "\r\n\r\n" + CGIResponse;
+    std::cout << parsedResponse << std::endl;
+    return (parsedResponse);
 }
 
-// void CGIResponseParser(std::string CGIResponse)
-// {
-// 	std::string parsedResponse;
-// 	std::string header = CGIResponse.substr(0, CGIResponse.find_first_of("\r\n\r\n"));
-// 	header.split("\r\n");
-// }
-
+// CGI handling is a bit more complex, after doing basic checks:
+// 1. Check if the file exists
+// 2. Check if the file is executable
+// then we create the environment variables for the CGI script
+// and we create the CGI object that will handle the script
+// once the script is done we parse the response
 void responseHandler::_handleCGI(std::string path){
-	//std::cout << "body size: " << _client->request.body.size() << std::endl;
+	std::cout << "The request is a CGI" << std::endl;
 	if (_client->cgi_result.empty()){
         if (access(path.c_str(), F_OK) == -1) {
             std::cerr << "CGI script not found: " << path << std::endl;
@@ -283,8 +180,8 @@ void responseHandler::_handleCGI(std::string path){
             Cgi* cgi = new Cgi(_main, path.c_str(), _env, _client->request.body.empty() ? "" :_client->request.body, _client);
             _client->status = "CGI";
         } else {
-			
-            _response += _client->file_content;
+			_client->status = "OK";
+            _response = CGIResponseParser(_client->file_content);
             _client->file_content.clear();
         }
     }
@@ -330,7 +227,7 @@ void responseHandler::_createEnv(void){
 	_env[27] = joing_string("REDIRECT_URL=", "");
 	_env[28] = joing_string("REDIRECT_URI=", "");
 	_env[29] = joing_string("GATEWAY_INTERFACE=", "CGI/1.1");
-	_env[30] = joing_string("SERVER_ADMIN=", "");
+	_env[30] = joing_string("SERVER_ADMIN=", "carlo_the_king@suka.it");
 	_env[31] = joing_string("SERVER_SIGNATURE=", "");
 
 }
@@ -340,30 +237,71 @@ void responseHandler::_createResponse(void){
         _handleError(_client->request.error);
         return;
     }
-    _response = "HTTP/1.1 ";
-    _locationHandler(_client->request.uri);
+    _locationHandler(_client->request.url);
     if (_response.empty()) {
         _handleError(500);
         return;
     }
 }
 
+// The directory listing need to be clickable so we use HTML
+void responseHandler::_handleDirectory(std::string path){
+	DIR *dir = opendir(path.c_str());
+	if (dir == NULL) {
+		_handleError(404);
+		return;
+	}
+	// Build HTML directory listing
+	_body = "<!DOCTYPE html>\n<html>\n<head>\n";
+	_body += "<title>Directory listing</title>\n";
+	_body += "<style>body{font-family:Arial,sans-serif;margin:20px;}\n";
+	_body += "a{text-decoration:none;color:#0066cc;display:block;padding:5px;}\n";
+	_body += "a:hover{background:#f0f0f0;}</style>\n";
+	_body += "</head>\n<body>\n";
+	_body += "<h1>Directory listing for " + _client->request.url + "</h1>\n";
+	_body += "<div>\n";
+	
+	struct dirent *entry;
+	while ((entry = readdir(dir)) != NULL) {
+        if (entry->d_name[0] == '.' && entry->d_name[1] == '\0')
+            continue;  // Skip current directory
+        
+        _body += "<a href=\"";
+        if (_client->request.url.back() != '/') {
+            _body += _client->request.url + "/" + entry->d_name;
+        } else {
+            _body += _client->request.url + entry->d_name;
+        }
+        _body += "\">" + std::string(entry->d_name) + "</a>\n";
+	}
+	
+	_body += "</div>\n</body>\n</html>";
+	closedir(dir);
+
+	_response = "HTTP/1.1 200 OK\r\n";
+	_response += "Content-Type: text/html\r\n";
+	_response += "Content-Length: " + std::to_string(_body.length()) + "\r\n";
+	_response += "Connection: keep-alive\r\n";
+	_response += "\r\n";
+	_response += _body;
+	_client->status = "done";
+}
+
+// directory follow this priority:
+// 1. Check if we have index files and if they are accessible
+// 2. If we don't have index files, we check if autoindex is enabled
+// 3. If we don't have index files and autoindex is disabled, we return a 404
 void responseHandler::_handleDirRequest(std::string path)
 {
-	 if (_index.empty()) {
-        if (!_autoindex) {
-            _handleError(403);
-            return;
-        }
-        _handleDirectory(path);
-        return;
-    }
-    // Try each index file
+    std::cout << "The request is a Directory" << std::endl;
+	
+    // First check if we have index files and if they are accessible
     for (std::vector<std::string>::iterator it = _index.begin(); it != _index.end(); ++it) {
         if (path.empty() || path[path.length() - 1] != '/') {
             path += "/";
         }
         std::string full_path = path + *it;
+        std::cout << full_path << std::endl;
         if (access(full_path.c_str(), F_OK) != -1) {
             size_t ext_pos = it->find_last_of(".");
             if (ext_pos != std::string::npos) {
@@ -377,24 +315,36 @@ void responseHandler::_handleDirRequest(std::string path)
             return;
         }
     }
+    // If we don't have index files, we check if autoindex is enabled
     if (_autoindex) {
         _handleDirectory(_root + path);
         return;
     }
+    // If we don't have index files and autoindex is disabled, we return a 404
     _handleError(404);
 }
 
+// Redirects are simple, we just need to set the Location header
+// we just return the path we decided to use 302 Found
+// because it's the most common and the browser will not cache the redirect
 void responseHandler::_handleRedirect(std::string path) {
+    std::cout << "Create a redirect to: " << path << std::endl;
     _response = "HTTP/1.1 302 Found\r\n";
-    if (path.find("http://") == 0 || path.find("https://") == 0) {
-        _response += "Location: " + path + "\r\n";
-    } else {
-        _response += "Location: " + path + "/\r\n";
-    }
+    _response += "Location: " + path + "\r\n";
     _response += "Content-Length: 0\r\n\r\n";
 }
 
+// Location handling is complex, first we need to set the server defaults
+// then we need to find the best matching location using a pointer to avoid copying
+// 1. First look for exact full path match
+// 2. If still no match, try prefix matching (longest wins)
+// then we need to check if the method is allowed
+// then we need to update the configuration with location specific settings
+// then we need to remove the location prefix from the path for proper file handling
+// then we need to check if we need to redirect
+// then we process the request
 void responseHandler::_locationHandler(std::string path){
+    std::cout << path << std::endl;
     // Reset to server defaults
     _cgi_ext = _config.cgi_ext;
     _root = !_config.root.empty() ? _config.root : DEFAULT_ROOT;
@@ -418,22 +368,7 @@ void responseHandler::_locationHandler(std::string path){
         }
     }
 
-    // 2. If no exact match, check for extension match
-    if (!matched_location) {
-        size_t ext_pos = path.find_last_of(".");
-        if (ext_pos != std::string::npos) {
-            std::string extension = path.substr(ext_pos);
-            for (std::vector<Location>::const_iterator it = _config.locations.begin(); it != _config.locations.end(); ++it) {
-                if (it->path == extension) {
-                    matched_location = &(*it);
-                    location_prefix = path.substr(0, ext_pos + extension.length());
-                    break;
-                }
-            }
-        }
-    }
-
-    // 3. If still no match, try prefix matching (longest wins)
+    // 2. If still no match, try prefix matching (longest wins)
     if (!matched_location) {
         for (std::vector<Location>::const_iterator it = _config.locations.begin(); it != _config.locations.end(); ++it) {
             if (path.compare(0, it->path.length(), it->path) == 0) {

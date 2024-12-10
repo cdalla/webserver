@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import os
 
-print("Content-type:text/html\r\n\r\n")
+print("Content-type: text/html\r\n\r\n")
 upload_dir = os.environ.get('UPLOAD_DIR')
 upload_dir = os.getenv('UPLOAD_DIR')
 if upload_dir == "":

@@ -14,10 +14,8 @@ private:
     std::string _buffer;
     std::string _last_key;
     VirtualServer &_config;
-    std::string _query_string;
     unsigned int _max_body_size;
 
-    std::string _script_name;
     std::string _protocol;
     Request &finished_request;
 

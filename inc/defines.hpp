@@ -8,6 +8,8 @@
 # define FILES 3
 # define MAX_SIZE 1024
 # define MAX_BUFF 10000
+# define DEFAULT_ROOT "/var/www/html"
+
 //# define MAX_CONNECTIONS 10
 
 #endif

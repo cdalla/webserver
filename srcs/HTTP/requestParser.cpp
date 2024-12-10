@@ -105,17 +105,13 @@ bool  RequestParser::set_MetAddProt(void){
 	}
 	_buffer.erase(0, _buffer.find_first_of(' ') + 1);
 	finished_request.uri = _buffer.substr(0, _buffer.find_first_of(' '));
-	//std::cout << "&uri " << finished_request.uri << std::endl;
-	_script_name = finished_request.uri;
-	_query_string = "";
+	finished_request.url = finished_request.uri;
 
 	if (finished_request.uri.find('?') != std::string::npos){
 		finished_request.query_string = finished_request.uri.substr(finished_request.uri.find('?') + 1, finished_request.uri.length());
-		//std::cout << "&query_string " << finished_request.query_string << std::endl;
-		_script_name = finished_request.uri.substr(0,finished_request.uri.find('?'));
+		finished_request.url = finished_request.uri.substr(0,finished_request.uri.find('?'));
 	}
-	finished_request.script_name = _script_name;
-	finished_request.uri = _script_name;
+	finished_request.script_name = finished_request.url.substr(finished_request.url.find_last_of('/') + 1, finished_request.url.length());
 	_buffer.erase(0, _buffer.find_first_of(' ') + 1);
 	return(parse_protocol());
 }

@@ -7,7 +7,7 @@
 #include <vector>
 #include <map>
 #include "client.hpp"
-
+#include "defines.hpp"
 #include "structs.hpp"
 
 class Client;

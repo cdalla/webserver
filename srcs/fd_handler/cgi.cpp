@@ -37,7 +37,7 @@ Cgi::~Cgi()
     int exitstatus;
     if (waitpid(_pid, &exitstatus, WNOHANG) == 0)
     {
-		this->_client->request.error = 502;
+		this->_client->request.error = 504;
         this->_client->file_content.clear();
         this->_client->status.clear();
         kill(_pid, SIGQUIT);
