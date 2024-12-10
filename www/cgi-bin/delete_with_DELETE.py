@@ -5,7 +5,7 @@ from pathlib import Path
 
 def is_valid_image(filename):
     """Check if the file has a valid image extension"""
-    valid_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'}
+    valid_extensions = {'.jpg', '.jpeg', '.png'}
     return Path(filename).suffix.lower() in valid_extensions
 
 def sanitize_filename(filename):
@@ -28,7 +28,6 @@ def send_response(status_code, response_data):
     print(json.dumps(response_data))
 
 def main():
-    # Get upload directory or use current directory
     upload_dir = get_upload_dir()
     
     # Check if the request method is DELETE
