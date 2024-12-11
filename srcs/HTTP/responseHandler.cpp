@@ -54,30 +54,39 @@ void responseHandler::_setRightConfig(void){
 	unsigned int port = _client->server->getPort();
 	std::string host = _client->server->getIp();
 	std::string server_name = _client->request.headers["Host"];
-	size_t colonPos = host.find(':');
+    std::cout << "Server name: " << server_name << std::endl;
+    std::cout << "Host: " << host << std::endl;
+    std::cout << "Port: " << port << std::endl;
+	size_t colonPos = server_name.find(':');
     	if (colonPos != std::string::npos)
-	    host.erase(0, colonPos);
+	        server_name.erase(colonPos);
+    std::cout << "Server name: " << server_name << std::endl;
 	std::vector<VirtualServer>  servers = _client->_config->servers;
 	std::vector<VirtualServer*> port_matches;
     
     for (std::vector<VirtualServer>::iterator server = servers.begin(); server != servers.end(); ++server) {
-        if (server->listen == port) {
-            std::map<std::string, unsigned int>::iterator it = server->listendirective.find("host");
-            if (it != server->listendirective.end() && it->first == host) {
-                port_matches.push_back(&(*server));
-            }
+        std::cout << "config Server name: " << server->server_name << std::endl;
+        std::cout << "config Host: " << server->ip << std::endl;
+        std::cout << "config Port: " << server->listen << std::endl;
+        if (server->listen == port && server->ip == host) {
+            port_matches.push_back(&(*server));
+            std::cout << "Found matching port and host" << std::endl;
         }
     }
     for (std::vector<VirtualServer*>::iterator server = port_matches.begin(); server != port_matches.end(); ++server) {
+        std::cout << "config Server name: " << (*server)->server_name << std::endl;
+        std::cout << "config Host: " << (*server)->ip << std::endl;
         if ((*server)->server_name == server_name) {
+            std::cout << "Found matching server name" << std::endl;
             _config = **server;
-		return;
+            return;
         }
     }    
-if (port_matches.empty()) {
+    if (port_matches.empty()) {
         for (std::vector<VirtualServer>::iterator server = servers.begin(); server != servers.end(); ++server) {
             if (server->listen == port) {
 		_config = *server;
+        std::cout << "Found matching port" << std::endl;
 		return;
             }
         }
@@ -86,6 +95,7 @@ if (port_matches.empty()) {
     for (std::vector<VirtualServer*>::iterator server = port_matches.begin(); server != port_matches.end(); ++server) {
         if ((*server)->server_name == server_name) {
             _config = **server;
+            std::cout << "Found matching server name" << std::endl;
 	   return ;
         }
     }
@@ -94,8 +104,11 @@ if (port_matches.empty()) {
         _config = *port_matches[0];
 		return;
     }
-    
+    std::cout << "No matching server found" << std::endl;
+    std::cout << "Using default server" << std::endl;
+
     _config = servers[0];
+    std::cout << "Server name: " << _config.server_name << std::endl;
 }
 
 std::string responseHandler::get(void){
@@ -345,9 +358,10 @@ void responseHandler::_handleDirectory(std::string path){
 void responseHandler::_handleDirRequest(std::string path)
 {
     std::cout << "The request is a Directory" << std::endl;
-	
+	std::cout << "Path: " << path << std::endl;
     // First check if we have index files and if they are accessible
     for (std::vector<std::string>::iterator it = _index.begin(); it != _index.end(); ++it) {
+        std::cout << "Checking index file: " << *it << std::endl;
         if (path.empty() || path[path.length() - 1] != '/') {
             path += "/";
         }
@@ -368,7 +382,7 @@ void responseHandler::_handleDirRequest(std::string path)
     }
     // If we don't have index files, we check if autoindex is enabled
     if (_autoindex) {
-        _handleDirectory(_root + path);
+        _handleDirectory(path);
         return;
     }
     // If we don't have index files and autoindex is disabled, we return a 404
