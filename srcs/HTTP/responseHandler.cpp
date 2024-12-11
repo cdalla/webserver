@@ -332,6 +332,7 @@ void responseHandler::_handleRedirect(std::string path) {
     _response = "HTTP/1.1 302 Found\r\n";
     _response += "Location: " + path + "\r\n";
     _response += "Content-Length: 0\r\n\r\n";
+    _client->status = "done";
 }
 
 // Location handling is complex, first we need to set the server defaults
