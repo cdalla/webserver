@@ -32,6 +32,8 @@ class Server : public Fd_handler
         virtual void            output(void);
 		virtual void			hangup(void){return;}
 		VirtualServer&			get_config() const;
+		unsigned int 			getPort();
+		std::string 			getIp();
 
 
 };

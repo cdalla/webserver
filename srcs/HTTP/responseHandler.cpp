@@ -34,7 +34,7 @@ responseHandler::responseHandler(Client *ptr) :
     for (int i = 0; i < 33; i++) {
         _env[i] = nullptr;
     }
-	__setRightConfig();
+	_setRightConfig();
     _createResponse();
 }
 
@@ -51,19 +51,19 @@ responseHandler::~responseHandler(void){
 
 
 void responseHandler::_setRightConfig(void){
-	unsigned int port = _client->server._port;
-	std::string host = _client->server._port;
-	std::string server_name = _client->response.headers["Host"];
+	unsigned int port = _client->server->getPort();
+	std::string host = _client->server->getIp();
+	std::string server_name = _client->request.headers["Host"];
 	size_t colonPos = host.find(':');
     	if (colonPos != std::string::npos)
 	    host.erase(0, colonPos);
-	std::vector<VirtualServer>  servers = _client->config->servers;
+	std::vector<VirtualServer>  servers = _client->_config->servers;
 	std::vector<VirtualServer*> port_matches;
     
     for (std::vector<VirtualServer>::iterator server = servers.begin(); server != servers.end(); ++server) {
         if (server->listen == port) {
             std::map<std::string, unsigned int>::iterator it = server->listendirective.find("host");
-            if (it != server->listendirective.end() && it->second == host) {
+            if (it != server->listendirective.end() && it->first == host) {
                 port_matches.push_back(&(*server));
             }
         }
@@ -71,7 +71,7 @@ void responseHandler::_setRightConfig(void){
     for (std::vector<VirtualServer*>::iterator server = port_matches.begin(); server != port_matches.end(); ++server) {
         if ((*server)->server_name == server_name) {
             _config = **server;
-		eturn;
+		return;
         }
     }    
 if (port_matches.empty()) {
@@ -92,7 +92,7 @@ if (port_matches.empty()) {
     
     if (!port_matches.empty()) {
         _config = *port_matches[0];
-	return
+		return;
     }
     
     _config = servers[0];

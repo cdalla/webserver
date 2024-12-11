@@ -95,7 +95,18 @@ void Server::output()
 {
 	return;
 }
+
 VirtualServer&	Server::get_config() const
 {
 	return _conf;
+}
+
+unsigned int Server::getPort()
+{
+	return this->_port;
+}
+
+std::string Server::getIp()
+{
+	return this->_ip;
 }
