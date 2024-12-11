@@ -1,10 +1,12 @@
 #include "server.hpp"
 #include "WebservException.hpp"
 #include "client.hpp"
+#include <sstream>
 
 Server::Server(VirtualServer &configStruct, Webserver* ptr) : _config(configStruct), _main(ptr)
 {
 	_port = _config.listen;
+	//_ip = _config.ip;
 }
 
 /*	
@@ -14,6 +16,28 @@ Server::Server(VirtualServer &configStruct, Webserver* ptr) : _config(configStru
 	BIND TO ADDRESS AND PORT
 	LISTEN FOR INCOMING CONNECTIONS
 */
+
+uint32_t ipStringToDecimal( const std::string& ip_address ) {
+	uint32_t result = 0;
+	std::istringstream ip_stream(ip_address);
+	std::string octet;
+	int shift = 24;
+	int octet_count = 0;
+	while (std::getline(ip_stream, octet, '.')) {
+		uint32_t octetValue = static_cast<uint32_t>(std::stoi(octet));
+		if (octetValue > 255) {
+			throw WebservException("Invalid IP address: " + ip_address);
+		}
+		result |= (octetValue << shift);
+        shift -= 8;
+		++octet_count;
+	}
+	if (octet_count != 4 && result != 0) {
+		throw WebservException("Invalid IP address: " + ip_address);
+	}
+	return result;
+}
+
 void Server::createSocket()
 {
 	_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -25,6 +49,11 @@ void Server::createSocket()
 		throw WebservException("Failed to setsockopt: " + std::string(strerror(errno)));
 	make_socket_non_blocking(_fd);
 
+	uint32_t ip;
+	if (!_ip.empty())
+		ip = ipStringToDecimal(_ip);
+	else
+		ip = INADDR_ANY;
 	_address.sin_family = AF_INET;
 	_address.sin_addr.s_addr = INADDR_ANY;
 	_address.sin_port = htons(_port);
@@ -41,7 +70,7 @@ void Server::createSocket()
 
 void Server::input()
 {
-	Fd_handler *client = new Client(this, _main);
+	Fd_handler *client = new Client(this, _main, _config);
 	client->set_fd(accept(_fd, reinterpret_cast<sockaddr*>(&_address), &_addrLen));
 	if (client->get_fd() == -1) {
 		if (errno == EAGAIN || errno == EWOULDBLOCK) 

@@ -13,6 +13,7 @@ class Server : public Fd_handler
 	private:    
     
 	    unsigned int 			_port;
+		std::string				_ip;
 		VirtualServer			&_config;
 		Webserver*				_main;
 

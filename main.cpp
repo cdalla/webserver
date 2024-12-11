@@ -25,7 +25,8 @@ int main(int argc, char **argv)
 	Webserver webserv(config_file);
 	try 
 	{
-		webserv.run();
+		std::cout << webserv.config << std::endl;
+		//webserv.run();
 	} 
 	catch (std::exception &e) 
 	{

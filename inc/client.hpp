@@ -23,8 +23,9 @@ class Client: public Fd_handler
 
     public:
 
-		Client(Server *server, Webserver *main);
+		Client(Server *server, Webserver *main, VirtualServer &config);
 		~Client();
+		VirtualServer	&_config;
         Server*         server;
         Webserver*      main;
         std::string     file_content;
