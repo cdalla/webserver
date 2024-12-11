@@ -126,19 +126,22 @@ void	serverParser::parseListen(std::vector<std::string> &args) {
 	pos = args[0].find_first_of(':');
 	if (pos != std::string::npos) {
 		// scenario 1
-		address = args[0].substr(0, pos);
+		context.ip = args[0].substr(0, pos);
 		 std::cout << B_MAGENTA << "address: " << address << RST << std::endl;
 		port = args[0].substr(pos + 1, args[0].size() - 1);
 		 std::cout << B_MAGENTA << "port: " << port << RST << std::endl;
-		 
+		pos = context.ip.find_first_not_of("0123456789.");
+		if (pos != std::string::npos)
+			throw std::runtime_error("Configuration error: invalid listen directive - ip not a valid");
+		
 		for (size_t i = 0; i < port.length(); i++) {
 			if (!isdigit(port[i]))
-				throw std::runtime_error(" YOyoyConfiguration error: invalid listen directive - port can only contain digits");
+				throw std::runtime_error("Configuration error: invalid listen directive - port can only contain digits");
 		}
 		try {
 			context.listen = std::stoul(args[0]);
 		} catch (std::exception &e) {
-			throw std::runtime_error("yoyoyConfiguration error: invalid listen directive - port not a valid integer");
+			throw std::runtime_error("Configuration error: invalid listen directive - port not a valid integer");
 		}
 		return ;
 	}

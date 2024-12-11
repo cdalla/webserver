@@ -25,6 +25,7 @@ class Client: public Fd_handler
 
 		Client(Server *server, Webserver *main, Config* conf);
 		~Client();
+		VirtualServer*	_conf;
 		Config* 		_config;
         Server*         server;
         Webserver*      main;

@@ -441,9 +441,9 @@ void responseHandler::_locationHandler(std::string path){
         _handleRedirect(_redirect_url + adjusted_path);
         return;
     }
-    if (_client->request.body.size() > _max_body_size()){
-	_handle_error(413);
-	return;
+    if (_client->request.body.size() > _max_body_size){
+		_handleError(413);
+		return;
     }
     // Process the request
     std::string full_path = _root + adjusted_path;

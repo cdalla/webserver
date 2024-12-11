@@ -5,6 +5,7 @@
 #include <fstream>
 #include <map>
 #include "structs.hpp"
+class VirtualServer;
 
 class RequestParser
 {
@@ -31,7 +32,7 @@ private:
     void printHeader() const;
 
 public:
-    RequestParser(Request &request);
+    RequestParser(VirtualServer &conf, Request &request);
     ~RequestParser(void);
 
     bool feed(const char *chunk, ssize_t byte);

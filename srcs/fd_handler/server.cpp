@@ -3,10 +3,10 @@
 #include "client.hpp"
 #include <sstream>
 
-Server::Server(VirtualServer &configStruct, Webserver* ptr, Config* conf) : _config(configStruct), _main(ptr), _configuration(conf)
+Server::Server(VirtualServer &configStruct, Webserver* ptr, Config* conf) : _conf(configStruct), _main(ptr), _config(conf)
 {
-	_port = _config.listen;
-	//_ip = _config.ip;
+	_port = _conf.listen;
+	_ip = _conf.ip;
 }
 
 /*	
@@ -55,7 +55,7 @@ void Server::createSocket()
 	else
 		ip = INADDR_ANY;
 	_address.sin_family = AF_INET;
-	_address.sin_addr.s_addr = INADDR_ANY;
+	_address.sin_addr.s_addr = htonl(ip);
 	_address.sin_port = htons(_port);
 	_addrLen = sizeof(_address);
 	if (bind(_fd, reinterpret_cast<sockaddr*>(&_address), _addrLen) < 0)
@@ -70,7 +70,7 @@ void Server::createSocket()
 
 void Server::input()
 {
-	Fd_handler *client = new Client(this, _main, _configuration);
+	Fd_handler *client = new Client(this, _main, _config);
 	client->set_fd(accept(_fd, reinterpret_cast<sockaddr*>(&_address), &_addrLen));
 	if (client->get_fd() == -1) {
 		if (errno == EAGAIN || errno == EWOULDBLOCK) 
@@ -98,5 +98,5 @@ void Server::output()
 }
 VirtualServer&	Server::get_config() const
 {
-	return _config;
+	return _conf;
 }

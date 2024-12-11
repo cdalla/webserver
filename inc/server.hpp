@@ -15,9 +15,9 @@ class Server : public Fd_handler
     
 	    unsigned int 			_port;
 		std::string				_ip;
-		VirtualServer			&_config;
+		VirtualServer			&_conf;
 		Webserver*				_main;
-		Config*					_configuration;
+		Config*					_config;
         socklen_t               _addrLen;
         struct sockaddr_in 		_address;
 

@@ -51,6 +51,7 @@ struct VirtualServer
 {
 	std::string					server_name;
 	std::map<std::string, unsigned int>	listendirective;
+	std::string					ip;
 	unsigned int				listen; //port
 	std::string					root;
 	std::vector<std::string>	cgi_ext;

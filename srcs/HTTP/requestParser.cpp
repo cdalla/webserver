@@ -34,11 +34,11 @@ int st_check_method(std::string method){
 int RequestParser::set_body(void){
     if (_is_chunked)
         return handle_chunked_data();
-    ssize_t total_body =  finishe_request.body.size() + _buffer.size()
+    ssize_t total_body =  finished_request.body.size() + _buffer.size();
     if (total_body >= _body_size){
 	ssize_t diff =  total_body - _body_size;
-	finishe_request.body.append(_buffer.substr(0, _buffer.size() - diff)
-	return true
+	finished_request.body.append(_buffer.substr(0, _buffer.size() - diff));
+	return true;
     }
     else
     	finished_request.body.append(_buffer);
