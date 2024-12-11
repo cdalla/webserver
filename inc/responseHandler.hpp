@@ -26,6 +26,7 @@ class responseHandler {
 		std::string _response;
 		std::string _upload_dir;
 		std::string _redirect_url;
+		ssize_t     _max_body_size;
 		char** _env;
 		std::map<unsigned int, std::string>	_error_pages;
 		std::vector<std::string> _cgi_ext;
