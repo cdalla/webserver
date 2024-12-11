@@ -13,8 +13,7 @@ private:
     bool _is_first_line;
     std::string _buffer;
     std::string _last_key;
-    VirtualServer &_config;
-    unsigned int _max_body_size;
+    unsigned int _body_size;
 
     std::string _protocol;
     Request &finished_request;
@@ -32,7 +31,7 @@ private:
     void printHeader() const;
 
 public:
-    RequestParser(VirtualServer &config, Request &request);
+    RequestParser(Request &request);
     ~RequestParser(void);
 
     bool feed(const char *chunk, ssize_t byte);
