@@ -102,6 +102,47 @@ test_endpoint "Server responsiveness after timeout" \
 test_endpoint "POST with invalid content type" \
     "curl -s -X POST -H 'Content-Type: text/plain' --data 'test' http://localhost:8060/upload.sh -w '%{http_code}' | grep -q '502'"
 
+# Create a test file
+echo "Creating test image..."
+# Create a test image using base64
+echo -e "\n${GREEN}Creating test image...${NC}"
+cat > test_image.png << EOF
+iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==
+EOF
+base64 -d > test_image.png << EOF
+iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==
+EOF
+# Step 1: Upload file
+echo -e "\n${GREEN}Step 1: Uploading file${NC}"
+upload_response=$(curl -s -X POST -F "file=@test_image.png" http://localhost:8064/upload.sh)
+echo "Upload Response: $upload_response"
+
+if ! echo "$upload_response" | grep -q "success"; then
+    echo -e "${RED}Failed to upload file${NC}"
+    exit 1
+fi
+
+# Step 2: Verify upload
+echo -e "\n${GREEN}Step 2: Verifying upload${NC}"
+if [ ! -f "/mnt/c/Users/dmonf/OneDrive/Desktop/new/www/bash_test/test_image.png" ]; then
+    echo -e "${RED}File not found in upload directory${NC}"
+    exit 1
+fi
+
+# Step 3: Delete file
+echo -e "\n${GREEN}Step 3: Deleting file${NC}"
+delete_response=$(curl -i -X DELETE "http://localhost:8064/delete_with_DELETE.py?image=test_image.png")
+echo "Delete Response: $delete_response"
+
+# Step 4: Verify deletion
+echo -e "\n${GREEN}Step 4: Verifying deletion${NC}"
+if [ -f "/mnt/c/Users/dmonf/OneDrive/Desktop/new/www/bash_test/test_image.png" ]; then
+    echo -e "${RED}File still exists after deletion${NC}"
+    exit 1
+else   
+    echo -e "${GREEN}File successfully deleted${NC}"
+fi
+  
 # Cleanup function
 cleanup() {
     echo -e "\nCleaning up..."
