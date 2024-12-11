@@ -49,6 +49,7 @@ class responseHandler {
 		void 			_locationHandler( std::string path );
 		void 			_handleDirRequest( std::string path );
 		void			_handleRedirect(std::string path);
+		void			responseHandler::_setRightConfig(void);
 
 	public:
 
