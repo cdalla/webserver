@@ -16,7 +16,7 @@
 
 responseHandler::responseHandler(Client *ptr) : 
     _client(ptr),
-    _config(ptr->server->get_config()),
+    _config(),
     _main(ptr->main),
     _upload_dir(""), // Default upload directory
     _content_type("text/plain"),
@@ -26,7 +26,8 @@ responseHandler::responseHandler(Client *ptr) :
     _env(nullptr),
     _autoindex(false), // Default autoindex off
     _index(), // Default index files
-    _cgi_ext() // Default CGI extensions
+    _cgi_ext(), // Default CGI extensions
+    _max_body_size(100000)
 {
     // Initialize environment variables used for CGI
     _env = new char*[33];
@@ -354,6 +355,7 @@ void responseHandler::_locationHandler(std::string path){
     _index = _config.index;
     _error_pages = _config.error_pages;
 	_redirect_url = _config.redirect_url;
+    _max_body_size = _config.max_body_size ? _config.max_body_size : _max_body_size;
 
     // Find best matching location using a pointer to avoid copying
     const Location* matched_location = NULL;
@@ -420,6 +422,8 @@ void responseHandler::_locationHandler(std::string path){
         _error_pages = matched_location->error_pages;
         _autoindex = matched_location->autoindex;
         _redirect_url = matched_location->redirect_url;
+	if (matched_location->max_body_size)
+	    _max_body_size = matched_location->max_body_size;
     }
       
      // Remove the location prefix from the path for proper file handling
@@ -437,7 +441,10 @@ void responseHandler::_locationHandler(std::string path){
         _handleRedirect(_redirect_url + adjusted_path);
         return;
     }
-    
+    if (_client->request.body.size() > _max_body_size()){
+	_handle_error(413);
+	return;
+    }
     // Process the request
     std::string full_path = _root + adjusted_path;
     size_t ext_pos = path.find_last_of(".");
