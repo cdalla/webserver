@@ -35,7 +35,7 @@ void Server::createSocket()
 	if (listen(_fd, MAX_CONNECTIONS) < 0)
 		throw WebservException("Failed to listen on socket: " + std::string(strerror(errno)));
 	
-	std::cout << "ok on port " << _fd << "!" << std::endl;
+	std::cout << "server listening on port " << _port << "!" << std::endl;
 }
 
 
@@ -60,6 +60,7 @@ void Server::input()
 	}
 	else
 		delete client;
+	std::cout << "added client" << std::endl;
 }
 
 void Server::output()

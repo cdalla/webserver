@@ -38,7 +38,8 @@ void Client::input()
         if (bytes_read == -1){
             throw WebservException("Failed read in client");
         }
-        _total_bytes_read += bytes_read;
+		else if (bytes_read >= 0)
+        	_total_bytes_read += bytes_read;
         _done = parser->feed(_req_buff, bytes_read);
         if (_done)
         {

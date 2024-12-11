@@ -30,13 +30,14 @@ File::File(std::string filename, Webserver* ptr, Client* client): _main(ptr), _c
 
 File::~File()
 {
+	close(_fd);
 }
 
 void File::input()
 {
 	ssize_t bytes_r = read(_inFd, _buff, MAX_BUFF);
 	if (bytes_r < 0)
-		throw WebservException("Failed to read pipe in: " + std::string(strerror(errno)));
+		throw WebservException("Failed to read pipe in");
 	else if (bytes_r == 0)
 	{
 		_client->status.clear();
@@ -57,7 +58,7 @@ void File::output()
 {
 	ssize_t bytes_r = read(_fd, _buff, MAX_BUFF);
 	if (bytes_r < 0)
-		throw WebservException("Failed to read file in: " + std::string(strerror(errno)));
+		throw WebservException("Failed to read file in file_handler");
 	else if (bytes_r == 0)
 	{
 		_main->removeFd(_outFd, FILES, 0); //remove the fd but not the handler
@@ -66,8 +67,8 @@ void File::output()
 	{
 		ssize_t bytes_w = write(_outFd, _buff, bytes_r);
 		if (bytes_w < 0)
-			throw WebservException("Failed to write pipe out: " + std::string(strerror(errno)));
-		else
+			throw WebservException("Failed to write pipe out");
+		else if (bytes_w >= 0)
 			_file_size += bytes_w;
 	}
 }

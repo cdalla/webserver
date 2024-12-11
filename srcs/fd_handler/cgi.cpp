@@ -55,7 +55,7 @@ void Cgi::input()
         _main->removeFd(_inFd, FILES, 1);
     }
     else if (bytes < 0)
-        throw WebservException("Failed to read: " + std::string(strerror(errno)));
+        throw WebservException("Failed to read in cgi_handler");
     else
 	{
         _client->file_content.append(buff, bytes);
@@ -76,7 +76,7 @@ void Cgi::output()
     std::string toSend = _body.substr(_pos, MAX_BUFF);
     ssize_t bytes = write(_outFd, toSend.c_str(), toSend.size());
     if (bytes < 0)
-        throw WebservException("Failed to write: " + std::string(strerror(errno)));
+        throw WebservException("Failed to write in cgi_handler");
     else if (bytes == 0)
     {
         _writeFinished = true;
@@ -143,8 +143,8 @@ void Cgi::execute_child()
     }
     close(_pipeOut[1]);
 	int error = execve(_script, argv, _env);
-	std::cerr << "after ex " << _script << std::endl;
-	std::cerr << "Error: " << error << std::endl;
+	//std::cerr << "after ex " << _script << std::endl;
+	//std::cerr << "Error: " << error << std::endl;
     close(STDIN_FILENO);
     close(STDOUT_FILENO);
     exit(1);
