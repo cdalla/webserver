@@ -3,7 +3,7 @@
 #include "client.hpp"
 #include <sstream>
 
-Server::Server(VirtualServer &configStruct, Webserver* ptr) : _config(configStruct), _main(ptr)
+Server::Server(VirtualServer &configStruct, Webserver* ptr, Config* conf) : _config(configStruct), _main(ptr), _configuration(conf)
 {
 	_port = _config.listen;
 	//_ip = _config.ip;
@@ -70,7 +70,7 @@ void Server::createSocket()
 
 void Server::input()
 {
-	Fd_handler *client = new Client(this, _main, _config);
+	Fd_handler *client = new Client(this, _main, _configuration);
 	client->set_fd(accept(_fd, reinterpret_cast<sockaddr*>(&_address), &_addrLen));
 	if (client->get_fd() == -1) {
 		if (errno == EAGAIN || errno == EWOULDBLOCK) 

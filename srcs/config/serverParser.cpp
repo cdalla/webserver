@@ -133,13 +133,14 @@ void	serverParser::parseListen(std::vector<std::string> &args) {
 		 
 		for (size_t i = 0; i < port.length(); i++) {
 			if (!isdigit(port[i]))
-				throw std::runtime_error("Configuration error: invalid listen directive - port can only contain digits");
+				throw std::runtime_error(" YOyoyConfiguration error: invalid listen directive - port can only contain digits");
 		}
 		try {
 			context.listen = std::stoul(args[0]);
 		} catch (std::exception &e) {
-			throw std::runtime_error("Configuration error: invalid listen directive - port not a valid integer");
+			throw std::runtime_error("yoyoyConfiguration error: invalid listen directive - port not a valid integer");
 		}
+		return ;
 	}
 	
 	for (size_t i = 0; i < args[0].length(); i++) {

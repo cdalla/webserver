@@ -5,6 +5,7 @@
 // #include "server.hpp"
 #include "fd_handler.hpp"
 #include "structs.hpp"
+#include "config.hpp"
 
 class Webserver;
 
@@ -16,14 +17,14 @@ class Server : public Fd_handler
 		std::string				_ip;
 		VirtualServer			&_config;
 		Webserver*				_main;
-
+		Config*					_configuration;
         socklen_t               _addrLen;
         struct sockaddr_in 		_address;
 
 	
 	public:
 	
-    	Server(VirtualServer &configStruct, Webserver* ptr);
+    	Server(VirtualServer &configStruct, Webserver* ptr, Config* conf);
 		~Server() = default;
 		
         void 					createSocket();

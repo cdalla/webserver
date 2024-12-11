@@ -30,7 +30,7 @@ Webserver::~Webserver()
 void    Webserver::servers_init()
 {
 	for (std::vector<VirtualServer>::iterator it = config.servers.begin(); it != config.servers.end(); it++) {
-		_servers.push_back(Server(*it, this));
+		_servers.push_back(Server(*it, this, &config));
 	}
     std::vector<Server>::iterator it = _servers.begin();
 	for (; it != _servers.end(); ++it)

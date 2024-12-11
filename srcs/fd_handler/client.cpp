@@ -4,7 +4,7 @@
 
 
 
-Client::Client(Server *server, Webserver *main, VirtualServer& config): server(server), main(main), _config(config)
+Client::Client(Server *server, Webserver *main, Config* config): server(server), main(main), _config(config)
 {
     _done = false;
     _total_bytes_read = 0;
