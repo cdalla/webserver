@@ -6,11 +6,8 @@
 
 
 RequestParser::RequestParser(VirtualServer &config, Request &request): _is_header_finish(false), _is_first_line(false),
-    _is_chunked(false), _current_chunk_size(0), _is_reading_chunk_size(true), _config(config), finished_request(request) {
+    _is_chunked(false), _current_chunk_size(0), _is_reading_chunk_size(true), finished_request(request) {
 	finished_request.error = 0;
-	_max_body_size = config.max_body_size;
-	if (_max_body_size < 0)
-		_max_body_size = 1000000;
 }
 
 void RequestParser::printHeader() const {
@@ -35,17 +32,18 @@ int st_check_method(std::string method){
 }
 
 int RequestParser::set_body(void){
-	if (finished_request.method.compare("GET") == 0)
-		return (BAD_REQUEST);
-    
     if (_is_chunked)
         return handle_chunked_data();
-    finished_request.body.append(_buffer);
+    ssize_t total_body =  finishe_request.body.size() + _buffer.size()
+    if (total_body >= _body_size){
+	ssize_t diff =  total_body - _body_size;
+	finishe_request.body.append(_buffer.substr(0, _buffer.size() - diff)
+	return true
+    }
+    else
+    	finished_request.body.append(_buffer);
     _buffer.clear();
-    if (finished_request.body.size() > _max_body_size)
-        return (PAYLOAD_TO_LARGE);
-	//std::cout << "body size" << finished_request.body.size() << std::endl;
-    return 0;
+    return false;
 }
 
 bool RequestParser::handle_chunked_data(void){
@@ -71,12 +69,6 @@ bool RequestParser::handle_chunked_data(void){
         } else {
             if (_buffer.size() < _current_chunk_size + 2)
                 return false;
-
-			// Check if adding this chunk would exceed the max body size
-            if (finished_request.body.size() + _current_chunk_size > _max_body_size){
-                finished_request.error = PAYLOAD_TO_LARGE;
-                return true;
-            }
             
             finished_request.body.append(_buffer.substr(0, _current_chunk_size));
             _buffer.erase(0, _current_chunk_size + 2);
@@ -160,39 +152,23 @@ bool RequestParser::feed(const char *chunk, ssize_t size)
 			return true;
 		set_map();
 
-		//std::cout << finished_request.method << std::endl;
 		if (finished_request.method != "POST")
 			return true;
-		//std::cout << "start with body" << std::endl;
 		if (finished_request.headers.find("Content-Length") != finished_request.headers.end()){
-
-			//std::cout << "body size: " << finished_request.headers["Content-Length"] << std::endl;
 			if (stoi(finished_request.headers["Content-Length"]) == 0 )
 				return true;
-			if (stoi(finished_request.headers["Content-Length"]) > _max_body_size){
-				finished_request.error = PAYLOAD_TO_LARGE;
-				return true;
-			}
-			if (stoi(finished_request.headers["Content-Length"]) < _max_body_size)
-				_max_body_size = stoi(finished_request.headers["Content-Length"]);
+
+			_body_size = stoi(finished_request.headers["Content-Length"]);
 		}
     }
-	
-    int body_result = set_body();
-	//std::cout << "resolt of size: " << finished_request.body.size() << " == " << (size_t)stoi(finished_request.headers["Content-Length"]) << std::endl;
-	if (body_result != 0){
-		finished_request.error = body_result;
+
+	if (set_body()){
 		return true;
 	}
 	if (_is_chunked){
 		if (_current_chunk_size == 0 && _is_reading_chunk_size)
 			return true;
 	}
-	else if (finished_request.body.size() == (size_t)stoi(finished_request.headers["Content-Length"])){
-		//std::cout << "finished" << std::endl;
-		return true;
-	}
-	//std::cout << "waiting for more" << std::endl;
     return false;
 }
 
