@@ -457,7 +457,7 @@ void responseHandler::_locationHandler(std::string path){
     if (dir != NULL) {
         closedir(dir);
         if (path[path.length() - 1] != '/') {
-            _handleRedirect(path);
+            _handleRedirect(path + '/');
             return;
         }
         _handleDirRequest(full_path);
