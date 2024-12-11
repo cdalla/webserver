@@ -17,7 +17,7 @@ Server::Server(VirtualServer &configStruct, Webserver* ptr, Config* conf) : _con
 	LISTEN FOR INCOMING CONNECTIONS
 */
 
-uint32_t ipStringToDecimal( const std::string& ip_address ) {
+uint32_t ipStringToDecimal( const std::string ip_address ) {
 	uint32_t result = 0;
 	std::istringstream ip_stream(ip_address);
 	std::string octet;
@@ -47,8 +47,7 @@ void Server::createSocket()
 	int sockoption = 1;
 	if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &sockoption, sizeof(sockoption)) < 0)
 		throw WebservException("Failed to setsockopt: " + std::string(strerror(errno)));
-	make_socket_non_blocking(_fd);
-
+	//make_socket_non_blocking(_fd);
 	uint32_t ip;
 	if (!_ip.empty())
 		ip = ipStringToDecimal(_ip);
@@ -58,7 +57,7 @@ void Server::createSocket()
 	_address.sin_addr.s_addr = htonl(ip);
 	_address.sin_port = htons(_port);
 	_addrLen = sizeof(_address);
-	if (bind(_fd, reinterpret_cast<sockaddr*>(&_address), _addrLen) < 0)
+	if (bind(_fd, (sockaddr*)(&_address), _addrLen) < 0)
 		throw WebservException("Failed to bind socket: " + std::string(strerror(errno)));
 	
 	if (listen(_fd, MAX_CONNECTIONS) < 0)
