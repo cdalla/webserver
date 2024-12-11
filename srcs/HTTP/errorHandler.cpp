@@ -72,7 +72,9 @@ void responseHandler::_handleErrorPage(int error, std::string error_page) {
 }
 
 void responseHandler::_handleDefaultError(int error) {
-    _createErrorPage(error);
+    std::cout << "Error " << error << std::endl;
+    if (error != 204)
+        _createErrorPage(error);
     _response = "HTTP/1.1 " + std::to_string(error) + " " + _getStatusMessage(error);
     _response += "Content-Type: text/html\r\n";
     _response += "Content-Length: " + std::to_string(_body.length()) + "\r\n";

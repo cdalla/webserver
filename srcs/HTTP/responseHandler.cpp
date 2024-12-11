@@ -51,33 +51,23 @@ responseHandler::~responseHandler(void){
 
 
 void responseHandler::_setRightConfig(void){
+    std::cout << _client->request.headers["Host"] << std::endl;
 	unsigned int port = _client->server->getPort();
 	std::string host = _client->server->getIp();
 	std::string server_name = _client->request.headers["Host"];
-    std::cout << "Server name: " << server_name << std::endl;
-    std::cout << "Host: " << host << std::endl;
-    std::cout << "Port: " << port << std::endl;
 	size_t colonPos = server_name.find(':');
     	if (colonPos != std::string::npos)
 	        server_name.erase(colonPos);
-    std::cout << "Server name: " << server_name << std::endl;
 	std::vector<VirtualServer>  servers = _client->_config->servers;
 	std::vector<VirtualServer*> port_matches;
     
     for (std::vector<VirtualServer>::iterator server = servers.begin(); server != servers.end(); ++server) {
-        std::cout << "config Server name: " << server->server_name << std::endl;
-        std::cout << "config Host: " << server->ip << std::endl;
-        std::cout << "config Port: " << server->listen << std::endl;
         if (server->listen == port && server->ip == host) {
             port_matches.push_back(&(*server));
-            std::cout << "Found matching port and host" << std::endl;
         }
     }
     for (std::vector<VirtualServer*>::iterator server = port_matches.begin(); server != port_matches.end(); ++server) {
-        std::cout << "config Server name: " << (*server)->server_name << std::endl;
-        std::cout << "config Host: " << (*server)->ip << std::endl;
         if ((*server)->server_name == server_name) {
-            std::cout << "Found matching server name" << std::endl;
             _config = **server;
             return;
         }
@@ -85,9 +75,8 @@ void responseHandler::_setRightConfig(void){
     if (port_matches.empty()) {
         for (std::vector<VirtualServer>::iterator server = servers.begin(); server != servers.end(); ++server) {
             if (server->listen == port) {
-		_config = *server;
-        std::cout << "Found matching port" << std::endl;
-		return;
+		        _config = *server;
+		        return;
             }
         }
     }
@@ -95,8 +84,7 @@ void responseHandler::_setRightConfig(void){
     for (std::vector<VirtualServer*>::iterator server = port_matches.begin(); server != port_matches.end(); ++server) {
         if ((*server)->server_name == server_name) {
             _config = **server;
-            std::cout << "Found matching server name" << std::endl;
-	   return ;
+	        return ;
         }
     }
     
@@ -104,11 +92,8 @@ void responseHandler::_setRightConfig(void){
         _config = *port_matches[0];
 		return;
     }
-    std::cout << "No matching server found" << std::endl;
-    std::cout << "Using default server" << std::endl;
 
     _config = servers[0];
-    std::cout << "Server name: " << _config.server_name << std::endl;
 }
 
 std::string responseHandler::get(void){
@@ -168,7 +153,9 @@ void responseHandler::_handlePage(std::string path){
         _handleError(403);
         return;
     }
-	if (_client->file_content.empty()){
+    struct stat fileStat;
+	if (_client->file_content.empty() &&
+        !(stat(path.c_str(), &fileStat) == 0 && fileStat.st_size == 0)){
         File *file = new File(path, _main, _client);
         _client->status = "FILE";
 	} else {
