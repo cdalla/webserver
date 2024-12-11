@@ -28,6 +28,9 @@ convert -size 100x100 xc:white test_image.png 2>/dev/null || echo "ImageMagick n
 test_endpoint "Server 1 basic GET" \
     "curl -s --resolve server_1:8081:127.0.0.1 http://server_1:8081/ | grep 'server 1'"
 
+test_endpoint "Server 8 basic GET" \
+    "curl -s --resolve server_8:8081:127.0.0.1 http://server_8:8081/ | grep 'server 1'"
+
 test_endpoint "Server 2 basic GET" \
     "curl -s --resolve server_2:8081:127.0.0.1 http://server_2:8081/ | grep 'server 2'"
 
@@ -48,6 +51,12 @@ test_endpoint "Directory listing - Title content" \
 for file in "server_1.html" "server_2.html" "server_3.html" "server_4.html" "server_5.html"; do
     test_endpoint "Directory listing - Check for $file" \
         "curl -s http://localhost:8062/ | grep -q '<a href=\"/$file\">$file</a>'"
+done
+
+# Test forbidden methods (should return 405 Method Not Allowed)
+for method in PUT PATCH OPTIONS HEAD TRACE CONNECT; do
+    test_endpoint "Forbidden $method method" \
+        "curl -s -X $method http://localhost:8062/ -w '%{http_code}' | grep -q '501'"
 done
 
 # Upload tests
