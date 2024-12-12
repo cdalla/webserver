@@ -58,7 +58,7 @@ void responseHandler::_handleErrorPage(int error, std::string error_page) {
         return;
     }
     if (_client->file_content.empty()) {
-        File *file = new File(error_path, _main, _client);
+        _client->error_page = new File(error_path, _main, _client);
         _client->status = "FILE";
     } else {
         _client->status = "OK";
@@ -85,9 +85,9 @@ void responseHandler::_handleError(int error) {
     std::cout << "Error: " << error << std::endl;
     _client->status == "OK";
     if (_error_pages.empty()) {
-        if (!_config.error_pages.empty()) {
-            _error_pages = _config.error_pages;
-            _root = !_config.root.empty() ? _config.root : DEFAULT_ROOT;
+        if (!_config->error_pages.empty()) {
+            _error_pages = _config->error_pages;
+            _root = !_config->root.empty() ? _config->root : DEFAULT_ROOT;
         } else {
             _handleDefaultError(error);
             return;
