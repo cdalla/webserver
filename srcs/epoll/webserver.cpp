@@ -27,18 +27,34 @@ Webserver::~Webserver()
 	close(_epollFile);
 }
 
+bool Webserver::is_PortInUse(unsigned int port, std::string ip, std::vector<Server>::iterator end)
+{
+	std::vector<Server>::iterator it = _servers.begin();
+	for (; it != end; ++it)
+	{
+		if ((*it).getPort() == port)
+		{
+			
+			return true;
+		}
+	}
+	return false;
+}
+
 /*
 	LOOP TO INITIALIZE SERVER SOCKET
 */
 void    Webserver::servers_init()
 {
 	for (std::vector<VirtualServer>::iterator it = config.servers.begin(); it != config.servers.end(); it++) {
+		
 		_servers.push_back(Server(*it, this, &config));
 	}
     std::vector<Server>::iterator it = _servers.begin();
 	for (; it != _servers.end(); ++it)
 	{
-		(*it).createSocket();
+		if (!is_PortInUse((*it).getPort(),(*it).getIp(), it))
+			(*it).createSocket();
 	}
 }
 

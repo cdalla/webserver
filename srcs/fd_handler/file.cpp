@@ -18,17 +18,19 @@ File::File(std::string filename, Webserver* ptr, Client* client): _main(ptr), _c
 	close(_pipe[0]);
 	
 	int flags;
-	flags = fcntl(_inFd, F_GETFL, 0);
-    if (flags == -1)
-		throw WebservException("Failed to fcntl get_flag: " + std::string(strerror(errno)));
-	flags = fcntl(_outFd, F_GETFL, 0);
-    if (flags == -1)
-		throw WebservException("Failed to fcntl get_flag: " + std::string(strerror(errno)));
-	flags |= O_NONBLOCK;
-    if (fcntl(_inFd, F_SETFL, flags) == -1) 
-		throw WebservException("Failed to fcntl set_flag: " + std::string(strerror(errno)));
-	if (fcntl(_outFd, F_SETFL, flags) == -1) 
-		throw WebservException("Failed to fcntl set_flag: " + std::string(strerror(errno)));
+	make_socket_non_blocking(_inFd);
+	make_socket_non_blocking(_outFd);
+	// flags = fcntl(_inFd, F_GETFL, 0);
+    // if (flags == -1)
+	// 	throw WebservException("Failed to fcntl get_flag: " + std::string(strerror(errno)));
+	// flags = fcntl(_outFd, F_GETFL, 0);
+    // if (flags == -1)
+	// 	throw WebservException("Failed to fcntl get_flag: " + std::string(strerror(errno)));
+	// flags |= O_NONBLOCK;
+    // if (fcntl(_inFd, F_SETFL, flags) == -1) 
+	// 	throw WebservException("Failed to fcntl set_flag: " + std::string(strerror(errno)));
+	// if (fcntl(_outFd, F_SETFL, flags) == -1) 
+	// 	throw WebservException("Failed to fcntl set_flag: " + std::string(strerror(errno)));
     _main->addFdToPoll(_inFd, _main->get_EpollFd(FILES), EPOLLIN);
     _main->addFdToMap(_inFd, this);
 	_main->addFdToPoll(_outFd, _main->get_EpollFd(FILES), EPOLLOUT);

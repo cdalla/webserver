@@ -55,6 +55,7 @@ class Webserver
         void	remove_Cgi_handler(Cgi *to_remove);
         void	remove_File_handler(File *to_remove);
         bool	is_in_map(int fd);
+		bool 	is_PortInUse(unsigned int port, std::string ip, std::vector<Server>::iterator end);
         int     get_EpollFd(int type);
         
         class Config		config;

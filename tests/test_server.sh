@@ -162,7 +162,7 @@ fi
 
 # Step 2: Verify upload
 echo -e "\n${GREEN}Step 2: Verifying upload${NC}"
-if [ ! -f "/mnt/c/Users/dmonf/OneDrive/Desktop/new/www/bash_test/test_image.png" ]; then
+if [ ! -f "/home/cdalla-s/Desktop/webserv/www/bash_test/test_image.png" ]; then
     echo -e "${RED}File not found in upload directory${NC}"
     exit 1
 fi
@@ -174,7 +174,7 @@ echo "Delete Response: $delete_response"
 
 # Step 4: Verify deletion
 echo -e "\n${GREEN}Step 4: Verifying deletion${NC}"
-if [ -f "/mnt/c/Users/dmonf/OneDrive/Desktop/new/www/bash_test/test_image.png" ]; then
+if [ -f "/home/cdalla-s/Desktop/webserv/www/bash_test/test_image.png" ]; then
     echo -e "${RED}File still exists after deletion${NC}"
     exit 1
 else   
