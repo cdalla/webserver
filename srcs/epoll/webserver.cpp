@@ -13,10 +13,13 @@ Webserver::Webserver(std::string default_config) : config(default_config.c_str()
 Webserver::~Webserver()
 {
 	std::cout << "destructor" << std::endl;
-	std::map<int, Fd_handler *>::iterator it = _fds.begin();
-	for (; it != _fds.end(); ++it)
+	
+	for (std::map<int, Fd_handler *>::iterator it = _fds.begin(); it != _fds.end(); ++it)
 	{
-		if (dynamic_cast<Client *>(it->second) || dynamic_cast<Server *>(it->second))
+		std::cout << it->first << std::endl;
+		if (dynamic_cast<Client *>(it->second))
+			removeFd(it->first, CONN, 1);
+		else if (dynamic_cast<Server *>(it->second))
 			removeFd(it->first, CONN, 0);
 		else if(dynamic_cast<Cgi *>(it->second))
 			remove_Cgi_handler(dynamic_cast<Cgi *>(it->second));
@@ -29,11 +32,13 @@ Webserver::~Webserver()
 
 bool Webserver::is_PortInUse(unsigned int port, std::string ip, std::vector<Server>::iterator end)
 {
-	std::vector<Server>::iterator it = _servers.begin();
-	for (; it != end; ++it)
+	
+	for (std::vector<Server>::iterator it = _servers.begin(); it != end; ++it)
 	{
 		if ((*it).getPort() == port)
+		{
 			return true;
+		}
 	}
 	return false;
 }
@@ -44,13 +49,13 @@ bool Webserver::is_PortInUse(unsigned int port, std::string ip, std::vector<Serv
 void    Webserver::servers_init()
 {
 	for (std::vector<VirtualServer>::iterator it = config.servers.begin(); it != config.servers.end(); it++) {
-		
-		_servers.push_back(Server(*it, this, &config));
+		if (!is_PortInUse((*it).listen, (*it).ip, _servers.end()))
+			_servers.push_back(Server(*it, this, &config));
 	}
-    std::vector<Server>::iterator it = _servers.begin();
-	for (; it != _servers.end(); ++it)
+	
+	for (std::vector<Server>::iterator it = _servers.begin(); it != _servers.end(); ++it)
 	{
-		if (!is_PortInUse((*it).getPort(),(*it).getIp(), it))
+		//if (!is_PortInUse((*it).getPort(),(*it).getIp(), it))
 			(*it).createSocket();
 	}
 }

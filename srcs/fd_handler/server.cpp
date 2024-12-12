@@ -40,7 +40,6 @@ uint32_t ipStringToDecimal( const std::string ip_address ) {
 
 void Server::createSocket()
 {
-	
 	_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (_fd < 0)
 		throw WebservException("Failed to create new socket: " + std::string(strerror(errno)));
@@ -66,7 +65,7 @@ void Server::createSocket()
 	if (listen(_fd, MAX_CONNECTIONS) < 0)
 		throw WebservException("Failed to listen on socket: " + std::string(strerror(errno)));
 	
-	std::cout << "server listening on port " << _port << "!" << std::endl;
+	std::cout << "server listening on port " << _port << ", fd: " << _fd << "!" << std::endl;
 }
 
 
