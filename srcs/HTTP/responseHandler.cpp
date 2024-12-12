@@ -357,7 +357,7 @@ void responseHandler::_createResponse(void)
 // The directory listing need to be clickable so we use HTML
 void responseHandler::_handleDirectory(std::string path)
 {
-    _client->status == "OK";
+    _client->status = "OK";
     DIR *dir = opendir(path.c_str());
     if (dir == NULL)
     {
@@ -452,7 +452,7 @@ void responseHandler::_handleDirRequest(std::string path)
 // because it's the most common and the browser will not cache the redirect
 void responseHandler::_handleRedirect(std::string path)
 {
-    _client->status == "OK";
+    _client->status = "OK";
     std::cout << "Create a redirect to: " << path << std::endl;
     _response = "HTTP/1.1 302 Found\r\n";
     _response += "Location: " + path + "\r\n";

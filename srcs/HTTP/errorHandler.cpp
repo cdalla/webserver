@@ -83,7 +83,7 @@ void responseHandler::_handleDefaultError(int error) {
 
 void responseHandler::_handleError(int error) {
     std::cout << "Error: " << error << std::endl;
-    _client->status == "OK";
+    _client->status = "OK";
     if (_error_pages.empty()) {
         if (!_config->error_pages.empty()) {
             _error_pages = _config->error_pages;
