@@ -35,13 +35,21 @@ Cgi::Cgi(Webserver *ptr, const char *script, char *const *env, std::string body,
 Cgi::~Cgi()
 {
     int exitstatus;
+    
     if (waitpid(_pid, &exitstatus, WNOHANG) == 0)
     {
-		this->_client->request.error = 504;
-        this->_client->file_content.clear();
-        this->_client->status = "OK";
-        kill(_pid, SIGQUIT);
+        kill(_pid, SIGKILL);
+        waitpid(_pid, &exitstatus, 0);
+        if (_client)
+        {
+        	_client->request.error = 504;
+        	_client->file_content.clear();
+        	_client->status = "OK";
+        }
+        _pid = -1; // Mark as handled
     }
+    _inFd = -1;
+    _outFd = -1;
 }
 
 void Cgi::input()

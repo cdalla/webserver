@@ -33,10 +33,7 @@ bool Webserver::is_PortInUse(unsigned int port, std::string ip, std::vector<Serv
 	for (; it != end; ++it)
 	{
 		if ((*it).getPort() == port)
-		{
-			
 			return true;
-		}
 	}
 	return false;
 }
@@ -58,15 +55,35 @@ void    Webserver::servers_init()
 	}
 }
 
-void	Webserver::remove_Cgi_handler(Cgi *to_remove)
+void Webserver::remove_Cgi_handler(Cgi* to_remove)
 {
-	print_error("Removing cgi fd for timeout");
-	int inFd = to_remove->get_inFd();
-	int outFd = to_remove->get_outFd();
-	if (outFd != -1)
-		removeFd(outFd, FILES, 0);
-	if (inFd != -1)
-		removeFd(inFd, FILES, 1);
+    if (!to_remove) return;
+    
+    print_error("Removing cgi fd for timeout");
+    
+    // Store FDs locally as they might be modified during cleanup
+    int inFd = to_remove->get_inFd();
+    int outFd = to_remove->get_outFd();
+    
+    // Remove from map first to prevent further access
+    if (inFd != -1) _fds.erase(inFd);
+    if (outFd != -1) _fds.erase(outFd);
+    
+    // Then remove from epoll
+    if (outFd != -1)
+    {
+        epoll_ctl(_epollFile, EPOLL_CTL_DEL, outFd, NULL);
+        close(outFd);
+    }
+    if (inFd != -1)
+    {
+        epoll_ctl(_epollFile, EPOLL_CTL_DEL, inFd, NULL);
+        close(inFd);
+    }
+    
+    // Finally delete the object
+    delete to_remove;
+    std::cout << "Cgi removed" << std::endl;
 }
 
 void	Webserver::remove_File_handler(File *to_remove)
@@ -80,28 +97,36 @@ void	Webserver::remove_File_handler(File *to_remove)
 		removeFd(inFd, FILES, 1);
 }
 
-void	Webserver::check_timeouts()
+void Webserver::check_timeouts()
 {
-	std::map<int, Fd_handler *>::iterator it = _fds.begin();
-	for (; it != _fds.end(); ++it)
-	{
-		if (dynamic_cast<Client *>(it->second) && reinterpret_cast<Client *>(it->second)->has_timeout())
-		{
-			dynamic_cast<Client *>(it->second)->request.error = 408;
-			change_event(it->first);
-		}
-		else if((it->second)->has_timeout() && dynamic_cast<Cgi *>(it->second))
-		{
-			remove_Cgi_handler(dynamic_cast<Cgi *>(it->second));
-		}
-		else if((it->second)->has_timeout() && dynamic_cast<File *>(it->second))
-		{
-			dynamic_cast<File *>(it->second)->_client->request.error = 502;
-        	dynamic_cast<File *>(it->second)->_client->file_content.clear();
-        	dynamic_cast<File *>(it->second)->_client->status.clear();
-			remove_File_handler(dynamic_cast<File *>(it->second));
-		}
-	}
+    std::vector<Fd_handler*> to_remove; // Store handlers to remove after iteration
+    
+    for (std::map<int, Fd_handler*>::iterator it = _fds.begin(); it != _fds.end(); ++it)
+    {
+        if (dynamic_cast<Client*>(it->second) && reinterpret_cast<Client*>(it->second)->has_timeout())
+        {
+            dynamic_cast<Client*>(it->second)->request.error = 408;
+            change_event(it->first);
+        }
+        else if((it->second)->has_timeout() && dynamic_cast<Cgi*>(it->second))
+        {
+            to_remove.push_back(it->second);
+        }
+        else if((it->second)->has_timeout() && dynamic_cast<File*>(it->second))
+        {
+            dynamic_cast<File*>(it->second)->_client->request.error = 502;
+            dynamic_cast<File*>(it->second)->_client->file_content.clear();
+            dynamic_cast<File*>(it->second)->_client->status.clear();
+            remove_File_handler(dynamic_cast<File*>(it->second));
+        }
+    }
+    
+    // Remove CGI handlers after iteration is complete
+    for (size_t i = 0; i < to_remove.size(); i++) {
+        if (Cgi* cgi = dynamic_cast<Cgi*>(to_remove[i])) {
+            remove_Cgi_handler(cgi);
+        }
+    }
 }
 
 bool	Webserver::is_in_map(int fd)

@@ -78,6 +78,7 @@
 	"ranges": "cpp",
 	"span": "cpp",
 	"cinttypes": "cpp",
-	"__config": "cpp"
+	"__config": "cpp",
+	"check": "cpp"
 }
 }
