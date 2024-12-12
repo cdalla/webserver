@@ -162,7 +162,7 @@ fi
 
 # Step 2: Verify upload
 echo -e "\n${GREEN}Step 2: Verifying upload${NC}"
-if [ ! -f "/home/cdalla-s/Desktop/webserv/www/bash_test/test_image.png" ]; then
+if [ ! -f "../www/bash_test/test_image.png" ]; then
     echo -e "${RED}File not found in upload directory${NC}"
     exit 1
 fi
@@ -174,7 +174,7 @@ echo "Delete Response: $delete_response"
 
 # Step 4: Verify deletion
 echo -e "\n${GREEN}Step 4: Verifying deletion${NC}"
-if [ -f "/home/cdalla-s/Desktop/webserv/www/bash_test/test_image.png" ]; then
+if [ -f "../www/bash_test/test_image.png" ]; then
     echo -e "${RED}File still exists after deletion${NC}"
     exit 1
 else   
@@ -187,6 +187,42 @@ cleanup() {
     rm -f large_file.txt small_file.txt test_image.png empty_test.html
 }
 
+
+dd if=/dev/zero of=../www/bash_test/large_file.txt bs=1M count=1024 status=progress
+
+# Verify file was created and is the correct size
+if [ -f "../www/bash_test/large_file.txt" ]; then
+    size=$(stat -f%z "../www/bash_test/large_file.txt" 2>/dev/null || stat -c%s "../www/bash_test/large_file.txt")
+    expected_size=$((1024 * 1024 * 1024))
+    
+    if [ "$size" -eq "$expected_size" ]; then
+        echo -e "${GREEN}Successfully created 1GB file${NC}"
+    else
+        echo -e "${RED}File size incorrect: $size bytes (expected $expected_size bytes)${NC}"
+        exit 1
+    fi
+else
+    echo -e "${RED}Failed to create file${NC}"
+    exit 1
+fi
+
+echo -e "\n${GREEN}Attempting to retrieve file...${NC}"
+
+# Send GET request and measure time and speed
+start_time=$(date +%s)
+
+curl -o /dev/null \
+     -w "Time taken: %{time_total}s\nSpeed: %{speed_download} bytes/sec\nHTTP code: %{http_code}\n" \
+     http://localhost:8062/large_file.txt
+
+end_time=$(date +%s)
+duration=$((end_time - start_time))
+
+echo "Total duration: ${duration} seconds"
+
+# Cleanup
+echo -e "\n${GREEN}Cleaning up...${NC}"
+rm -f "../www/bash_test/large_file.txt"
 # Register cleanup
 trap cleanup EXIT
 
