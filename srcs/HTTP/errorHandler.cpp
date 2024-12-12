@@ -58,7 +58,7 @@ void responseHandler::_handleErrorPage(int error, std::string error_page) {
         return;
     }
     if (_client->file_content.empty()) {
-        _client->error_page = new File(error_path, _main, _client);
+        File *error_page = new File(error_path, _main, _client);
         _client->status = "FILE";
     } else {
         _client->status = "OK";

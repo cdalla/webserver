@@ -6,7 +6,7 @@
 #    By: nsterk <nsterk@student.codam.nl>             +#+                      #
 #                                                    +#+                       #
 #    Created: 2022/04/13 14:42:55 by nsterk        #+#    #+#                  #
-#    Updated: 2024/11/16 14:55:53 by cdalla-s      ########   odam.nl          #
+#    Updated: 2024/12/12 13:16:04 by cdalla-s      ########   odam.nl          #
 #                                                                              #
 # **************************************************************************** #
 
@@ -21,7 +21,7 @@ SRCS		=	main.cpp webserver.cpp webserver_epoll.cpp utils.cpp client.cpp server.c
 OBJS		=	$(addprefix $(OBJ_DIR)/, $(SRCS:.cpp=.o))
 
 CC			:=	c++
-FLAGS		:= -std=c++11 -g -I$(INC_DIR) -fsanitize=address
+FLAGS		:= -std=c++11 -g -I$(INC_DIR) #-fsanitize=address
 
 all:		$(NAME)
 

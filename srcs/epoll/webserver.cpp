@@ -12,16 +12,19 @@ Webserver::Webserver(std::string default_config) : config(default_config.c_str()
 
 Webserver::~Webserver()
 {
+	std::cout << "destructor" << std::endl;
 	std::map<int, Fd_handler *>::iterator it = _fds.begin();
 	for (; it != _fds.end(); ++it)
 	{
 		if (dynamic_cast<Client *>(it->second) || dynamic_cast<Server *>(it->second))
 			removeFd(it->first, CONN, 0);
-		else if((it->second)->has_timeout() && dynamic_cast<Cgi *>(it->second))
+		else if(dynamic_cast<Cgi *>(it->second))
 			remove_Cgi_handler(dynamic_cast<Cgi *>(it->second));
-		else if((it->second)->has_timeout() && dynamic_cast<File *>(it->second))
+		else if(dynamic_cast<File *>(it->second))
 			remove_File_handler(dynamic_cast<File *>(it->second));
 	}
+	close(_epollConn);
+	close(_epollFile);
 }
 
 /*
@@ -112,6 +115,7 @@ int		Webserver::get_EpollFd(int type)
 */
 void	Webserver::run()
 {
+	//throw WebservException("testing close fd");
     struct epoll_event	events_queue[MAX_EVENTS];
 	int readyFds = 0;
 	while (true)

@@ -17,15 +17,14 @@ int main(int argc, char **argv)
 	}
 
 	signal(SIGINT, sig_handler);
-
 	std::string config_file = "configurations/default.conf";
 	if (argc ==  2)
 		config_file = std::string(argv[1]);
 	Webserver webserv(config_file);
-	try 
+	try
 	{
 		webserv.run();
-	} 
+	}
 	catch (std::exception &e) 
 	{
 		std::cerr << e.what() << std::endl;

@@ -16,7 +16,14 @@ File::File(std::string filename, Webserver* ptr, Client* client): _main(ptr), _c
         	throw WebservException("Failed to dup: " + std::string(strerror(errno)));
 	close(_pipe[1]);
 	close(_pipe[0]);
+	
 	int flags;
+	flags = fcntl(_inFd, F_GETFL, 0);
+    if (flags == -1)
+		throw WebservException("Failed to fcntl get_flag: " + std::string(strerror(errno)));
+	flags = fcntl(_outFd, F_GETFL, 0);
+    if (flags == -1)
+		throw WebservException("Failed to fcntl get_flag: " + std::string(strerror(errno)));
 	flags |= O_NONBLOCK;
     if (fcntl(_inFd, F_SETFL, flags) == -1) 
 		throw WebservException("Failed to fcntl set_flag: " + std::string(strerror(errno)));

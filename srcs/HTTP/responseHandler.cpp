@@ -193,7 +193,7 @@ void responseHandler::_handlePage(std::string path)
     if (_client->file_content.empty() &&
         !(stat(path.c_str(), &fileStat) == 0 && fileStat.st_size == 0))
     {
-        _client->file = new File(path, _main, _client);
+        File *file = new File(path, _main, _client);
         _client->status = "FILE";
     }
     else
@@ -280,7 +280,7 @@ void responseHandler::_handleCGI(std::string path)
         _createEnv();
         if (_client->file_content.empty())
         {
-            _client->cgi = new Cgi(_main, path.c_str(), _env, _client->request.body.empty() ? "" : _client->request.body, _client);
+            Cgi *cgi = new Cgi(_main, path.c_str(), _env, _client->request.body.empty() ? "" : _client->request.body, _client);
             _client->status = "CGI";
         }
         else
