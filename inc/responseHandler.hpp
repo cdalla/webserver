@@ -17,7 +17,7 @@ class responseHandler {
     private:
 		
 		Client* _client;
-		VirtualServer _config;
+		VirtualServer* _config;
 		Webserver* _main;
 		std::string _file;
 		std::string _content_type;

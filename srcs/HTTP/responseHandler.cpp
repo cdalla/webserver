@@ -39,7 +39,9 @@ responseHandler::responseHandler(Client *ptr) :
 }
 
 responseHandler::~responseHandler(void){
+  
 	if (_env != NULL){
+        std::cout << "Destructor called" << std::endl;
 		for (int i = 0; i < 33; ++i){
 			if (_env[i] != NULL){
 				delete[] _env[i];
@@ -58,7 +60,7 @@ void responseHandler::_setRightConfig(void){
 	size_t colonPos = server_name.find(':');
     	if (colonPos != std::string::npos)
 	        server_name.erase(colonPos);
-	std::vector<VirtualServer>  servers = _client->_config->servers;
+	std::vector<VirtualServer>  &servers = _client->_config->servers;
 	std::vector<VirtualServer*> port_matches;
     
     for (std::vector<VirtualServer>::iterator server = servers.begin(); server != servers.end(); ++server) {
@@ -68,14 +70,14 @@ void responseHandler::_setRightConfig(void){
     }
     for (std::vector<VirtualServer*>::iterator server = port_matches.begin(); server != port_matches.end(); ++server) {
         if ((*server)->server_name == server_name) {
-            _config = **server;
+            _config = *server;
             return;
         }
     }    
     if (port_matches.empty()) {
         for (std::vector<VirtualServer>::iterator server = servers.begin(); server != servers.end(); ++server) {
             if (server->listen == port) {
-		        _config = *server;
+		        _config = &(*server);
 		        return;
             }
         }
@@ -83,17 +85,17 @@ void responseHandler::_setRightConfig(void){
     
     for (std::vector<VirtualServer*>::iterator server = port_matches.begin(); server != port_matches.end(); ++server) {
         if ((*server)->server_name == server_name) {
-            _config = **server;
+            _config = *server;
 	        return ;
         }
     }
     
     if (!port_matches.empty()) {
-        _config = *port_matches[0];
+        _config = port_matches[0];
 		return;
     }
 
-    _config = servers[0];
+    _config = &servers[0];
 }
 
 std::string responseHandler::get(void){
@@ -156,9 +158,10 @@ void responseHandler::_handlePage(std::string path){
     struct stat fileStat;
 	if (_client->file_content.empty() &&
         !(stat(path.c_str(), &fileStat) == 0 && fileStat.st_size == 0)){
-        File *file = new File(path, _main, _client);
+        _client->file = new File(path, _main, _client);
         _client->status = "FILE";
 	} else {
+
         _client->status = "OK";
         _determineType(path);
         _response = "HTTP/1.1 200 OK\r\n";
@@ -228,7 +231,7 @@ void responseHandler::_handleCGI(std::string path){
         }
         _createEnv();
         if (_client->file_content.empty()){
-            Cgi* cgi = new Cgi(_main, path.c_str(), _env, _client->request.body.empty() ? "" :_client->request.body, _client);
+            _client->cgi = new Cgi(_main, path.c_str(), _env, _client->request.body.empty() ? "" :_client->request.body, _client);
             _client->status = "CGI";
         } else {
 			_client->status = "OK";
@@ -260,8 +263,8 @@ void responseHandler::_createEnv(void){
 	_env[9] = joing_string("REQUEST_METHOD=", _client->request.method.c_str());
 	_env[10] = joing_string("REQUEST_URI=", _client->request.uri.c_str());
 	_env[11] = joing_string("SCRIPT_NAME=", _client->request.script_name.c_str());
-	_env[12] = joing_string("SERVER_NAME=", _config.server_name.c_str());
-	_env[13] = joing_string("SERVER_PORT=", std::to_string(_config.listen).c_str());
+	_env[12] = joing_string("SERVER_NAME=", _config->server_name.c_str());
+	_env[13] = joing_string("SERVER_PORT=", std::to_string(_config->listen).c_str());
 	_env[14] = joing_string("SERVER_PROTOCOL=", "HTTP/1.1");
 	_env[15] = joing_string("SERVER_SOFTWARE=", "webserv/1.0");
 	_env[16] = joing_string("CONTENT_LENGTH=", std::to_string(_client->request.body.length()).c_str());
@@ -400,14 +403,14 @@ void responseHandler::_handleRedirect(std::string path) {
 void responseHandler::_locationHandler(std::string path){
     std::cout << "Method: " << _client->request.method << " Path: " << path << std::endl;
     // Reset to server defaults
-    _cgi_ext = _config.cgi_ext;
-    _root = !_config.root.empty() ? _config.root : DEFAULT_ROOT;
-    _upload_dir = _config.upload_dir;
-    _autoindex = _config.autoindex;
-    _index = _config.index;
-    _error_pages = _config.error_pages;
-	_redirect_url = _config.redirect_url;
-    _max_body_size = _config.max_body_size ? _config.max_body_size : _max_body_size;
+    _cgi_ext = _config->cgi_ext;
+    _root = !_config->root.empty() ? _config->root : DEFAULT_ROOT;
+    _upload_dir = _config->upload_dir;
+    _autoindex = _config->autoindex;
+    _index = _config->index;
+    _error_pages = _config->error_pages;
+	_redirect_url = _config->redirect_url;
+    _max_body_size = _config->max_body_size ? _config->max_body_size : _max_body_size;
 
     // Find best matching location using a pointer to avoid copying
     const Location* matched_location = NULL;
@@ -415,7 +418,7 @@ void responseHandler::_locationHandler(std::string path){
     std::string location_prefix;
 
     // 1. First look for exact full path match
-    for (std::vector<Location>::const_iterator it = _config.locations.begin(); it != _config.locations.end(); ++it) {
+    for (std::vector<Location>::const_iterator it = _config->locations.begin(); it != _config->locations.end(); ++it) {
         if (path == it->path) {
             matched_location = &(*it);
             location_prefix = it->path;
@@ -425,7 +428,7 @@ void responseHandler::_locationHandler(std::string path){
 
     // 2. If still no match, try prefix matching (longest wins)
     if (!matched_location) {
-        for (std::vector<Location>::const_iterator it = _config.locations.begin(); it != _config.locations.end(); ++it) {
+        for (std::vector<Location>::const_iterator it = _config->locations.begin(); it != _config->locations.end(); ++it) {
             if (path.compare(0, it->path.length(), it->path) == 0) {
                 if (!matched_location || it->path.length() > longest_match) {
                     matched_location = &(*it);
@@ -436,9 +439,9 @@ void responseHandler::_locationHandler(std::string path){
         }
     }
     if (!matched_location) {
-        if (!_config.methods.empty() && 
-            std::find(_config.methods.begin(), _config.methods.end(), 
-                     _client->request.method) == _config.methods.end()) {
+        if (!_config->methods.empty() && 
+            std::find(_config->methods.begin(), _config->methods.end(), 
+                     _client->request.method) == _config->methods.end()) {
             _handleError(405);
             return;
         }
