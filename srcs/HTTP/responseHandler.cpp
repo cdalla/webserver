@@ -289,7 +289,8 @@ void responseHandler::_createResponse(void){
         return;
     }
     _locationHandler(_client->request.url);
-    if (_response.empty()) {
+    if (_client->status == "OK" && _response.empty()) {
+        std:: cout << "Response is empty" << std::endl;
         _handleError(500);
         return;
     }
@@ -297,6 +298,7 @@ void responseHandler::_createResponse(void){
 
 // The directory listing need to be clickable so we use HTML
 void responseHandler::_handleDirectory(std::string path){
+    _client->status == "OK";
 	DIR *dir = opendir(path.c_str());
 	if (dir == NULL) {
 		_handleError(404);
@@ -335,7 +337,6 @@ void responseHandler::_handleDirectory(std::string path){
 	_response += "Connection: keep-alive\r\n";
 	_response += "\r\n";
 	_response += _body;
-	_client->status = "done";
 }
 
 // directory follow this priority:
@@ -372,19 +373,19 @@ void responseHandler::_handleDirRequest(std::string path)
         _handleDirectory(path);
         return;
     }
-    // If we don't have index files and autoindex is disabled, we return a 404
-    _handleError(404);
+    // If we don't have index files and autoindex is disabled, we return a 403
+    _handleError(403);
 }
 
 // Redirects are simple, we just need to set the Location header
 // we just return the path we decided to use 302 Found
 // because it's the most common and the browser will not cache the redirect
 void responseHandler::_handleRedirect(std::string path) {
+    _client->status == "OK";
     std::cout << "Create a redirect to: " << path << std::endl;
     _response = "HTTP/1.1 302 Found\r\n";
     _response += "Location: " + path + "\r\n";
     _response += "Content-Length: 0\r\n\r\n";
-    _client->status = "done";
 }
 
 // Location handling is complex, first we need to set the server defaults
@@ -476,7 +477,7 @@ void responseHandler::_locationHandler(std::string path){
 	if (matched_location->max_body_size)
 	    _max_body_size = matched_location->max_body_size;
     }
-      
+      std::cout << "redirect url: " << _redirect_url << std::endl;
      // Remove the location prefix from the path for proper file handling
     std::string adjusted_path = path;
     if (matched_location && path.find(location_prefix) == 0) {

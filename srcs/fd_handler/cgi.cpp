@@ -39,7 +39,7 @@ Cgi::~Cgi()
     {
 		this->_client->request.error = 504;
         this->_client->file_content.clear();
-        this->_client->status.clear();
+        this->_client->status = "OK";
         kill(_pid, SIGQUIT);
     }
 }
@@ -51,7 +51,7 @@ void Cgi::input()
     ssize_t bytes = read(_inFd, buff, MAX_BUFF);
     if (bytes == 0)
     {
-        _client->status.clear();
+        _client->status = "OK";
         _main->removeFd(_inFd, FILES, 1);
     }
     else if (bytes < 0)
@@ -103,12 +103,12 @@ void Cgi::hangup()
 		    case 137:
 			    this->_client->request.error = 504;
                 this->_client->file_content.clear();
-                this->_client->status.clear();
+                this->_client->status = "OK";
 			    break ;
 		    case 3328:
 			    this->_client->request.error = 403;
 			    this->_client->file_content.clear();
-                this->_client->status.clear();
+                this->_client->status = "OK";
                 break ;
 		    case 0:
 			    break ;
@@ -116,7 +116,7 @@ void Cgi::hangup()
 		    default:
 			    this->_client->request.error = 502;
                 this->_client->file_content.clear();
-                this->_client->status.clear();
+                this->_client->status = "OK";
                 break ;
 	    }
     }

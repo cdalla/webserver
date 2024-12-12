@@ -40,7 +40,7 @@ void File::input()
 		throw WebservException("Failed to read pipe in");
 	else if (bytes_r == 0)
 	{
-		_client->status.clear();
+		_client->status = "OK";
 		_main->removeFd(_inFd, FILES, 1);
 	}
 	else
@@ -48,7 +48,7 @@ void File::input()
 		_client->file_content.append(_buff, bytes_r);
 		if (_client->file_content.size() == (size_t)_file_size)
 		{
-			_client->status.clear();
+			_client->status = "OK";
 			_main->removeFd(_inFd, FILES, 1);
 		}
 	}

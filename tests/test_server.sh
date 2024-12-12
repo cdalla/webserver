@@ -53,11 +53,23 @@ for file in "server_1.html" "server_2.html" "server_3.html" "server_4.html" "ser
         "curl -s http://localhost:8062/ | grep -q '<a href=\"/$file\">$file</a>'"
 done
 
+# This should return 403 Forbidden since autoindex is off and no index file is specified
+test_endpoint "Directory listing disabled - Status code" \
+    "response=\$(curl -s -w '%{http_code}' http://localhost:8062/empty/) && [[ \$response == *'403'* ]]"
+
+
 # Test forbidden methods (should return 405 Method Not Allowed)
 for method in PUT PATCH OPTIONS HEAD TRACE CONNECT; do
     test_endpoint "Forbidden $method method" \
         "curl -s -X $method http://localhost:8062/ -w '%{http_code}' | grep -q '501'"
 done
+
+# test problem in the CGI script
+test_endpoint "GET CGI infinite loop" \
+    "curl -s -X GET http://localhost:8064/infinite.py -w '%{http_code}' | grep -q '504'"
+
+test_endpoint "GET CGI mistake in the script" \
+    "curl -s -X GET http://localhost:8064/mistake.py -w '%{http_code}' | grep -q '502'"
 
 # Upload tests
 test_endpoint "Small file upload" \
@@ -94,6 +106,21 @@ test_timeout() {
 # Run timeout test
 test_timeout
 
+# Test redirect status and location header
+test_endpoint "Redirect - Status code and Location header" \
+    "curl -s -i  http://localhost:8065/redirect | grep -q '302\|Location: /redirect/'"
+
+test_endpoint "Redirect - Status code and Location header" \
+    "curl -s -i http://localhost:8065/redirect/ | grep -q '302\|Location: /page/'"
+
+# Test complete redirect chain
+test_endpoint "Full redirect chain with content" \
+    "curl -s -L http://localhost:8065/redirect/ | grep -q 'rederircted'"
+
+# Test final destination
+test_endpoint "Direct access to destination page" \
+    "curl -s http://localhost:8065/page/ | grep -q 'rederircted'"
+
 # Test server responsiveness after timeout
 test_endpoint "Server responsiveness after timeout" \
     "curl -s --max-time 5 http://localhost:8062/ | grep -q '<title>Directory listing</title>'"
@@ -101,6 +128,17 @@ test_endpoint "Server responsiveness after timeout" \
 # Test POST with wrong content type
 test_endpoint "POST with invalid content type" \
     "curl -s -X POST -H 'Content-Type: text/plain' --data 'test' http://localhost:8060/upload.sh -w '%{http_code}' | grep -q '502'"
+
+
+# Test method restrictions at root
+echo -e "\n${GREEN}Testing method restrictions at root location:${NC}"
+
+
+test_endpoint "POST method should be allowed at root" \
+    "curl -s -X POST http://localhost:8065/ -w '%{http_code}' | grep -q '408'"
+
+test_endpoint "GET method should be forbidden at root" \
+    "response=\$(curl -s -X GET http://localhost:8065/ -w '%{http_code}') && [[ \$response == *'405'* ]]"
 
 # Create a test file
 echo "Creating test image..."
