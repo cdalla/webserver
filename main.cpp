@@ -20,9 +20,9 @@ int main(int argc, char **argv)
 	std::string config_file = "configurations/default.conf";
 	if (argc ==  2)
 		config_file = std::string(argv[1]);
-	Webserver webserv(config_file);
 	try
 	{
+		Webserver webserv(config_file);
 		webserv.run();
 	}
 	catch (std::exception &e) 

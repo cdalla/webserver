@@ -52,8 +52,9 @@ void responseHandler::_handleErrorPage(int error, std::string error_page) {
     std::string error_path = path + error_page;
     if (access(error_path.c_str(), F_OK) == -1) {
         _handleDefaultError(404);
+        return;
     }
-    if (access(error_path.c_str(), R_OK) == -1) {
+    else if (access(error_path.c_str(), R_OK) == -1) {
         _handleDefaultError(403);
         return;
     }

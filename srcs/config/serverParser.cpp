@@ -33,6 +33,8 @@ serverParser::serverParser(void) : baseParser<VirtualServer>() {
 	context.server_name = "";
 	context.root = "";
 	context.max_body_size = 0;
+	context.upload_dir = "";
+	context.redirect_url = "";
 };
 
 serverParser::~serverParser(void) {};
@@ -195,12 +197,13 @@ void	serverParser::parseLocation(std::vector<std::string> &tokens, std::vector<s
 /**
  * loop through locations, see if location with path "/" exists
  * if yes, return
- * if no, create location with path "/". Copy directives from context (representing a VirtulServer) to newly created "/" location and push location to back of _locations vector
+ * if no, create location with path "/". Copy directives from context (representing a VirtualServer) to newly created "/" location and push location to back of _locations vector
  */
+
 void	serverParser::checkHomeLocation(void) {
 
 	for (std::vector<Location>::iterator it = context.locations.begin(); it != context.locations.end(); it++) {
-		if ((*it).path == "/") // to do: set empty directives to the default settings
+		if ((*it).path == "/")
 			return ;
 	}
 
@@ -212,7 +215,7 @@ void	serverParser::checkHomeLocation(void) {
 	home.redirect_url = context.redirect_url;
 	home.max_body_size = context.max_body_size;
 	home.autoindex = context.autoindex;
- home.index.assign(context.index.begin(), context.index.end());
+  	home.index.assign(context.index.begin(), context.index.end());
     home.methods.assign(context.methods.begin(), context.methods.end());
 	home.error_pages = context.error_pages;
 	// to do: set empty directives to the default settings

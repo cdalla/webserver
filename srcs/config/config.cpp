@@ -47,10 +47,15 @@ void	Config::parseConfig(void) {
 		}
 		i++;
 	}
-	// for (int i =0; i < servers.size(); i++)
-	// {
-	// 	std::cout << servers[i] << std::endl;
-	// }
+	if (!servers.size())
+		throw std::runtime_error("Configuration error: no servers in configuration file");
+
+	for (int i =0; i < servers.size(); i++)
+	{
+		if (servers[i].listen == 0)
+			throw std::runtime_error("Configuration error: one or more servers is missing listen directive");
+		// std::cout << servers[i] << std::endl;
+	}
 };
 
 std::ostream&   operator<<(std::ostream& out, Config const &obj) {
