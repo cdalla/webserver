@@ -46,7 +46,6 @@ class Webserver
         void    removeFromEpoll(int fd, int type);
         void    check_timeouts();
         void    cleanup();
-        void    run();
 
     public: 
         
@@ -60,6 +59,7 @@ class Webserver
         bool	is_in_map(int fd);
         int     get_EpollFd(int type);
         void    removeFd(int fd, int type, int del);
+        void    run();
         
 
 };
