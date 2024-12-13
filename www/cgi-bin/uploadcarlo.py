@@ -30,7 +30,7 @@ if fileitem.filename:
 		<!DOCTYPE html>
 
 		<head>
-			<link rel="stylesheet" type="text/css" href="style.css">
+			<link rel="stylesheet" type="text/css" href="html/style.css">
 			<title>Friggin dope HTML page</title>
 		</head>
 
@@ -43,7 +43,7 @@ if fileitem.filename:
 			</div>
 			<div class="container">
 				<div class="image">
-					<img src="img/IllusionsMichael.jpg" width="400" height="400" alt="ILLUSIONS, michael"/>
+					<img src="html/img/IllusionsMichael.jpg" width="400" height="400" alt="ILLUSIONS, michael"/>
 				</div>
 				<div class="text">
 					Your file was successfully uploaded! Yippyyyy!
@@ -52,7 +52,7 @@ if fileitem.filename:
 			<div class="footer">
 				<ul id="footer"></ul>
 			</div>
-			<script src="menu.js" defer></script>
+			<script src="html/menu.js" defer></script>
 		</body>
 		</html>
 		"""
@@ -65,7 +65,7 @@ else:
 	<!DOCTYPE html>
 
 	<head>
-		<link rel="stylesheet" type="text/css" href="style.css">
+		<link rel="stylesheet" type="text/css" href="html/style.css">
 	<title>Friggin dope HTML page</title>
 	</head>
 
@@ -78,7 +78,7 @@ else:
 		</div>
 		<div class="container">
 			<div class="image">
-				<img src="img/IllusionsMichael.jpg" width="400" height="400" alt="ILLUSIONS, michael"/>
+				<img src="html/img/IllusionsMichael.jpg" width="400" height="400" alt="ILLUSIONS, michael"/>
 			</div>
 			<div class="text">
 				Something went wrong with uploading the file, boohoo!
@@ -87,7 +87,7 @@ else:
 		<div class="footer">
 			<ul id="footer"></ul>
 		</div>
-		<script src="menu.js" defer></script>
+		<script src="html/menu.js" defer></script>
 	</body>
 	</html>
 	"""

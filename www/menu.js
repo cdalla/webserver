@@ -76,7 +76,7 @@ document.addEventListener("DOMContentLoaded", function () {
 			<a
 				class="menu"
 				href="upload2.html">
-					upload2
+					da bonus upload
 			</a>
 		</li>
     `;

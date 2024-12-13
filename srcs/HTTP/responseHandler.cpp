@@ -414,7 +414,7 @@ void responseHandler::_handleDirRequest(std::string path)
     // First check if we have index files and if they are accessible
     for (std::vector<std::string>::iterator it = _index.begin(); it != _index.end(); ++it)
     {
-        // std::cout << "Checking index file: " << *it << std::endl;
+        std::cout << "Checking index file: " << *it << std::endl;
         if (path.empty() || path[path.length() - 1] != '/')
         {
             path += "/";
