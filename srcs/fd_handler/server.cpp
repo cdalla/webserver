@@ -94,7 +94,6 @@ void Server::input()
 		print_error("client already present");
 		delete client;
 	}
-	std::cout << "added client with fd: " << client->get_fd() <<   std::endl;
 }
 
 void Server::output()

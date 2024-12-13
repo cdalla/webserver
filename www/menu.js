@@ -72,5 +72,12 @@ document.addEventListener("DOMContentLoaded", function () {
 					upload
 			</a>
 		</li>
+		<li class="menu">
+			<a
+				class="menu"
+				href="upload2.html">
+					upload2
+			</a>
+		</li>
     `;
 });

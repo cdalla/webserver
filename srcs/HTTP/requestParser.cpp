@@ -22,7 +22,7 @@ RequestParser::~RequestParser(void){
 
 
 int st_check_method(std::string method){
-	std::cout << "method " << method << std::endl;
+	// std::cout << "method " << method << std::endl;
 	if (method.compare("GET") == 0)
 		return GET;
 	if (method.compare("POST") == 0)

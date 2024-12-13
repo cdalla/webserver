@@ -56,7 +56,7 @@ responseHandler::~responseHandler(void)
 
 void responseHandler::_setRightConfig(void)
 {
-    std::cout << _client->request.headers["Host"] << std::endl;
+    // std::cout << _client->request.headers["Host"] << std::endl;
     unsigned int port = _client->server->getPort();
     std::string host = _client->server->getIp();
     std::string server_name = _client->request.headers["Host"];
@@ -170,7 +170,7 @@ void responseHandler::_determineType(std::string path)
 //
 void responseHandler::_handlePage(std::string path)
 {
-    std::cout << "The request is a Page" << std::endl;
+    // std::cout << "The request is a Page" << std::endl;
     if (_client->request.method == "POST" || _client->request.method == "DELETE")
     {
         _handleError(405);
@@ -262,7 +262,7 @@ std::string CGIResponseParser(std::string CGIResponse)
 // once the script is done we parse the response
 void responseHandler::_handleCGI(std::string path)
 {
-    std::cout << "The request is a CGI" << std::endl;
+    // std::cout << "The request is a CGI" << std::endl;
     if (_client->cgi_result.empty())
     {
         if (access(path.c_str(), F_OK) == -1)
@@ -409,12 +409,12 @@ void responseHandler::_handleDirectory(std::string path)
 // 3. If we don't have index files and autoindex is disabled, we return a 404
 void responseHandler::_handleDirRequest(std::string path)
 {
-    std::cout << "The request is a Directory" << std::endl;
-    std::cout << "Path: " << path << std::endl;
+    // std::cout << "The request is a Directory" << std::endl;
+    // std::cout << "Path: " << path << std::endl;
     // First check if we have index files and if they are accessible
     for (std::vector<std::string>::iterator it = _index.begin(); it != _index.end(); ++it)
     {
-        std::cout << "Checking index file: " << *it << std::endl;
+        // std::cout << "Checking index file: " << *it << std::endl;
         if (path.empty() || path[path.length() - 1] != '/')
         {
             path += "/";
@@ -564,7 +564,7 @@ void responseHandler::_locationHandler(std::string path)
         if (matched_location->max_body_size)
             _max_body_size = matched_location->max_body_size;
     }
-    std::cout << "redirect url: " << _redirect_url << std::endl;
+    // std::cout << "redirect url: " << _redirect_url << std::endl;
     // Remove the location prefix from the path for proper file handling
     std::string adjusted_path = path;
     if (matched_location && path.find(location_prefix) == 0)
