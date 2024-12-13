@@ -24,7 +24,7 @@ This webserver takes one argument: a configuration file. Sample configuration fi
 To run the project on Linux, execute the program with the desired configuration via the command line, like so:
 
 ```bash
-./webserver path_to_config_file
+./webserv path_to_config_file
 ```
 
 **Non-linux**  

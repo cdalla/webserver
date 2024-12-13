@@ -153,6 +153,9 @@ void	serverParser::parseListen(std::vector<std::string> &args) {
 		throw std::runtime_error("Configuration error: invalid listen directive - port not a valid integer");
 	}
 
+	if (context.listen >= 65536 || context.listen < 1024)
+		throw std::runtime_error("Configuration error: Port number out of range");
+
 }
 
 // to do: plz ignore this empty function for now
