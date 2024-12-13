@@ -3,6 +3,7 @@
 
 File::File(std::string filename, Webserver* ptr, Client* client): _main(ptr), _client(client), _buff(""), _file_size(0)
 {
+	print_error("creating new file handler");
 	reset_last_activity();
 	_fd = open(filename.c_str(), O_RDONLY);
 	if (_fd < 0)
@@ -65,6 +66,7 @@ void File::input()
 
 void File::output()
 {
+	std::cout << "file output fd: " << _outFd << std::endl;
 	ssize_t bytes_r = read(_fd, _buff, MAX_BUFF);
 	if (bytes_r < 0)
 		throw WebservException("Failed to read file in file_handler");

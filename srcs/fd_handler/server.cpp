@@ -47,7 +47,7 @@ void Server::createSocket()
 	int sockoption = 1;
 	if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &sockoption, sizeof(sockoption)) < 0)
 		throw WebservException("Failed to setsockopt: " + std::string(strerror(errno)));
-	//make_socket_non_blocking(_fd);
+	make_socket_non_blocking(_fd);
 	uint32_t ip;
 	if (!_ip.empty())
 		ip = ipStringToDecimal(_ip);
@@ -89,8 +89,12 @@ void Server::input()
 		_main->addFdToMap(client->get_fd(), client);
 	}
 	else
+	{
+
+		print_error("client already present");
 		delete client;
-	std::cout << "added client" << std::endl;
+	}
+	std::cout << "added client with fd: " << client->get_fd() <<   std::endl;
 }
 
 void Server::output()

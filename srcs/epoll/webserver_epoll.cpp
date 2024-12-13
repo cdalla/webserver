@@ -48,28 +48,3 @@ void	Webserver::change_event(int fd)
 		throw WebservException("Failed to modify epoll event: " + std::string(strerror(errno)));
 }
 
-/*
-	REMOVE FD FROM EPOLL INSTANCE
-	REMOVE FROM FDS MAP AND DELETE HIS DATA
-*/
-void    Webserver::removeFd(int fd, int type, int del)
-{
-	if (type == CONN)
-	{
-		if (epoll_ctl(_epollConn, EPOLL_CTL_DEL, fd, NULL) == -1)
-			throw WebservException("Failed to remove socket from epoll: " + std::string(strerror(errno)));
-		if (dynamic_cast<Client *>(_fds[fd]))
-		{
-			delete (_fds[fd]);
-		}
-	}
-	else if (type == FILES)
-	{
-		if (epoll_ctl(_epollFile, EPOLL_CTL_DEL, fd, NULL) == -1)
-			throw WebservException("Failed to remove socket from epoll: " + std::string(strerror(errno)));
-		if (del)
-			delete(_fds[fd]);
-	}
-	_fds.erase(fd);
-	close (fd);
-}

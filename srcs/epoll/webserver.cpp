@@ -1,8 +1,6 @@
 #include "webserver.hpp"
 #include "client.hpp"
 
-
-
 Webserver::Webserver(std::string default_config) : config(default_config.c_str())
 {
 	config.parseConfig();
@@ -10,29 +8,8 @@ Webserver::Webserver(std::string default_config) : config(default_config.c_str()
 	create_Epoll();
 }
 
-Webserver::~Webserver()
-{
-	std::cout << "destructor" << std::endl;
-	
-	for (std::map<int, Fd_handler *>::iterator it = _fds.begin(); it != _fds.end(); ++it)
-	{
-		std::cout << it->first << std::endl;
-		if (dynamic_cast<Client *>(it->second))
-			removeFd(it->first, CONN, 1);
-		else if (dynamic_cast<Server *>(it->second))
-			removeFd(it->first, CONN, 0);
-		else if(dynamic_cast<Cgi *>(it->second))
-			remove_Cgi_handler(dynamic_cast<Cgi *>(it->second));
-		else if(dynamic_cast<File *>(it->second))
-			remove_File_handler(dynamic_cast<File *>(it->second));
-	}
-	close(_epollConn);
-	close(_epollFile);
-}
-
 bool Webserver::is_PortInUse(unsigned int port, std::string ip, std::vector<Server>::iterator end)
 {
-	
 	for (std::vector<Server>::iterator it = _servers.begin(); it != end; ++it)
 	{
 		if ((*it).getPort() == port)
@@ -54,84 +31,7 @@ void    Webserver::servers_init()
 	}
 	
 	for (std::vector<Server>::iterator it = _servers.begin(); it != _servers.end(); ++it)
-	{
-		//if (!is_PortInUse((*it).getPort(),(*it).getIp(), it))
 			(*it).createSocket();
-	}
-}
-
-void Webserver::remove_Cgi_handler(Cgi* to_remove)
-{
-    if (!to_remove) return;
-    
-    print_error("Removing cgi fd for timeout");
-    
-    // Store FDs locally as they might be modified during cleanup
-    int inFd = to_remove->get_inFd();
-    int outFd = to_remove->get_outFd();
-    
-    // Remove from map first to prevent further access
-    if (inFd != -1) _fds.erase(inFd);
-    if (outFd != -1) _fds.erase(outFd);
-    
-    // Then remove from epoll
-    if (outFd != -1)
-    {
-        epoll_ctl(_epollFile, EPOLL_CTL_DEL, outFd, NULL);
-        close(outFd);
-    }
-    if (inFd != -1)
-    {
-        epoll_ctl(_epollFile, EPOLL_CTL_DEL, inFd, NULL);
-        close(inFd);
-    }
-    
-    // Finally delete the object
-    delete to_remove;
-    std::cout << "Cgi removed" << std::endl;
-}
-
-void	Webserver::remove_File_handler(File *to_remove)
-{
-	print_error("Removing file fd for timeout");
-	int inFd = to_remove->get_inFd();
-	int outFd = to_remove->get_outFd();
-	if (outFd != -1)
-		removeFd(outFd, FILES, 0);
-	if (inFd != -1)
-		removeFd(inFd, FILES, 1);
-}
-
-void Webserver::check_timeouts()
-{
-    std::vector<Fd_handler*> to_remove; // Store handlers to remove after iteration
-    
-    for (std::map<int, Fd_handler*>::iterator it = _fds.begin(); it != _fds.end(); ++it)
-    {
-        if (dynamic_cast<Client*>(it->second) && reinterpret_cast<Client*>(it->second)->has_timeout())
-        {
-            dynamic_cast<Client*>(it->second)->request.error = 408;
-            change_event(it->first);
-        }
-        else if((it->second)->has_timeout() && dynamic_cast<Cgi*>(it->second))
-        {
-            to_remove.push_back(it->second);
-        }
-        else if((it->second)->has_timeout() && dynamic_cast<File*>(it->second))
-        {
-            dynamic_cast<File*>(it->second)->_client->request.error = 502;
-            dynamic_cast<File*>(it->second)->_client->file_content.clear();
-            dynamic_cast<File*>(it->second)->_client->status.clear();
-            remove_File_handler(dynamic_cast<File*>(it->second));
-        }
-    }
-    
-    // Remove CGI handlers after iteration is complete
-    for (size_t i = 0; i < to_remove.size(); i++) {
-        if (Cgi* cgi = dynamic_cast<Cgi*>(to_remove[i])) {
-            remove_Cgi_handler(cgi);
-        }
-    }
 }
 
 bool	Webserver::is_in_map(int fd)
@@ -141,9 +41,20 @@ bool	Webserver::is_in_map(int fd)
 	return false;	
 }
 
+void	Webserver::addHandler(Fd_handler *ptr)
+{
+	if (_handlers.empty() || std::find(_handlers.begin(), _handlers.end(), ptr) == _handlers.end())
+	{
+		print_msg("adding handler");
+		_handlers.push_back(ptr);
+	}
+}
+
 void    Webserver::addFdToMap(int fd, Fd_handler *ptr)
 {
+	std::cout << "adding fd to map: " << fd << std::endl;
 	_fds[fd] = ptr;
+	addHandler(ptr);
 }
 
 int		Webserver::get_EpollFd(int type)
@@ -179,7 +90,7 @@ void	Webserver::run()
 				else if (events_queue[n].events & EPOLLOUT && _fds.find(eventFd) != _fds.end())
 					_fds[eventFd]->output();
 				else
-					removeFd(eventFd, CONN, 0);
+					removeFd(eventFd, CONN, 1);
 			}
 		}
 		{
@@ -191,8 +102,11 @@ void	Webserver::run()
             	int eventFd = events_queue[n].data.fd;
 				if (events_queue[n].events & EPOLLIN && _fds.find(eventFd) != _fds.end())
 					_fds[eventFd]->input();
-				else if (events_queue[n].events & EPOLLOUT && _fds.find(eventFd) != _fds.end()) 
+				else if (events_queue[n].events & EPOLLOUT && _fds.find(eventFd) != _fds.end())
+				{
+					print_msg("FILES epoll output");
 					_fds[eventFd]->output();
+				}
 				else if (events_queue[n].events & EPOLLHUP && _fds.find(eventFd) != _fds.end())
 						_fds[eventFd]->hangup();
 			}

@@ -67,6 +67,6 @@ void Client::output()
     delete handler;
     if (bytes <= 0 || (size_t)bytes == response.size())
     {
-        main->removeFd(_fd, CONN, 0);
+        main->removeFd(_fd, CONN, 1);
     }
 }

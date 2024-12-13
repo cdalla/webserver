@@ -42,7 +42,7 @@ responseHandler::~responseHandler(void)
 
     if (_env != NULL)
     {
-        std::cout << "Destructor called" << std::endl;
+        //std::cout << "Destructor called" << std::endl;
         for (int i = 0; i < 33; ++i)
         {
             if (_env[i] != NULL)
