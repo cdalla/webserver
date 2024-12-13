@@ -1,8 +1,6 @@
 #include "client.hpp"
 #include "responseHandler.hpp"
-# include "webserver.hpp"
-
-
+#include "webserver.hpp"
 
 Client::Client(Server *server, Webserver *main, Config* config): server(server), main(main), _config(config)
 {
@@ -15,18 +13,11 @@ Client::Client(Server *server, Webserver *main, Config* config): server(server),
     return ;
 }
 
-
 Client::~Client(void) {
 	delete parser;
 }
 
-/*
-    DEPENDING ON EVENT TYPE:
-        -IN: fill buffer and pass to request handler
-        -OUT: call response handler for data and send data
-*/
-
-
+//-IN: fill buffer and pass to request handler
 void Client::input()
 {
     reset_last_activity();
@@ -51,6 +42,7 @@ void Client::input()
     main->change_event(_fd);
 }
 
+//-OUT: call response handler for data and send data
 void Client::output()
 {
     reset_last_activity();

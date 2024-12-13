@@ -17,7 +17,7 @@ SRCS_DIR	:=	srcs
 OBJ_DIR		:=	objs
 VPATH		:=	$(subst $(space),:,$(shell find srcs -type d))
 
-SRCS		=	main.cpp webserver.cpp webserver_epoll.cpp utils.cpp client.cpp server.cpp responseHandler.cpp requestParser.cpp serverParser.cpp locationParser.cpp config.cpp baseParser.cpp file.cpp cgi.cpp webserver_remove.cpp
+SRCS		=	main.cpp webserver.cpp webserver_epoll.cpp utils.cpp client.cpp server.cpp responseHandler.cpp requestParser.cpp serverParser.cpp locationParser.cpp config.cpp baseParser.cpp file.cpp cgi.cpp webserver_remove.cpp webserver_add.cpp
 OBJS		=	$(addprefix $(OBJ_DIR)/, $(SRCS:.cpp=.o))
 
 CC			:=	c++

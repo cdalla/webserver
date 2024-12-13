@@ -1,12 +1,11 @@
 #include "webserver.hpp"
 #include "utils.hpp"
 
- //flagged non blocking //check return of fcntl
 	/*
 		non-blocking I/O means when reading an fd, if nothing is available,
 		return an error immediately rather than waiting/blocking until data is available.
 	*/
-
+  
 void make_socket_non_blocking(int socket_fd)
 {
     int flags;

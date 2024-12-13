@@ -46,7 +46,7 @@ Cgi::~Cgi()
         	_client->file_content.clear();
         	_client->status = "OK";
         }
-        _pid = -1; // Mark as handled
+        _pid = -1;
     }
     _inFd = -1;
     _outFd = -1;
@@ -151,8 +151,6 @@ void Cgi::execute_child()
     }
     close(_pipeOut[1]);
 	int error = execve(_script, argv, _env);
-	//std::cerr << "after ex " << _script << std::endl;
-	//std::cerr << "Error: " << error << std::endl;
     close(STDIN_FILENO);
     close(STDOUT_FILENO);
     exit(1);

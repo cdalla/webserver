@@ -8,5 +8,8 @@
 # define MAX_SIZE 1024
 # define MAX_BUFF 10000
 # define DEFAULT_ROOT "/var/www/html"
+# define MAX_EVENTS 100
+# define MAX_CONNECTIONS 100
+# define TIMEOUT 5
 
 #endif

@@ -13,19 +13,15 @@
 # include <unistd.h>
 # include <cstring>
 
+# include "defines.hpp"
 # include "colours.hpp"
 # include "structs.hpp"
 # include "config.hpp"
-//# include "server.hpp"
-// # include "client.hpp"
-# include "fd_handler.hpp"
-// # include "response.hpp"
-// # include "request.hpp"
 # include "utils.hpp"
 # include "WebservException.hpp"
-#include "file.hpp"
-#include "cgi.hpp"
-#include "defines.hpp"
+# include "fd_handler.hpp"
+# include "file.hpp"
+# include "cgi.hpp"
 
 class Server;
 class File;
@@ -44,34 +40,27 @@ class Webserver
 
         void    servers_init();
         void    create_Epoll();
-        //void    check_timeouts();
+		bool 	is_PortInUse(unsigned int port, std::string ip, std::vector<Server>::iterator end);
+        void	removeHandler(Fd_handler *ptr);
+        void	addHandler(Fd_handler *ptr);
+        void    removeFromEpoll(int fd, int type);
+        void    check_timeouts();
+        void    cleanup();
+        void    run();
 
     public: 
         
+        class Config		config;
         Webserver(std::string default_config);
         ~Webserver();
 
         void    addFdToPoll(int fd, int epollFd, uint32_t events);
         void    addFdToMap(int fd, Fd_handler *ptr);
         void    change_event(int fd);
-       // void    removeFd(int fd, int type, int del);
-        //void	remove_Cgi_handler(Cgi *to_remove);
-        //void	remove_File_handler(File *to_remove);
         bool	is_in_map(int fd);
-		bool 	is_PortInUse(unsigned int port, std::string ip, std::vector<Server>::iterator end);
         int     get_EpollFd(int type);
-
-        void	removeHandler(Fd_handler *ptr);
-        void	addHandler(Fd_handler *ptr);
-        void    removeFromEpoll(int fd, int type);
         void    removeFd(int fd, int type, int del);
-        void    check_timeouts();
-        void    cleanup();
-
-
         
-        class Config		config;
-        void    run();
 
 };
 

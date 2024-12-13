@@ -1,7 +1,6 @@
 #ifndef SOCKET_HPP
 # define SOCKET_HPP
 
-//#include "webserver.hpp"
 # include <vector>
 # include <map>
 # include <sys/socket.h>
@@ -13,12 +12,7 @@
 # include <cstring>
 # include <chrono>
 
-# define MAX_EVENTS 100
-# define IN 0
-# define OUT 1
-# define MAX_SIZE 1024
-# define MAX_CONNECTIONS 100
-# define TIMEOUT 5
+# include "defines.hpp"
 
 class Fd_handler
 {

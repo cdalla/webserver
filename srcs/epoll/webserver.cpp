@@ -8,18 +8,6 @@ Webserver::Webserver(std::string default_config) : config(default_config.c_str()
 	create_Epoll();
 }
 
-bool Webserver::is_PortInUse(unsigned int port, std::string ip, std::vector<Server>::iterator end)
-{
-	for (std::vector<Server>::iterator it = _servers.begin(); it != end; ++it)
-	{
-		if ((*it).getPort() == port)
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
 /*
 	LOOP TO INITIALIZE SERVER SOCKET
 */
@@ -29,39 +17,8 @@ void    Webserver::servers_init()
 		if (!is_PortInUse((*it).listen, (*it).ip, _servers.end()))
 			_servers.push_back(Server(*it, this, &config));
 	}
-	
 	for (std::vector<Server>::iterator it = _servers.begin(); it != _servers.end(); ++it)
 			(*it).createSocket();
-}
-
-bool	Webserver::is_in_map(int fd)
-{
-	if (_fds.find(fd) != _fds.end())
-		return true;
-	return false;	
-}
-
-void	Webserver::addHandler(Fd_handler *ptr)
-{
-	if (_handlers.empty() || std::find(_handlers.begin(), _handlers.end(), ptr) == _handlers.end())
-	{
-		print_msg("adding handler");
-		_handlers.push_back(ptr);
-	}
-}
-
-void    Webserver::addFdToMap(int fd, Fd_handler *ptr)
-{
-	std::cout << "adding fd to map: " << fd << std::endl;
-	_fds[fd] = ptr;
-	addHandler(ptr);
-}
-
-int		Webserver::get_EpollFd(int type)
-{
-	if (type == CONN)
-		return (_epollConn);
-	return (_epollFile);
 }
 
 /*
@@ -103,10 +60,7 @@ void	Webserver::run()
 				if (events_queue[n].events & EPOLLIN && _fds.find(eventFd) != _fds.end())
 					_fds[eventFd]->input();
 				else if (events_queue[n].events & EPOLLOUT && _fds.find(eventFd) != _fds.end())
-				{
-					print_msg("FILES epoll output");
 					_fds[eventFd]->output();
-				}
 				else if (events_queue[n].events & EPOLLHUP && _fds.find(eventFd) != _fds.end())
 						_fds[eventFd]->hangup();
 			}

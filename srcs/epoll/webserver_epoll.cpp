@@ -23,7 +23,6 @@ void    Webserver::create_Epoll()
 	_epollFile = epoll_create(1);
 	if (_epollFile == -1)
 		throw WebservException("Failed to create epoll instance: " + std::string(strerror(errno)));
-
 }
 
 /*
@@ -39,6 +38,7 @@ void    Webserver::addFdToPoll(int fd, int epollFd, uint32_t events)
 		throw WebservException("Failed to add socket to epoll: " + std::string(strerror(errno)));
 }
 
+//change the epoll event from in to out for client connections
 void	Webserver::change_event(int fd)
 {
 	epoll_event event{};
@@ -47,4 +47,3 @@ void	Webserver::change_event(int fd)
 	if (epoll_ctl(_epollConn, EPOLL_CTL_MOD, fd, &event) == -1)
 		throw WebservException("Failed to modify epoll event: " + std::string(strerror(errno)));
 }
-
